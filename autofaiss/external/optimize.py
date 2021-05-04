@@ -1,0 +1,411 @@
+""" Functions to find optimal index parameters """
+
+import re
+from functools import partial, reduce
+from math import log2, sqrt
+from operator import mul
+from typing import List, Optional
+
+from autofaiss.indices.index_utils import set_search_hyperparameters, speed_test_ms_per_query
+from autofaiss.utils.algorithms import discrete_binary_search
+from autofaiss.utils.cast import cast_memory_to_bytes
+from autofaiss.utils.decorators import Timeit
+
+
+def get_optimal_train_size(
+    nb_vectors: int, index_key: str, current_memory_available: Optional[str], vec_dim: Optional[int]
+) -> int:
+    """
+    Function that determines the number of training points necessary to
+    train the index, based on faiss heuristics for k-means clustering.
+    """
+
+    train_size = nb_vectors
+
+    matching = re.findall(r"IVF\d+|IMI\d+x\d+", index_key)
+
+    if matching:
+
+        nb_clusters = nb_vectors
+        # case IVF index
+        if re.findall(r"IVF\d+", matching[0]):
+            nb_clusters = int(matching[0][3:])
+        # case IMI index
+        elif re.findall(r"IMI\d+x\d+", matching[0]):
+            nb_clusters = 2 ** reduce(mul, [int(num) for num in re.findall(r"\d+", matching[0])])
+
+        points_per_cluster: float = 100
+
+        # compute best possible number of vectors to give to train the index
+        # given memory constraints
+        if current_memory_available and vec_dim:
+            size = cast_memory_to_bytes(current_memory_available)
+            points_per_cluster = max(min(size / (4.0 * nb_clusters * vec_dim), points_per_cluster), 31.0)
+
+        # You will need between 30 * nb_clusters and 256 * nb_clusters to train the index
+        train_size = min(round(points_per_cluster * nb_clusters), nb_vectors)
+
+    return train_size
+
+
+def get_optimal_batch_size(nb_vectors: int, vec_dim: int, current_memory_available: str) -> int:
+    """ compute optimal batch size to use the RAM at its full potential """
+
+    total_size = nb_vectors * vec_dim * 4  # in bytes
+    memory = cast_memory_to_bytes(current_memory_available)
+
+    batch_size = int(0.5 * total_size / memory)
+
+    return batch_size
+
+
+def get_optimal_nb_clusters(nb_vectors: int) -> List[int]:
+    """
+    Returns a list with the recommended number of clusters for an index containing nb_vectors vectors.
+    The first value is the most recommended one.
+    see: https://github.com/facebookresearch/faiss/wiki/Guidelines-to-choose-an-index
+    """
+
+    nb_clusters_list = []
+
+    if nb_vectors < 1_000_000:
+        # no need to use HNSW for small number of clusters
+        x_initial = 4 * sqrt(nb_vectors)  # between 4xsqrt(n) and 16xsqrt(n)
+        x_closest_power = 2 ** round(log2(x_initial))
+        nb_clusters_list.append(round(x_closest_power))
+        nb_clusters_list.append(2 * x_closest_power)
+        nb_clusters_list.append(x_closest_power)
+        nb_clusters_list.append(round(x_initial))
+    elif nb_vectors < 10_000_000:
+        nb_clusters_list.append(16_384)
+        nb_clusters_list.append(65_536)
+    elif nb_vectors < 300_000_000:
+        nb_clusters_list.append(65_536)
+        nb_clusters_list.append(2 ** 17)
+        nb_clusters_list.append(2 ** 18)  # slow training !
+    else:
+        nb_clusters_list.append(2 ** 17)
+        nb_clusters_list.append(2 ** 18)  # slow training !
+        nb_clusters_list.append(65_536)
+        nb_clusters_list.append(2 ** 20)  # very slow training !
+
+    nb_clusters_list = [int(x) for x in nb_clusters_list if x >= 256]
+
+    if not nb_clusters_list:
+        return [256]  # minimum possible value for Faiss IVF
+
+    return nb_clusters_list
+
+
+def get_optimal_index_keys_v2(
+    nb_vectors: int,
+    dim_vector: int,
+    max_index_memory_usage: Optional[str] = None,
+    flat_threshold: int = 1000,
+    hnsw_threshold: int = 10000,
+    high_quantization_threshold: int = 6_000_000,
+    force_pq: Optional[int] = None,
+):
+    """
+    Gives a list of interesting indices to try, *the one at the top is the most promising*
+
+    See: https://github.com/facebookresearch/faiss/wiki/Guidelines-to-choose-an-index for
+    detailed explanations.
+    """
+
+    # assert 24 <= dim_vector <= 144
+
+    if nb_vectors < flat_threshold:  # HNSW Faiss slower when less than 1000 vectors
+        return ["Flat"]
+
+    elif nb_vectors < hnsw_threshold:  # HNSW is faster and quantization is not possible (>=10_000 vectors needed)
+        return ["HNSW15"]
+
+    elif nb_vectors < high_quantization_threshold:  # Quantization is needed
+
+        if force_pq is not None:
+            pq = force_pq
+        elif dim_vector <= 101:
+            # pq >= 24 to avoid an impact on the click rank metric with 101d
+            # see https://confluence.criteois.com/pages/viewpage.action?spaceKey=DEEP&title=Impact+of+Product+Quantization+on+click-rank+and+recall
+            pq = 24
+        elif dim_vector <= 256:
+            pq = 32
+        elif dim_vector <= 700:
+            pq = 48
+        else:
+            pq = 64
+        return get_optimal_quantization(nb_vectors, dim_vector, force_quantization_value=pq)
+
+    else:  # Special case in which the dataset is big, it should fit a memory limit requirement
+        return get_optimal_quantization(nb_vectors, dim_vector, force_max_index_memory_usage=max_index_memory_usage)
+
+
+def get_optimal_quantization(
+    nb_vectors: int,
+    dim_vector: int,
+    force_quantization_value: Optional[int] = None,
+    force_max_index_memory_usage: Optional[str] = None,
+) -> List[str]:
+    """
+    Function that returns a list of relevant index_keys to create quantized indices.
+
+    Parameters:
+    ----------
+    nb_vectors: int
+        Number of vectors in the dataset.
+    dim_vector: int
+        Dimension of the vectors in the dataset.
+    force_quantization_value: Optional[int]
+        Force to use this value as the size of the quantized vectors (PQx).
+        It can be used with the force_max_index_memory_usage parameter,
+        but the result might be empty.
+    force_max_index_memory_usage: Optional[str]
+        Add a memory constraint on the index.
+        It can be used with the force_quantization_value parameter,
+        but the result might be empty.
+
+    Return:
+    -------
+    index_keys: List[str]
+        List of index_keys that would be good choices for quantization.
+        The list can be empty if the given constraints are too strong.
+    """
+
+    # Default values
+    pq_values = [64, 48, 32, 24, 16, 8, 4]
+    targeted_compression_ratio = 0.0  # 0 = no constraint
+
+    # Force compression ratio if required
+    if force_max_index_memory_usage is not None:
+        total_bytes = 4.0 * nb_vectors * dim_vector  # x4 because float32
+        max_mem_bytes = float(cast_memory_to_bytes(force_max_index_memory_usage))
+        targeted_compression_ratio = total_bytes / max_mem_bytes
+
+    # Force quantization value if required
+    if force_quantization_value is not None:
+        pq_values = [force_quantization_value]
+
+    # Compute optimal number of clusters
+    relevant_list: List[str] = []
+    nb_clusters_list = get_optimal_nb_clusters(nb_vectors)
+
+    # Look for matching index keys
+    for pq in pq_values:
+        if pq < dim_vector:
+
+            for nb_clusters in nb_clusters_list:
+
+                # Compute quantized vector size
+                cluster_size_byte = 1 + (log2(nb_clusters) - 1) // 8
+                vector_size_byte = pq + cluster_size_byte
+
+                # Compute compression ratio with quantization PQx
+                compression_ratio = (4 * dim_vector) / vector_size_byte
+
+                # Add index_key if compression ratio is high enough
+                if compression_ratio >= targeted_compression_ratio:
+
+                    # y is a multiple of pq (required)
+                    # y <= d, with d the dimension of the input vectors (preferable)
+                    # y <= 6*pq (preferable)
+                    # here we choose a y slightly bigger than d to avoid losing information
+                    # in case such as 101, 128 is better than 64 to avoid losing information
+                    # in the linear transform
+                    y = (min(dim_vector // pq, 6) + 1) * pq
+                    cluster_opt = f"IVF{nb_clusters}" if nb_clusters < 1000 else f"IVF{nb_clusters}_HNSW32"
+                    relevant_list.append(f"OPQ{pq}_{y},{cluster_opt},PQ{pq}x8")
+
+    return relevant_list
+
+
+# SHOULD BE REPLACED BY V2 ?
+def get_optimal_index_keys(nb_vectors: int, dim_vector: int, max_index_memory_usage: str) -> List[str]:
+    """
+    Gives a list of interesting indices to try, *the one at the top is the most promising*
+
+    See: https://github.com/facebookresearch/faiss/wiki/Guidelines-to-choose-an-index for
+    detailed explanations.
+    """
+
+    total_bytes = 4 * nb_vectors * dim_vector  # x4 because float32
+    max_mem_bytes = cast_memory_to_bytes(max_index_memory_usage)
+
+    # index options
+    relevant_list: List[str] = []
+
+    # Cases with a lot of memory -> HNSW
+    if 1.7 * total_bytes < max_mem_bytes:
+        relevant_list.append("HNSW32")
+    elif 1.3 * total_bytes < max_mem_bytes:
+        relevant_list.append("HNSW15")
+    else:  # product quantization
+        relevant_list.extend(
+            get_optimal_quantization(nb_vectors, dim_vector, force_max_index_memory_usage=max_index_memory_usage)
+        )
+
+    return relevant_list
+
+
+def get_optimal_hyperparameters(
+    index,
+    index_key: str,
+    max_speed: float,  # milliseconds
+    use_gpu: bool = False,
+    max_timeout_per_iteration: float = 1.0,  # seconds
+    min_ef_search: int = 32,
+) -> str:
+    """ Find the optimal hyperparameters to maximize the recall given a query speed in milliseconds/query """
+
+    # nb_vectors = index.ntotal
+
+    if any(re.findall(r"OPQ\d+_\d+,IVF\d+,PQ\d+", index_key)):
+        with Timeit("starting initial reconstruct"):
+            query = index.reconstruct_n(0, 4000)
+        get_speed = partial(
+            speed_test_ms_per_query,
+            query=query,
+            ksearch=40,
+            timout_s=min(max_timeout_per_iteration, 15 * max_speed / 1000),
+        )
+
+        #
+        nprobes = list(range(max(1, min_ef_search // 2), 6144))
+        nprobes.sort()
+
+        ht = 2048
+
+        def is_not_acceptable_speed(rank_nprobe):
+
+            nprobe = nprobes[rank_nprobe]
+            param_str = f"nprobe={nprobe},ht={ht}"
+            set_search_hyperparameters(index, param_str, use_gpu)
+            speed = get_speed(index)
+
+            return speed >= max_speed
+
+        with Timeit("starting initial binary search"):
+            rank_best_nprobe = discrete_binary_search(is_not_acceptable_speed, len(nprobes)) - 1
+
+        # make sure that the query time is respected
+        with Timeit("starting final reconstruct"):
+            query = index.reconstruct_n(0, min(index.ntotal, 50000))
+
+        get_speed = partial(
+            speed_test_ms_per_query,
+            query=query,
+            ksearch=40,
+            timout_s=min(max_timeout_per_iteration, 200 * max_speed / 1000),
+        )
+
+        with Timeit("final linear search"):
+            while is_not_acceptable_speed(rank_best_nprobe) and rank_best_nprobe > 1:
+                rank_best_nprobe -= 1
+
+        rank_best_nprobe = max(0, min(rank_best_nprobe, len(nprobes) - 1))
+
+        nprobe = nprobes[rank_best_nprobe]
+
+        param_str = f"nprobe={nprobe},ht={ht}"
+
+        return param_str
+
+    elif any(re.findall(r"OPQ\d+_\d+,IVF\d+_HNSW\d+,PQ\d+", index_key)):
+
+        with Timeit("starting initial reconstruct"):
+            query = index.reconstruct_n(0, 4000)
+        get_speed = partial(
+            speed_test_ms_per_query,
+            query=query,
+            ksearch=40,
+            timout_s=min(max_timeout_per_iteration, 15 * max_speed / 1000),
+        )
+
+        #
+        nprobes = list(range(max(1, min_ef_search // 2), 6144))
+        nprobes.sort()
+
+        ht = 2048
+
+        def is_not_acceptable_speed(rank_nprobe):
+
+            nprobe = nprobes[rank_nprobe]
+            param_str = f"nprobe={nprobe},efSearch={2*nprobe},ht={ht}"
+            set_search_hyperparameters(index, param_str, use_gpu)
+            speed = get_speed(index)
+
+            return speed >= max_speed
+
+        with Timeit("starting initial binary search"):
+            rank_best_nprobe = discrete_binary_search(is_not_acceptable_speed, len(nprobes)) - 1
+
+        # make sure that the query time is respected
+        with Timeit("starting final reconstruct"):
+            query = index.reconstruct_n(0, min(index.ntotal, 50000))
+
+        get_speed = partial(
+            speed_test_ms_per_query,
+            query=query,
+            ksearch=40,
+            timout_s=min(max_timeout_per_iteration, 200 * max_speed / 1000),
+        )
+
+        with Timeit("final linear search"):
+            while is_not_acceptable_speed(rank_best_nprobe) and rank_best_nprobe > 1:
+                rank_best_nprobe -= 1
+
+        rank_best_nprobe = max(0, min(rank_best_nprobe, len(nprobes) - 1))
+
+        nprobe = nprobes[rank_best_nprobe]
+
+        param_str = f"nprobe={nprobe},efSearch={2*nprobe},ht={ht}"
+
+        return param_str
+
+    if any(re.findall(r"HNSW\d+", index_key)):
+
+        query = index.reconstruct_n(0, min(index.ntotal, 4000))
+        get_speed = partial(
+            speed_test_ms_per_query,
+            query=query,
+            ksearch=40,
+            timout_s=min(max_timeout_per_iteration, 15 * max_speed / 1000),
+        )
+
+        ef_searchs = list(range(16, 2 ** 14))
+
+        def is_not_acceptable_speed_ef_search(rank_efsearch):
+
+            ef_search = ef_searchs[rank_efsearch]
+            param_str = f"efSearch={ef_search}"
+            set_search_hyperparameters(index, param_str, use_gpu)
+            speed = get_speed(index)
+
+            return speed >= max_speed
+
+        rank_best_ef_search = discrete_binary_search(is_not_acceptable_speed_ef_search, len(ef_searchs)) - 1
+
+        # make sure that the query time is respected
+        query = index.reconstruct_n(0, min(index.ntotal, 50000))
+        get_speed = partial(
+            speed_test_ms_per_query,
+            query=query,
+            ksearch=40,
+            timout_s=min(max_timeout_per_iteration, 100 * max_speed / 1000),
+        )
+
+        while is_not_acceptable_speed_ef_search(rank_best_ef_search) and rank_best_ef_search > 1:
+            rank_best_ef_search -= 1
+
+        rank_best_ef_search = max(0, min(rank_best_ef_search, len(ef_searchs) - 1))
+
+        ef_search = ef_searchs[rank_best_ef_search]
+
+        param_str = f"efSearch={ef_search}"
+
+        return param_str
+
+    if index_key == "Flat":
+        return ""
+
+    raise NotImplementedError("we don't have heuristics for that kind or index")

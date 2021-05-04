@@ -1,0 +1,44 @@
+"""
+Function that downloads a parquet file containing embeddings on the
+current machine in the right format (several .npy files)
+"""
+import logging
+from autofaiss.datasets.readers.downloader import download
+from typing import Optional
+
+from autofaiss.build import get_estimated_download_time_infos
+from autofaiss.datasets.transforming import convert_all_parquet_to_numpy
+from autofaiss.utils.decorators import Timeit
+
+
+def download_from_hdfs(
+    embeddings_hdfs_path: str,
+    local_save_path: str,
+    n_cores: int = 44,
+    delete_tmp_files: bool = True,
+    bandwidth_gbytes_per_sec: Optional[float] = None,
+    verbose: bool = True,
+) -> None:
+    """
+    Download a file containing embeddings in parquet format on hdfs and
+    convert it to several .npy files
+    """
+    if bandwidth_gbytes_per_sec is not None:
+        infos, _ = get_estimated_download_time_infos(embeddings_hdfs_path, bandwidth_gbytes_per_sec)
+        print(infos)
+
+    with Timeit("Download the parquet files on local disk", indent=1):
+        download(embeddings_hdfs_path, dest_path=local_save_path, n_cores=n_cores, verbose=verbose)
+
+    with Timeit("Convert .parquet files to numpy arrays", indent=1):
+        convert_all_parquet_to_numpy(local_save_path, local_save_path, delete=delete_tmp_files)
+
+
+def main():
+    """Main entry point"""
+    logging.basicConfig(level=logging.INFO)
+    fire.Fire(download_from_hdfs)
+
+
+if __name__ == "__main__":
+    main()

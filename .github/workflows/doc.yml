@@ -1,0 +1,41 @@
+name: Documentation generation
+
+on:
+  push:
+    branches:
+    - master
+  pull_request:
+    branches:
+    - master
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.6]
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install pandoc
+      run: sudo apt-get install pandoc
+    - name: Generate doc
+      run: |
+        cd docs && make venv-doc && cp -R _build/html ~/html && cd ..
+    - name: Deploy doc
+      if: github.ref == 'refs/heads/master'
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git fetch origin gh-pages && git checkout gh-pages
+        rm -rf *
+        cp -R ~/html/* .
+        touch .nojekyll
+        git add .
+        git commit --allow-empty -m "update doc"
+        git push
