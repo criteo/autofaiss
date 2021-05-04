@@ -3,6 +3,8 @@
 [![pypi](https://img.shields.io/pypi/v/autofaiss.svg)](https://pypi.python.org/pypi/autofaiss)
 [![ci](https://github.com/criteo/autofaiss/workflows/Continuous%20integration/badge.svg)](https://github.com/criteo/autofaiss/actions?query=workflow%3A%22Continuous+integration%22)
 
+Creating and tuning quantized KNN indices for efficient similarity search with low memory usage.
+
 ## How to use autofaiss?
 
 To install run `pip install autofaiss`
