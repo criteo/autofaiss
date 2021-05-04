@@ -38,6 +38,7 @@ extensions = [
     "sphinxcontrib.napoleon",
     "sphinx.ext.viewcode",
     "sphinx_autodoc_typehints",
+    "sphinx.ext.doctest",
     "nbsphinx",
 ]
 
