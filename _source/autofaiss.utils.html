@@ -1,0 +1,467 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>autofaiss.utils package &mdash; autofaiss 1.0.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> autofaiss
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Introduction and installation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../introduction/introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../introduction/introduction.html#installing-the-requirements">Installing the requirements</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Getting started with the CLI</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started/quantization.html">Creating an index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started/quantization.html#tuning-an-existing-index">Tuning an existing index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started/quantization.html#getting-scores-on-an-index">Getting scores on an index</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">autofaiss</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>autofaiss.utils package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/_source/autofaiss.utils.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<div class="section" id="autofaiss-utils-package">
+<h1>autofaiss.utils package<a class="headerlink" href="#autofaiss-utils-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-autofaiss.utils.algorithms">
+<span id="autofaiss-utils-algorithms-module"></span><h2>autofaiss.utils.algorithms module<a class="headerlink" href="#module-autofaiss.utils.algorithms" title="Permalink to this headline">¶</a></h2>
+<p>Various optimization algorithms</p>
+<dl class="py function">
+<dt id="autofaiss.utils.algorithms.discrete_binary_search">
+<code class="sig-prename descclassname"><span class="pre">autofaiss.utils.algorithms.</span></code><code class="sig-name descname"><span class="pre">discrete_binary_search</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">is_ok</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/utils/algorithms.html#discrete_binary_search"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.utils.algorithms.discrete_binary_search" title="Permalink to this definition">¶</a></dt>
+<dd><p>Binary search in a function domain</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>is_ok</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – Boolean monotone function defined on range(n)</p></li>
+<li><p><strong>n</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – length of the search scope</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><ul class="simple">
+<li><p><strong>i</strong> (<em>int</em>) – first index i such that is_ok(i) or returns n if is_ok is all False</p></li>
+<li><p><em>complexity: O(log(n))</em></p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-autofaiss.utils.array_functions">
+<span id="autofaiss-utils-array-functions-module"></span><h2>autofaiss.utils.array_functions module<a class="headerlink" href="#module-autofaiss.utils.array_functions" title="Permalink to this headline">¶</a></h2>
+<p>useful functions t apply on numpy arrays</p>
+<dl class="py function">
+<dt id="autofaiss.utils.array_functions.multi_array_split">
+<code class="sig-prename descclassname"><span class="pre">autofaiss.utils.array_functions.</span></code><code class="sig-name descname"><span class="pre">multi_array_split</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">array_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_chunk</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/utils/array_functions.html#multi_array_split"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.utils.array_functions.multi_array_split" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="autofaiss.utils.array_functions.sanitize">
+<code class="sig-prename descclassname"><span class="pre">autofaiss.utils.array_functions.</span></code><code class="sig-name descname"><span class="pre">sanitize</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/utils/array_functions.html#sanitize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.utils.array_functions.sanitize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-autofaiss.utils.cast">
+<span id="autofaiss-utils-cast-module"></span><h2>autofaiss.utils.cast module<a class="headerlink" href="#module-autofaiss.utils.cast" title="Permalink to this headline">¶</a></h2>
+<p>function to cast variables in others</p>
+<dl class="py function">
+<dt id="autofaiss.utils.cast.cast_bytes_to_memory_string">
+<code class="sig-prename descclassname"><span class="pre">autofaiss.utils.cast.</span></code><code class="sig-name descname"><span class="pre">cast_bytes_to_memory_string</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_bytes</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/utils/cast.html#cast_bytes_to_memory_string"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.utils.cast.cast_bytes_to_memory_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cast a number of bytes to a readable string</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">autofaiss.utils.cast</span> <span class="kn">import</span> <span class="n">cast_bytes_to_memory_string</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cast_bytes_to_memory_string</span><span class="p">(</span><span class="mf">16.</span><span class="o">*</span><span class="mi">1024</span><span class="o">*</span><span class="mi">1024</span><span class="o">*</span><span class="mi">1024</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;16.0GB&quot;</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="autofaiss.utils.cast.cast_memory_to_bytes">
+<code class="sig-prename descclassname"><span class="pre">autofaiss.utils.cast.</span></code><code class="sig-name descname"><span class="pre">cast_memory_to_bytes</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">memory_string</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/utils/cast.html#cast_memory_to_bytes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.utils.cast.cast_memory_to_bytes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse a memory string and returns the number of bytes
+&gt;&gt;&gt; cast_memory_to_bytes(“16B”)
+16
+&gt;&gt;&gt; cast_memory_to_bytes(“16G”) == 16*1024*1024*1024
+True</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="autofaiss.utils.cast.to_faiss_metric_type">
+<code class="sig-prename descclassname"><span class="pre">autofaiss.utils.cast.</span></code><code class="sig-name descname"><span class="pre">to_faiss_metric_type</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metric_type</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/utils/cast.html#to_faiss_metric_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.utils.cast.to_faiss_metric_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>convert metric_type string/enum to faiss enum of the distance metric</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="autofaiss.utils.cast.to_readable_time">
+<code class="sig-prename descclassname"><span class="pre">autofaiss.utils.cast.</span></code><code class="sig-name descname"><span class="pre">to_readable_time</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seconds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rounding</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/utils/cast.html#to_readable_time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.utils.cast.to_readable_time" title="Permalink to this definition">¶</a></dt>
+<dd><p>cast time in seconds to readable string</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-autofaiss.utils.decorators">
+<span id="autofaiss-utils-decorators-module"></span><h2>autofaiss.utils.decorators module<a class="headerlink" href="#module-autofaiss.utils.decorators" title="Permalink to this headline">¶</a></h2>
+<p>Useful decorators for fast debuging</p>
+<dl class="py class">
+<dt id="autofaiss.utils.decorators.Timeit">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">autofaiss.utils.decorators.</span></code><code class="sig-name descname"><span class="pre">Timeit</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comment</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/utils/decorators.html#Timeit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.utils.decorators.Timeit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/contextlib.html#contextlib.ContextDecorator" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">contextlib.ContextDecorator</span></code></a></p>
+<p>Timing class, used as a context manager</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="autofaiss.utils.decorators.should_run_once">
+<code class="sig-prename descclassname"><span class="pre">autofaiss.utils.decorators.</span></code><code class="sig-name descname"><span class="pre">should_run_once</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">func</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/utils/decorators.html#should_run_once"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.utils.decorators.should_run_once" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decorator to force a function to run only once.
+The fonction raises a ValueError otherwise.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="autofaiss.utils.decorators.timer">
+<code class="sig-prename descclassname"><span class="pre">autofaiss.utils.decorators.</span></code><code class="sig-name descname"><span class="pre">timer</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">func</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/utils/decorators.html#timer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.utils.decorators.timer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print the runtime of the decorated function</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-autofaiss.utils.hdfs_utils">
+<span id="autofaiss-utils-hdfs-utils-module"></span><h2>autofaiss.utils.hdfs_utils module<a class="headerlink" href="#module-autofaiss.utils.hdfs_utils" title="Permalink to this headline">¶</a></h2>
+<p>context manager to make reading/writing on hdfs as simple as writing on a local file</p>
+<dl class="py class">
+<dt id="autofaiss.utils.hdfs_utils.HDFSFile">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">autofaiss.utils.hdfs_utils.</span></code><code class="sig-name descname"><span class="pre">HDFSFile</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filesystem</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'rb'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">encoding</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'utf-8'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/utils/hdfs_utils.html#HDFSFile"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.utils.hdfs_utils.HDFSFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>FileSystemFile, support of “r”, “w” modes, readlines and iter.
+Makes it easier to read or write file from any filesystem. For
+example, if you use HDFS you can do
+&gt;&gt;&gt; from deepr.io import HDFSFileSystem
+&gt;&gt;&gt; with HDFSFileSystem() as fs:
+…     with HDFSFile(fs, “viewfs://root/user/foo.txt”, “w”) as file:  # doctest: +SKIP
+…         file.write(“Hello world!”)  # doctest: +SKIP
+The use of context manager means that the connection to the
+filesystem is automatically opened / closed, as well as the file
+buffer.
+.. attribute:: filesystem</p>
+<blockquote>
+<div><p>FileSystem instance</p>
+<dl class="field-list simple">
+<dt class="field-odd">type</dt>
+<dd class="field-odd"><p>FileSystem</p>
+</dd>
+</dl>
+</div></blockquote>
+<dl class="py attribute">
+<dt id="autofaiss.utils.hdfs_utils.HDFSFile.path">
+<code class="sig-name descname"><span class="pre">path</span></code><a class="headerlink" href="#autofaiss.utils.hdfs_utils.HDFSFile.path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Path to file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="autofaiss.utils.hdfs_utils.HDFSFile.mode">
+<code class="sig-name descname"><span class="pre">mode</span></code><a class="headerlink" href="#autofaiss.utils.hdfs_utils.HDFSFile.mode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write / read mode. Supported: “r”, “rb” (default), “w”, “wb”.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a>, Optional</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="autofaiss.utils.hdfs_utils.HDFSFile.read">
+<code class="sig-name descname"><span class="pre">read</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/utils/hdfs_utils.html#HDFSFile.read"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.utils.hdfs_utils.HDFSFile.read" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="autofaiss.utils.hdfs_utils.HDFSFile.readlines">
+<code class="sig-name descname"><span class="pre">readlines</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/utils/hdfs_utils.html#HDFSFile.readlines"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.utils.hdfs_utils.HDFSFile.readlines" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="autofaiss.utils.hdfs_utils.HDFSFile.write">
+<code class="sig-name descname"><span class="pre">write</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/utils/hdfs_utils.html#HDFSFile.write"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.utils.hdfs_utils.HDFSFile.write" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="autofaiss.utils.hdfs_utils.HDFSFileSystem">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">autofaiss.utils.hdfs_utils.</span></code><code class="sig-name descname"><span class="pre">HDFSFileSystem</span></code><a class="reference internal" href="../_modules/autofaiss/utils/hdfs_utils.html#HDFSFileSystem"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.utils.hdfs_utils.HDFSFileSystem" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Context aware HDFSFileSystem using pyarrow.hdfs.
+Open and closes connection to HDFS thanks to a context manager
+&gt;&gt;&gt; from deepr.io import HDFSFileSystem
+&gt;&gt;&gt; with HDFSFileSystem() as fs:  # doctest: +SKIP
+…     fs.open(“path/to/file”)  # doctest: +SKIP</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-autofaiss.utils.os_tools">
+<span id="autofaiss-utils-os-tools-module"></span><h2>autofaiss.utils.os_tools module<a class="headerlink" href="#module-autofaiss.utils.os_tools" title="Permalink to this headline">¶</a></h2>
+<p>function to interact with os</p>
+<dl class="py function">
+<dt id="autofaiss.utils.os_tools.list_local_files">
+<code class="sig-prename descclassname"><span class="pre">autofaiss.utils.os_tools.</span></code><code class="sig-name descname"><span class="pre">list_local_files</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/utils/os_tools.html#list_local_files"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.utils.os_tools.list_local_files" title="Permalink to this definition">¶</a></dt>
+<dd><p>function to list the files in a directory</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="autofaiss.utils.os_tools.run_command">
+<code class="sig-prename descclassname"><span class="pre">autofaiss.utils.os_tools.</span></code><code class="sig-name descname"><span class="pre">run_command</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cmd</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/utils/os_tools.html#run_command"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.utils.os_tools.run_command" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to run a bash command</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-autofaiss.utils">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-autofaiss.utils" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2020, Reco.Modules.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

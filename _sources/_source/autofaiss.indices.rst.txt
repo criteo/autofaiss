@@ -1,0 +1,53 @@
+autofaiss.indices package
+=========================
+
+Submodules
+----------
+
+autofaiss.indices.faiss\_index\_wrapper module
+----------------------------------------------
+
+.. automodule:: autofaiss.indices.faiss_index_wrapper
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+autofaiss.indices.index\_factory module
+---------------------------------------
+
+.. automodule:: autofaiss.indices.index_factory
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+autofaiss.indices.index\_utils module
+-------------------------------------
+
+.. automodule:: autofaiss.indices.index_utils
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+autofaiss.indices.memory\_efficient\_flat\_index module
+-------------------------------------------------------
+
+.. automodule:: autofaiss.indices.memory_efficient_flat_index
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+autofaiss.indices.search module
+-------------------------------
+
+.. automodule:: autofaiss.indices.search
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: autofaiss.indices
+   :members:
+   :undoc-members:
+   :show-inheritance:

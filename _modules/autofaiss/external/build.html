@@ -1,0 +1,390 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>autofaiss.external.build &mdash; autofaiss 1.0.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> autofaiss
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Introduction and installation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../introduction/introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../introduction/introduction.html#installing-the-requirements">Installing the requirements</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Getting started with the CLI</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting_started/quantization.html">Creating an index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting_started/quantization.html#tuning-an-existing-index">Tuning an existing index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting_started/quantization.html#getting-scores-on-an-index">Getting scores on an index</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">autofaiss</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>autofaiss.external.build</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for autofaiss.external.build</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot; gather functions necessary to build an index &quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Optional</span>
+
+<span class="kn">import</span> <span class="nn">faiss</span>
+
+<span class="kn">from</span> <span class="nn">autofaiss.datasets.readers.local_iterators</span> <span class="kn">import</span> <span class="n">read_embeddings_local</span>
+<span class="kn">from</span> <span class="nn">autofaiss.datasets.readers.remote_iterators</span> <span class="kn">import</span> <span class="n">read_embeddings_remote</span><span class="p">,</span> <span class="n">read_filenames</span>
+<span class="kn">from</span> <span class="nn">autofaiss.external.optimize</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">get_optimal_batch_size</span><span class="p">,</span>
+    <span class="n">get_optimal_train_size</span><span class="p">,</span>
+    <span class="n">set_search_hyperparameters</span><span class="p">,</span>
+    <span class="n">get_optimal_index_keys</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">autofaiss.indices.index_factory</span> <span class="kn">import</span> <span class="n">index_factory</span>
+<span class="kn">from</span> <span class="nn">autofaiss.utils.cast</span> <span class="kn">import</span> <span class="n">to_faiss_metric_type</span><span class="p">,</span> <span class="n">to_readable_time</span>
+<span class="kn">from</span> <span class="nn">autofaiss.utils.decorators</span> <span class="kn">import</span> <span class="n">Timeit</span>
+
+
+<div class="viewcode-block" id="estimate_memory_required_for_index_creation"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.build.estimate_memory_required_for_index_creation">[docs]</a><span class="k">def</span> <span class="nf">estimate_memory_required_for_index_creation</span><span class="p">(</span>
+    <span class="n">nb_vectors</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">vec_dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">index_key</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">max_index_memory_usage</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Estimates the RAM necessary to create the index</span>
+<span class="sd">    The value returned is in Bytes</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">index_key</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">max_index_memory_usage</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">index_key</span> <span class="o">=</span> <span class="n">get_optimal_index_keys</span><span class="p">(</span><span class="n">nb_vectors</span><span class="p">,</span> <span class="n">vec_dim</span><span class="p">,</span> <span class="n">max_index_memory_usage</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;you should give max_index_memory_usage value if no index_key is given&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Compute the smallest number of vectors required to train the index given</span>
+    <span class="c1"># the maximal memory constraint</span>
+    <span class="n">nb_vectors_train</span> <span class="o">=</span> <span class="n">get_optimal_train_size</span><span class="p">(</span><span class="n">nb_vectors</span><span class="p">,</span> <span class="n">index_key</span><span class="p">,</span> <span class="s2">&quot;1K&quot;</span><span class="p">,</span> <span class="n">vec_dim</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">nb_vectors_train</span> <span class="o">*</span> <span class="n">vec_dim</span><span class="p">,</span> <span class="n">index_key</span></div>
+
+
+<div class="viewcode-block" id="get_estimated_download_time_infos"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.build.get_estimated_download_time_infos">[docs]</a><span class="k">def</span> <span class="nf">get_estimated_download_time_infos</span><span class="p">(</span>
+    <span class="n">embeddings_hdfs_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">bandwidth_gbytes_per_sec</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">indent</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Gives a general approximation of the download time (and preprocessing time) of embeddings</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">nb_vectors_approx</span><span class="p">,</span> <span class="n">vec_dim</span> <span class="o">=</span> <span class="n">get_nb_vectors_approx_and_dim_from_hdfs</span><span class="p">(</span><span class="n">embeddings_hdfs_path</span><span class="p">)</span>
+
+    <span class="n">size</span> <span class="o">=</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">nb_vectors_approx</span> <span class="o">*</span> <span class="n">vec_dim</span>
+
+    <span class="n">download</span> <span class="o">=</span> <span class="mf">1.1</span> <span class="o">*</span> <span class="n">size</span> <span class="o">/</span> <span class="p">(</span><span class="n">bandwidth_gbytes_per_sec</span> <span class="o">*</span> <span class="mi">1024</span> <span class="o">**</span> <span class="mi">3</span><span class="p">)</span>  <span class="c1"># seconds</span>
+    <span class="n">preprocess</span> <span class="o">=</span> <span class="mf">1.6</span> <span class="o">*</span> <span class="n">download</span>  <span class="c1"># seconds</span>
+
+    <span class="n">infos</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;-&gt; Download: </span><span class="si">{</span><span class="n">to_readable_time</span><span class="p">(</span><span class="n">download</span><span class="p">,</span> <span class="n">rounding</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="sa">f</span><span class="s2">&quot;-&gt; Preprocess: </span><span class="si">{</span><span class="n">to_readable_time</span><span class="p">(</span><span class="n">preprocess</span><span class="p">,</span> <span class="n">rounding</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="sa">f</span><span class="s2">&quot;Total: </span><span class="si">{</span><span class="n">to_readable_time</span><span class="p">(</span><span class="n">download</span> <span class="o">+</span> <span class="n">preprocess</span><span class="p">,</span> <span class="n">rounding</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="s2">&quot; (&lt; 1 minute if files are already cached)&quot;</span>
+    <span class="p">)</span>
+
+    <span class="n">tab</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span> <span class="o">*</span> <span class="n">indent</span>
+    <span class="n">infos</span> <span class="o">=</span> <span class="n">tab</span> <span class="o">+</span> <span class="n">infos</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">tab</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">infos</span><span class="p">,</span> <span class="p">(</span><span class="n">nb_vectors_approx</span><span class="p">,</span> <span class="n">vec_dim</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_estimated_construction_time_infos"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.build.get_estimated_construction_time_infos">[docs]</a><span class="k">def</span> <span class="nf">get_estimated_construction_time_infos</span><span class="p">(</span><span class="n">nb_vectors</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">vec_dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">indent</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Gives a general approximation of the construction time of the index</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">size</span> <span class="o">=</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">nb_vectors</span> <span class="o">*</span> <span class="n">vec_dim</span>
+
+    <span class="n">train</span> <span class="o">=</span> <span class="mi">1000</span>  <span class="c1"># seconds, depends on the number of points for training</span>
+    <span class="n">add</span> <span class="o">=</span> <span class="mi">450</span> <span class="o">*</span> <span class="n">size</span> <span class="o">/</span> <span class="p">(</span><span class="mi">150</span> <span class="o">*</span> <span class="mi">1024</span> <span class="o">**</span> <span class="mi">3</span><span class="p">)</span>  <span class="c1"># seconds, Linear approx (450s for 150GB in classic conditions)</span>
+
+    <span class="n">infos</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;-&gt; Train: </span><span class="si">{</span><span class="n">to_readable_time</span><span class="p">(</span><span class="n">train</span><span class="p">,</span> <span class="n">rounding</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="sa">f</span><span class="s2">&quot;-&gt; Add: </span><span class="si">{</span><span class="n">to_readable_time</span><span class="p">(</span><span class="n">add</span><span class="p">,</span> <span class="n">rounding</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="sa">f</span><span class="s2">&quot;Total: </span><span class="si">{</span><span class="n">to_readable_time</span><span class="p">(</span><span class="n">train</span> <span class="o">+</span> <span class="n">add</span><span class="p">,</span> <span class="n">rounding</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="p">)</span>
+    <span class="n">tab</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span> <span class="o">*</span> <span class="n">indent</span>
+    <span class="n">infos</span> <span class="o">=</span> <span class="n">tab</span> <span class="o">+</span> <span class="n">infos</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">tab</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">infos</span></div>
+
+
+<div class="viewcode-block" id="get_nb_vectors_approx_and_dim_from_hdfs"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.build.get_nb_vectors_approx_and_dim_from_hdfs">[docs]</a><span class="k">def</span> <span class="nf">get_nb_vectors_approx_and_dim_from_hdfs</span><span class="p">(</span><span class="n">parquet_embeddings_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;legacy function to give the dimensions of a parquet file</span>
+<span class="sd">    Still useful for tests&quot;&quot;&quot;</span>
+
+    <span class="c1"># Get information for one partition</span>
+    <span class="n">avg_batch_length</span><span class="p">,</span> <span class="n">vec_dim</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">read_embeddings_remote</span><span class="p">(</span><span class="n">parquet_embeddings_path</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span><span class="o">.</span><span class="n">shape</span>
+
+    <span class="c1"># Count the number of files</span>
+    <span class="n">nb_files</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">read_filenames</span><span class="p">(</span><span class="n">parquet_embeddings_path</span><span class="p">))</span>
+
+    <span class="n">nb_vectors_approx</span> <span class="o">=</span> <span class="n">nb_files</span> <span class="o">*</span> <span class="n">avg_batch_length</span>
+
+    <span class="k">return</span> <span class="n">nb_vectors_approx</span><span class="p">,</span> <span class="n">vec_dim</span></div>
+
+
+<div class="viewcode-block" id="get_nb_vectors_and_dim"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.build.get_nb_vectors_and_dim">[docs]</a><span class="k">def</span> <span class="nf">get_nb_vectors_and_dim</span><span class="p">(</span><span class="n">embeddings_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Function that gives the total shape of the embeddings array</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">tot_vec</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">vec_dim</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+
+    <span class="k">for</span> <span class="n">emb_array</span> <span class="ow">in</span> <span class="n">read_embeddings_local</span><span class="p">(</span><span class="n">embeddings_path</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="n">batch_length</span><span class="p">,</span> <span class="n">dim</span> <span class="o">=</span> <span class="n">emb_array</span><span class="o">.</span><span class="n">shape</span>
+        <span class="n">tot_vec</span> <span class="o">+=</span> <span class="n">batch_length</span>
+        <span class="n">vec_dim</span> <span class="o">=</span> <span class="n">dim</span>
+
+    <span class="k">return</span> <span class="n">tot_vec</span><span class="p">,</span> <span class="n">vec_dim</span></div>
+
+
+<div class="viewcode-block" id="build_index"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.build.build_index">[docs]</a><span class="k">def</span> <span class="nf">build_index</span><span class="p">(</span>
+    <span class="n">embeddings_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">index_key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">metric_type</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
+    <span class="n">nb_vectors</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">current_memory_available</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">use_gpu</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Function that returns an index on the numpy arrays stored on disk in the embeddings_path path.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Instanciate the index</span>
+    <span class="k">with</span> <span class="n">Timeit</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;-&gt; Instanciate the index </span><span class="si">{</span><span class="n">index_key</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+
+        <span class="c1"># Convert metric_type to faiss type</span>
+        <span class="n">metric_type</span> <span class="o">=</span> <span class="n">to_faiss_metric_type</span><span class="p">(</span><span class="n">metric_type</span><span class="p">)</span>
+
+        <span class="c1"># Get information for one partition</span>
+        <span class="n">avg_batch_length</span><span class="p">,</span> <span class="n">vec_dim</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">read_embeddings_local</span><span class="p">(</span><span class="n">embeddings_path</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span><span class="o">.</span><span class="n">shape</span>
+
+        <span class="c1"># Instanciate the index</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="n">index_factory</span><span class="p">(</span><span class="n">vec_dim</span><span class="p">,</span> <span class="n">index_key</span><span class="p">,</span> <span class="n">metric_type</span><span class="p">)</span>
+
+    <span class="c1"># Extract training vectors</span>
+    <span class="k">with</span> <span class="n">Timeit</span><span class="p">(</span><span class="s2">&quot;-&gt; Extract training vectors&quot;</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+
+        <span class="c1"># Determine the number of vectors necessary to train the index</span>
+        <span class="n">train_size</span> <span class="o">=</span> <span class="n">get_optimal_train_size</span><span class="p">(</span><span class="n">nb_vectors</span><span class="p">,</span> <span class="n">index_key</span><span class="p">,</span> <span class="n">current_memory_available</span><span class="p">,</span> <span class="n">vec_dim</span><span class="p">)</span>
+
+        <span class="c1"># Extract training vectors</span>
+        <span class="n">nb_stack</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">train_size</span> <span class="o">//</span> <span class="n">avg_batch_length</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">train_vectors</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">read_embeddings_local</span><span class="p">(</span><span class="n">embeddings_path</span><span class="p">,</span> <span class="n">stack_input</span><span class="o">=</span><span class="n">nb_stack</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+
+    <span class="c1"># Instanciate the index and train it</span>
+    <span class="c1"># pylint: disable=no-member</span>
+    <span class="k">if</span> <span class="n">use_gpu</span><span class="p">:</span>
+        <span class="c1"># if this fails, it means that the GPU version was not comp.</span>
+        <span class="k">assert</span> <span class="p">(</span>
+            <span class="n">faiss</span><span class="o">.</span><span class="n">StandardGpuResources</span>
+        <span class="p">),</span> <span class="s2">&quot;FAISS was not compiled with GPU support, or loading _swigfaiss_gpu.so failed&quot;</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">faiss</span><span class="o">.</span><span class="n">StandardGpuResources</span><span class="p">()</span>
+        <span class="n">dev_no</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="c1"># transfer to GPU (may be partial).</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="n">faiss</span><span class="o">.</span><span class="n">index_cpu_to_gpu</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">dev_no</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="n">Timeit</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;-&gt; Training the index with </span><span class="si">{</span><span class="n">train_vectors</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2"> vectors of dim </span><span class="si">{</span><span class="n">train_vectors</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span>
+    <span class="p">):</span>
+        <span class="n">index</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">train_vectors</span><span class="p">)</span>
+
+    <span class="c1"># Add the vectors to the index.</span>
+    <span class="k">with</span> <span class="n">Timeit</span><span class="p">(</span><span class="s2">&quot;-&gt; Adding the vectors to the index&quot;</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+        <span class="n">batch_size</span> <span class="o">=</span> <span class="n">get_optimal_batch_size</span><span class="p">(</span><span class="n">nb_vectors</span><span class="p">,</span> <span class="n">vec_dim</span><span class="p">,</span> <span class="n">current_memory_available</span><span class="p">)</span>
+        <span class="n">nb_stack</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">batch_size</span> <span class="o">//</span> <span class="n">avg_batch_length</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">vec_batch</span> <span class="ow">in</span> <span class="n">read_embeddings_local</span><span class="p">(</span><span class="n">embeddings_path</span><span class="p">,</span> <span class="n">stack_input</span><span class="o">=</span><span class="n">nb_stack</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+            <span class="n">index</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">vec_batch</span><span class="p">)</span>
+
+    <span class="c1"># Give standard values for index hyperparameters if possible.</span>
+    <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;OPQ\d+_\d+,IVF\d+_HNSW\d+,PQ\d+&quot;</span><span class="p">,</span> <span class="n">index_key</span><span class="p">)):</span>
+        <span class="n">set_search_hyperparameters</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;nprobe=</span><span class="si">{</span><span class="mi">64</span><span class="si">}</span><span class="s2">,efSearch=</span><span class="si">{</span><span class="mi">128</span><span class="si">}</span><span class="s2">,ht=</span><span class="si">{</span><span class="mi">2048</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">use_gpu</span><span class="p">)</span>
+
+    <span class="c1"># return the index.</span>
+    <span class="k">return</span> <span class="n">index</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2020, Reco.Modules.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,45 @@
+autofaiss.datasets.readers package
+==================================
+
+Submodules
+----------
+
+autofaiss.datasets.readers.downloader module
+--------------------------------------------
+
+.. automodule:: autofaiss.datasets.readers.downloader
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+autofaiss.datasets.readers.downloader\_and\_converter\_full\_python module
+--------------------------------------------------------------------------
+
+.. automodule:: autofaiss.datasets.readers.downloader_and_converter_full_python
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+autofaiss.datasets.readers.local\_iterators module
+--------------------------------------------------
+
+.. automodule:: autofaiss.datasets.readers.local_iterators
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+autofaiss.datasets.readers.remote\_iterators module
+---------------------------------------------------
+
+.. automodule:: autofaiss.datasets.readers.remote_iterators
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: autofaiss.datasets.readers
+   :members:
+   :undoc-members:
+   :show-inheritance:
