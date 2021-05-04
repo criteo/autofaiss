@@ -11,7 +11,6 @@ import faiss
 def cast_memory_to_bytes(memory_string: str) -> float:
     """
     Parse a memory string and returns the number of bytes
-
     >>> cast_memory_to_bytes("16B")
     16
     >>> cast_memory_to_bytes("16G") == 16*1024*1024*1024
@@ -42,7 +41,8 @@ def cast_bytes_to_memory_string(num_bytes: float) -> str:
     """
     Cast a number of bytes to a readable string
 
-    >>> cast_memory_to_bytes(16.*1024*1024*1024) == "16G"
+    >>> from autofaiss.utils.cast import cast_bytes_to_memory_string
+    >>> cast_bytes_to_memory_string(16.*1024*1024*1024) == "16.0GB"
     True
     """
 
