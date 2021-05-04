@@ -1,5 +1,5 @@
-deepr-quantization reference documentation
-==========================================
+autofaiss reference documentation
+=================================
 
 Creating and tuning quantized KNN indices for efficient similarity search with low memory usage.
 
