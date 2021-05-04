@@ -12,6 +12,15 @@ It selects the best indexing parameters to achieve the highest recalls given mem
 
 To install run `pip install autofaiss`
 
+It's probably best to create a virtual env:
+``` bash
+python -m venv .venv/autofaiss_env
+source .venv/autofaiss_env/bin/activate
+pip install -U pip
+pip install autofaiss
+```
+
+
 Create embeddings
 ``` python
 import os
