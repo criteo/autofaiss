@@ -3,7 +3,10 @@
 [![pypi](https://img.shields.io/pypi/v/autofaiss.svg)](https://pypi.python.org/pypi/autofaiss)
 [![ci](https://github.com/criteo/autofaiss/workflows/Continuous%20integration/badge.svg)](https://github.com/criteo/autofaiss/actions?query=workflow%3A%22Continuous+integration%22)
 
-Creating and tuning quantized KNN indices for efficient similarity search with low memory usage.
+**Automatically create Faiss knn indices with the most optimal similarity search parameters.**
+
+It selects the best indexing parameters to achieve the highest recalls given memory and query speed constraints.
+
 
 ## How to use autofaiss?
 
