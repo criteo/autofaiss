@@ -1,8 +1,9 @@
 """Aggregated metrics"""
 
 import json
-import pandas as pd
+
 import graphyte
+import pandas as pd
 
 
 def maxd(l):
@@ -76,9 +77,12 @@ def metrics_per_subsets(indices_data):
         "flat": lambda index_data: json.loads(index_data["indexParams"])["indexKey"] == "Flat",
         "hnsw": lambda index_data: json.loads(index_data["indexParams"])["indexKey"] == "HNSW15",
         "quantized": lambda index_data: "IVF" in json.loads(index_data["indexParams"])["indexKey"],
-        "recommendable": lambda index_data: index_data["isRecommendable"],
-        "non_recommendable": lambda index_data: not index_data["isRecommendable"],
     }
+
+    if all("recommendable" in index_data for index_data in indices_data):
+        subsets["recommendable"] = lambda index_data: index_data["recommendable"]
+        subsets["non_recommendable"] = lambda index_data: not index_data["recommendable"]
+
     return {
         subset_name: compute_aggregated_metrics([index_data for index_data in indices_data if subset_pred(index_data)])
         for subset_name, subset_pred in subsets.items()
