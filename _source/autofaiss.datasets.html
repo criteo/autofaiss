@@ -13,6 +13,8 @@
   
   <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
 
   
   
@@ -29,6 +31,7 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
@@ -209,8 +212,8 @@
 <span id="autofaiss-datasets-transforming-module"></span><h2>autofaiss.datasets.transforming module<a class="headerlink" href="#module-autofaiss.datasets.transforming" title="Permalink to this headline">¶</a></h2>
 <p>functions that transform objects from the datasets</p>
 <dl class="py function">
-<dt id="autofaiss.datasets.transforming.convert_all_parquet_to_numpy">
-<code class="sig-prename descclassname"><span class="pre">autofaiss.datasets.transforming.</span></code><code class="sig-name descname"><span class="pre">convert_all_parquet_to_numpy</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parquet_folder</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embeddings_folder</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_cores</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">32</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delete</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/datasets/transforming.html#convert_all_parquet_to_numpy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.datasets.transforming.convert_all_parquet_to_numpy" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="autofaiss.datasets.transforming.convert_all_parquet_to_numpy">
+<span class="sig-prename descclassname"><span class="pre">autofaiss.datasets.transforming.</span></span><span class="sig-name descname"><span class="pre">convert_all_parquet_to_numpy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parquet_folder</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embeddings_folder</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_cores</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">32</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delete</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/datasets/transforming.html#convert_all_parquet_to_numpy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.datasets.transforming.convert_all_parquet_to_numpy" title="Permalink to this definition">¶</a></dt>
 <dd><p>Convert embedding parquet files to an embedding numpy files</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type</dt>
@@ -220,8 +223,8 @@
 </dd></dl>
 
 <dl class="py function">
-<dt id="autofaiss.datasets.transforming.convert_parquet_to_numpy">
-<code class="sig-prename descclassname"><span class="pre">autofaiss.datasets.transforming.</span></code><code class="sig-name descname"><span class="pre">convert_parquet_to_numpy</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parquet_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embeddings_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/datasets/transforming.html#convert_parquet_to_numpy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.datasets.transforming.convert_parquet_to_numpy" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="autofaiss.datasets.transforming.convert_parquet_to_numpy">
+<span class="sig-prename descclassname"><span class="pre">autofaiss.datasets.transforming.</span></span><span class="sig-name descname"><span class="pre">convert_parquet_to_numpy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parquet_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embeddings_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/datasets/transforming.html#convert_parquet_to_numpy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.datasets.transforming.convert_parquet_to_numpy" title="Permalink to this definition">¶</a></dt>
 <dd><p>Convert one embedding parquet file to an embedding numpy file</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type</dt>
@@ -231,8 +234,8 @@
 </dd></dl>
 
 <dl class="py function">
-<dt id="autofaiss.datasets.transforming.parquet_already_transformed">
-<code class="sig-prename descclassname"><span class="pre">autofaiss.datasets.transforming.</span></code><code class="sig-name descname"><span class="pre">parquet_already_transformed</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">remote_embeddings_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">local_embeddings_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/datasets/transforming.html#parquet_already_transformed"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.datasets.transforming.parquet_already_transformed" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="autofaiss.datasets.transforming.parquet_already_transformed">
+<span class="sig-prename descclassname"><span class="pre">autofaiss.datasets.transforming.</span></span><span class="sig-name descname"><span class="pre">parquet_already_transformed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">remote_embeddings_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">local_embeddings_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/datasets/transforming.html#parquet_already_transformed"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.datasets.transforming.parquet_already_transformed" title="Permalink to this definition">¶</a></dt>
 <dd><p>Checks if embeddings were all transformed in .npy arrays or should be downloaded again</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type</dt>
@@ -242,8 +245,8 @@
 </dd></dl>
 
 <dl class="py function">
-<dt id="autofaiss.datasets.transforming.run_one">
-<code class="sig-prename descclassname"><span class="pre">autofaiss.datasets.transforming.</span></code><code class="sig-name descname"><span class="pre">run_one</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parquet_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embeddings_folder</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delete</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/datasets/transforming.html#run_one"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.datasets.transforming.run_one" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="autofaiss.datasets.transforming.run_one">
+<span class="sig-prename descclassname"><span class="pre">autofaiss.datasets.transforming.</span></span><span class="sig-name descname"><span class="pre">run_one</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parquet_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embeddings_folder</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delete</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/datasets/transforming.html#run_one"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.datasets.transforming.run_one" title="Permalink to this definition">¶</a></dt>
 <dd><p>Convertion function to call for parallel execution</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type</dt>
