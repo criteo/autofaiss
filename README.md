@@ -53,7 +53,7 @@ print(list(zip(distances[0], indices[0])))
 
 autofaiss quantize
 
-*embeddings_path*     -> path on the hdfs of your embeddings in .parquet format.  
+*embeddings_path*     -> local path of the embeddings in numpy.
 *output_path*         -> destination path on the hdfs for the created index.
 *metric_type*         -> Similarity distance for the queries.  
 
