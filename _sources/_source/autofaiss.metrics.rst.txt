@@ -4,14 +4,6 @@ autofaiss.metrics package
 Submodules
 ----------
 
-autofaiss.metrics.aggregated module
------------------------------------
-
-.. automodule:: autofaiss.metrics.aggregated
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 autofaiss.metrics.benchmark module
 ----------------------------------
 
