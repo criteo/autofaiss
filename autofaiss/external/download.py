@@ -18,6 +18,7 @@ def download_from_hdfs(
     delete_tmp_files: bool = True,
     bandwidth_gbytes_per_sec: Optional[float] = None,
     verbose: bool = True,
+    embedding_column_name: str = "embedding",
 ) -> None:
     """
     Download a file containing embeddings in parquet format on hdfs and
@@ -31,7 +32,9 @@ def download_from_hdfs(
         download(embeddings_hdfs_path, dest_path=local_save_path, n_cores=n_cores, verbose=verbose)
 
     with Timeit("Convert .parquet files to numpy arrays", indent=1):
-        convert_all_parquet_to_numpy(local_save_path, local_save_path, delete=delete_tmp_files)
+        convert_all_parquet_to_numpy(
+            local_save_path, local_save_path, delete=delete_tmp_files, embedding_column_name=embedding_column_name
+        )
 
 
 def main():
