@@ -27,28 +27,32 @@ def parquet_already_transformed(remote_embeddings_path: str, local_embeddings_pa
     return 2 * nb_remote_parquet_files == nb_local_map_and_emb_files
 
 
-def convert_parquet_to_numpy(parquet_file: str, embeddings_path: str) -> None:
+def convert_parquet_to_numpy(parquet_file: str, embeddings_path: str, embedding_column_name: str) -> None:
     """ Convert one embedding parquet file to an embedding numpy file """
 
     if not os.path.exists(embeddings_path):
         emb = pq.read_table(parquet_file).to_pandas()
-        embeddings_raw = emb["embedding"].to_numpy()
+        embeddings_raw = emb[embedding_column_name].to_numpy()
         embeddings = np.stack(embeddings_raw).astype("float32")
         np.save(embeddings_path, embeddings)
 
 
-def run_one(parquet_file: str, embeddings_folder: str, delete: bool) -> None:
+def run_one(parquet_file: str, embeddings_folder: str, delete: bool, embedding_column_name: str) -> None:
     """ Convertion function to call for parallel execution """
     num = parquet_file.split("/")[-1].split("-")[1]
 
-    convert_parquet_to_numpy(parquet_file, f"{embeddings_folder}/emb_{num}.npy")
+    convert_parquet_to_numpy(parquet_file, f"{embeddings_folder}/emb_{num}.npy", embedding_column_name)
 
     if delete:
         os.remove(parquet_file)
 
 
 def convert_all_parquet_to_numpy(
-    parquet_folder: str, embeddings_folder: str, n_cores: int = 32, delete: bool = False
+    parquet_folder: str,
+    embeddings_folder: str,
+    n_cores: int = 32,
+    delete: bool = False,
+    embedding_column_name: str = "embedding",
 ) -> None:
     """ Convert embedding parquet files to an embedding numpy files """
 
@@ -60,7 +64,9 @@ def convert_all_parquet_to_numpy(
 
     nb_files = len(parquet_files)
 
-    func = partial(run_one, embeddings_folder=embeddings_folder, delete=delete)
+    func = partial(
+        run_one, embeddings_folder=embeddings_folder, delete=delete, embedding_column_name=embedding_column_name
+    )
 
     with tq(total=nb_files) as pbar:
         with Pool(processes=n_cores) as pool:
