@@ -259,8 +259,28 @@ Still useful for tests</p>
 </dd></dl>
 
 </div>
-<div class="section" id="autofaiss-external-download-module">
-<h2>autofaiss.external.download module<a class="headerlink" href="#autofaiss-external-download-module" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-autofaiss.external.download">
+<span id="autofaiss-external-download-module"></span><h2>autofaiss.external.download module<a class="headerlink" href="#module-autofaiss.external.download" title="Permalink to this headline">¶</a></h2>
+<p>Function that downloads a parquet file containing embeddings on the
+current machine in the right format (several .npy files)</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="autofaiss.external.download.download_from_hdfs">
+<span class="sig-prename descclassname"><span class="pre">autofaiss.external.download.</span></span><span class="sig-name descname"><span class="pre">download_from_hdfs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">embeddings_hdfs_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">local_save_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_cores</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">44</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delete_tmp_files</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bandwidth_gbytes_per_sec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/external/download.html#download_from_hdfs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.external.download.download_from_hdfs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Download a file containing embeddings in parquet format on hdfs and
+convert it to several .npy files</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autofaiss.external.download.main">
+<span class="sig-prename descclassname"><span class="pre">autofaiss.external.download.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/external/download.html#main"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.external.download.main" title="Permalink to this definition">¶</a></dt>
+<dd><p>Main entry point</p>
+</dd></dl>
+
 </div>
 <div class="section" id="module-autofaiss.external.optimize">
 <span id="autofaiss-external-optimize-module"></span><h2>autofaiss.external.optimize module<a class="headerlink" href="#module-autofaiss.external.optimize" title="Permalink to this headline">¶</a></h2>
