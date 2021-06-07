@@ -6,7 +6,7 @@ import logging
 from autofaiss.datasets.readers.downloader import download
 from typing import Optional
 
-from autofaiss.build import get_estimated_download_time_infos
+from autofaiss.external.build import get_estimated_download_time_infos
 from autofaiss.datasets.transforming import convert_all_parquet_to_numpy
 from autofaiss.utils.decorators import Timeit
 
