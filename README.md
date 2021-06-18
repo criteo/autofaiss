@@ -51,16 +51,33 @@ distances, indices = my_index.search(query_vector, k)
 print(list(zip(distances[0], indices[0])))
 ```
 
-autofaiss quantize
+# Command quick overview
+Quick description of the `autofaiss quantize` command:
 
-*embeddings_path*     -> local path of the embeddings in numpy.
-*output_path*         -> destination path on the hdfs for the created index.
-*metric_type*         -> Similarity distance for the queries.  
+*embeddings_path*           -> Source path of the embeddings in numpy.  
+*output_path*               -> Destination path of the created index.
+*metric_type*               -> Similarity distance for the queries.  
 
-*index_key*           -> (optional) describe the index to build.  
-*index_param*         -> (optional) describe the hyperparameters of the index.  
-*memory_available*    -> (optional) describe the amount of memory available on the machine.  
-*use_gpu*             -> (optional) wether to use GPU or not (not tested).  
+*index_key*                 -> (optional) Describe the index to build.  
+*index_param*               -> (optional) Describe the hyperparameters of the index.  
+*current_memory_available*  -> (optional) Describe the amount of memory available on the machine.  
+*use_gpu*                   -> (optional) Whether to use GPU or not (not tested).  
+
+# Command details
+
+The `autofaiss quantize` command takes the following parameters:
+
+| Flag available             |  Default | Description                                                                                                                                                                                                                                               |
+|----------------------------|:--------:|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| --embeddings_path          | required | Source path of the directory containing your .npy embedding files. If there are several files, they are read in the lexicographical order.                                                                                                                |
+| --output_path              | required | Destination path of the faiss index on local machine.                                                                                                                                                                                                     |
+| --metric_type              |   "ip"   | (Optional) Similarity function used for query: ("ip" for inner product, "l2" for euclidian distance)                                                                                                                                                                                                            |
+| --max_index_memory_usage   |  "32GB"  | (Optional) Maximum size in GB of the created index, this bound is strict.                                                                                                                        |
+| --current_memory_available |  "32GB"  | (Optional) Memory available (in GB) on the machine creating the index, having more memory is a boost because it reduces the swipe between RAM and disk.                                                                               |
+| --max_index_query_time_ms  |    10    | (Optional) Bound on the query time for KNN search, this bound is approximative.                                                                                                                                   |
+| --index_key                |   None   | (Optional) If present, the Faiss index will be build using this description string in the index_factory, more detail in the [Faiss documentation](https://github.com/facebookresearch/faiss/wiki/The-index-factory)
+| --index_param              |   None   | (Optional) If present, the Faiss index will be set using this description string of hyperparameters, more detail in the [Faiss documentation](https://github.com/facebookresearch/faiss/wiki/Index-IO,-cloning-and-hyper-parameter-tuning) |
+| --use_gpu                  |   False  | (Optional) Experimental, gpu training can be faster, but this feature is not tested so far.                                                                                                                                         |
 
 ## Install from source
 
