@@ -1,6 +1,7 @@
 """ main file to create an index from the the begining """
 
 import logging
+import os
 from pprint import pprint as pp
 from typing import Dict, Optional, Union
 
@@ -120,6 +121,7 @@ class Quantizer:
             index_name = f"{index_key}-{index_param}.index"
 
             with Timeit("Saving the index on local disk", indent=1):
+                os.makedirs(output_path, exist_ok=True)
                 index_name = f"{index_key}-{index_param}.index"
                 faiss.write_index(index, f"{output_path}/{index_name}")
 
