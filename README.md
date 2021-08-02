@@ -7,6 +7,7 @@
 
 It selects the best indexing parameters to achieve the highest recalls given memory and query speed constraints.
 
+Check the full documentation at https://criteo.github.io/autofaiss/
 
 ## How to use autofaiss?
 
