@@ -22,16 +22,9 @@ Creating and tuning quantized KNN indices for efficient similarity search with l
 .. toctree::
    :glob:
    :maxdepth: 2
-   :caption: Getting started with the python library
+   :caption: Getting started with notebooks
 
-   _notebook_folders/examples
-
-.. toctree::
-   :glob:
-   :maxdepth: 2
-   :caption: Exploratory notebooks
-   
-   _notebook_folders/experiments
+   _notebook_folders/
 
 
 Indices and tables
