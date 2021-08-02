@@ -113,8 +113,6 @@ def get_optimal_index_keys_v2(
     detailed explanations.
     """
 
-    # assert 24 <= dim_vector <= 144
-
     if nb_vectors < flat_threshold:  # HNSW Faiss slower when less than 1000 vectors
         return ["Flat"]
 
