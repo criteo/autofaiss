@@ -2,7 +2,7 @@
 
 [![pypi](https://img.shields.io/pypi/v/autofaiss.svg)](https://pypi.python.org/pypi/autofaiss)
 [![ci](https://github.com/criteo/autofaiss/workflows/Continuous%20integration/badge.svg)](https://github.com/criteo/autofaiss/actions?query=workflow%3A%22Continuous+integration%22)
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/criteo/autofaiss/blob/master/notebooks/autofaiss_getting_started.ipynb)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/criteo/autofaiss/blob/master/docs/notebooks/autofaiss_getting_started.ipynb)
 
 **Automatically create Faiss knn indices with the most optimal similarity search parameters.**
 
