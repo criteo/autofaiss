@@ -12,19 +12,16 @@ recall scores given a memory and query speed constraint.
 The quantize command
 --------------------
 
-There is a magic command that creates your Faiss index.
+Quick description of the `autofaiss quantize` command:
 
-The main important parameters are:
+*embeddings_path*           -> Source path of the embeddings in numpy.  
+*output_path*               -> Destination path of the created index.
+*metric_type*               -> Similarity distance for the queries.  
 
-* *embeddings_path* :         Path on hdfs where to find your embeddings  
-* *local_embeddings_path* :   Path on local disk on which keep a copy of you embeddings  
-* *output_path* :             Path on hdfs where you want to save your index  
-* *metric_type* :             Similarity distance on your vectors (inner product or euclidian distance)  
-* *max_index_query_time_ms* : the maximum query speed you want  
-* *max_index_memory_usage* :  the maximum RAM usage of you index  
-
-You can also use the notebook `build_index.ipynb` to do this only with python code (section "Getting started with the python library" of this documentation).
- 
+*index_key*                 -> (optional) Describe the index to build.  
+*index_param*               -> (optional) Describe the hyperparameters of the index.  
+*current_memory_available*  -> (optional) Describe the amount of memory available on the machine.  
+*use_gpu*                   -> (optional) Whether to use GPU or not (not tested).  
 
 It is possible to force the creation of a specific index with specific hyperparameters if more control is needed.
 Here is some documentation <https://github.com/facebookresearch/faiss/wiki/Guidelines-to-choose-an-index> and
