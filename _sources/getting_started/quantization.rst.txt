@@ -12,10 +12,7 @@ recall scores given a memory and query speed constraint.
 The quantize command
 --------------------
 
-There is a magic command that creates your Faiss index, you can find an exemple here `examples_commands/quantize.sh` :
-
-.. literalinclude:: ../../examples_commands/quantize.sh
-   :language: bash
+There is a magic command that creates your Faiss index.
 
 The main important parameters are:
 
@@ -54,11 +51,6 @@ This command creates a new index with different hyperparameters to be closer to 
 The tuning command
 ------------------
 
-You can have an example here: `examples_commands/tuning.sh`
-
-.. literalinclude:: ../../examples_commands/tuning.sh
-   :language: bash
-
 You just need to put the path of your index, the index_key describing the index and a maximum query-time value in milliseconds/query.
 
 Time required
@@ -93,13 +85,8 @@ There is a command for that too, it's the score command.
 The score command
 -----------------
 
-You can have an example here: `examples_commands/score.sh`
-
-.. literalinclude:: ../../examples_commands/score.sh
-   :language: bash
-
 You just need the path to your index and the embeddings for this one.
-Becareful, computing accurate metrics is slow.
+Be careful, computing accurate metrics is slow.
 
 
 Time required
