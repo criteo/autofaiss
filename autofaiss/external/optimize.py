@@ -125,13 +125,11 @@ def get_optimal_index_keys_v2(
 
         if force_pq is not None:
             pq = force_pq
-        elif dim_vector <= 101:
-            # pq >= 24 to avoid an impact on the click rank metric with 101d
-            # see https://confluence.criteois.com/pages/viewpage.action?spaceKey=DEEP&title=Impact+of+Product+Quantization+on+click-rank+and+recall
+        elif dim_vector <= 128:
             pq = 24
         elif dim_vector <= 256:
             pq = 32
-        elif dim_vector <= 700:
+        elif dim_vector <= 768:
             pq = 48
         else:
             pq = 64
