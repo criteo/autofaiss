@@ -294,13 +294,11 @@
 
         <span class="k">if</span> <span class="n">force_pq</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">pq</span> <span class="o">=</span> <span class="n">force_pq</span>
-        <span class="k">elif</span> <span class="n">dim_vector</span> <span class="o">&lt;=</span> <span class="mi">101</span><span class="p">:</span>
-            <span class="c1"># pq &gt;= 24 to avoid an impact on the click rank metric with 101d</span>
-            <span class="c1"># see https://confluence.criteois.com/pages/viewpage.action?spaceKey=DEEP&amp;title=Impact+of+Product+Quantization+on+click-rank+and+recall</span>
+        <span class="k">elif</span> <span class="n">dim_vector</span> <span class="o">&lt;=</span> <span class="mi">128</span><span class="p">:</span>
             <span class="n">pq</span> <span class="o">=</span> <span class="mi">24</span>
         <span class="k">elif</span> <span class="n">dim_vector</span> <span class="o">&lt;=</span> <span class="mi">256</span><span class="p">:</span>
             <span class="n">pq</span> <span class="o">=</span> <span class="mi">32</span>
-        <span class="k">elif</span> <span class="n">dim_vector</span> <span class="o">&lt;=</span> <span class="mi">700</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">dim_vector</span> <span class="o">&lt;=</span> <span class="mi">768</span><span class="p">:</span>
             <span class="n">pq</span> <span class="o">=</span> <span class="mi">48</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">pq</span> <span class="o">=</span> <span class="mi">64</span>
