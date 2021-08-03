@@ -10,7 +10,7 @@ It selects the best indexing parameters to achieve the highest recalls given mem
 
 Using [faiss](https://github.com/facebookresearch/faiss) efficient indices, binary search, and heuristics, Autofaiss makes it possible to *automatically* build in 3 hours a large (200 million vectors, 1TB) KNN index in a low amount of memory (15 GB) with latency in milliseconds (10ms).
 
-Get started by running this [colab notebook](https://colab.research.google.com/github/criteo/autofaiss/blob/master/notebooks/autofaiss_getting_started.ipynb), then check the [full documentation](https://criteo.github.io/autofaiss).
+Get started by running this [colab notebook](https://colab.research.google.com/github/criteo/autofaiss/blob/master/docs/notebooks/autofaiss_getting_started.ipynb), then check the [full documentation](https://criteo.github.io/autofaiss).
 
 ## How to use autofaiss?
 
@@ -55,7 +55,11 @@ distances, indices = my_index.search(query_vector, k)
 print(list(zip(distances[0], indices[0])))
 ```
 
-# Command quick overview
+## How are indices selected ?
+
+To understand better why indices are selected and what are their characteristics, check the [index selection demo](https://colab.research.google.com/github/criteo/autofaiss/blob/master/docs/notebooks/autofaiss_index_selection_demo.ipynb)
+
+## Command quick overview
 Quick description of the `autofaiss quantize` command:
 
 *embeddings_path*           -> Source path of the embeddings in numpy.  
@@ -67,7 +71,7 @@ Quick description of the `autofaiss quantize` command:
 *current_memory_available*  -> (optional) Describe the amount of memory available on the machine.  
 *use_gpu*                   -> (optional) Whether to use GPU or not (not tested).  
 
-# Command details
+## Command details
 
 The `autofaiss quantize` command takes the following parameters:
 

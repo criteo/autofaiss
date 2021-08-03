@@ -24,7 +24,8 @@ Creating and tuning quantized KNN indices for efficient similarity search with l
    :maxdepth: 2
    :caption: Getting started with notebooks
 
-   _notebook_folders/
+   notebooks/autofaiss_getting_started
+   notebooks/autofaiss_index_selection_demo
 
 
 Indices and tables

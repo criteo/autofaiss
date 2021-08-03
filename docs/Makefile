@@ -27,15 +27,7 @@ run:
 pre:
 	sphinx-apidoc --ext-autodoc --extensions sphinxcontrib.napoleon -f -o _source/ ../autofaiss
 
-copy-notebook:
-	rm -rf _notebooks _notebook_folders
-	cp -R ../autofaiss/notebooks _notebooks
-	python3.6 add_title.py _notebooks
-	mkdir -p _notebook_folders
-	python3.6 create_notebook_toctrees.py _notebooks _notebook_folders
-
 clean:
-	rm -rf _notebooks
 	rm -r _build
 	rm -r _source
 
