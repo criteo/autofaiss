@@ -12,7 +12,7 @@ from autofaiss.utils.cast import cast_bytes_to_memory_string
 
 
 def avg_speed_dict_ms_per_query(indices_dict, vectors, k_closest: int = 40, timeout_s: float = 5):
-    """ compute the average query speed of a dictionary of indices """
+    """compute the average query speed of a dictionary of indices"""
     speed_dict = {}
 
     for index_key in indices_dict:
@@ -23,7 +23,7 @@ def avg_speed_dict_ms_per_query(indices_dict, vectors, k_closest: int = 40, time
 
 
 def index_sizes_in_bytes_dict(indices_dict):
-    """ compute sizes of indices in a dictionary of indices """
+    """compute sizes of indices in a dictionary of indices"""
     size_dict = {}
 
     for index_key in indices_dict:

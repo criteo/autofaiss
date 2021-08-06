@@ -23,10 +23,10 @@ from autofaiss.utils.cast import cast_memory_to_bytes, cast_bytes_to_memory_stri
 
 
 class Quantizer:
-    """ class defining the quantization pipeline """
+    """class defining the quantization pipeline"""
 
     def __init__(self):
-        """ Empty constructor """
+        """Empty constructor"""
 
     def quantize(
         self,

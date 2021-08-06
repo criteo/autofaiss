@@ -14,7 +14,7 @@ from autofaiss.utils.os_tools import list_local_files
 
 
 def parquet_already_transformed(remote_embeddings_path: str, local_embeddings_path: str) -> bool:
-    """ Checks if embeddings were all transformed in .npy arrays or should be downloaded again """
+    """Checks if embeddings were all transformed in .npy arrays or should be downloaded again"""
 
     remote_filenames = read_filenames(remote_embeddings_path)
     nb_remote_parquet_files = len(remote_filenames)
@@ -28,7 +28,7 @@ def parquet_already_transformed(remote_embeddings_path: str, local_embeddings_pa
 
 
 def convert_parquet_to_numpy(parquet_file: str, embeddings_path: str, embedding_column_name: str) -> None:
-    """ Convert one embedding parquet file to an embedding numpy file """
+    """Convert one embedding parquet file to an embedding numpy file"""
 
     if not os.path.exists(embeddings_path):
         emb = pq.read_table(parquet_file).to_pandas()
@@ -38,7 +38,7 @@ def convert_parquet_to_numpy(parquet_file: str, embeddings_path: str, embedding_
 
 
 def run_one(parquet_file: str, embeddings_folder: str, delete: bool, embedding_column_name: str) -> None:
-    """ Convertion function to call for parallel execution """
+    """Convertion function to call for parallel execution"""
     num = parquet_file.split("/")[-1].split("-")[1]
 
     convert_parquet_to_numpy(parquet_file, f"{embeddings_folder}/emb_{num}.npy", embedding_column_name)
@@ -54,7 +54,7 @@ def convert_all_parquet_to_numpy(
     delete: bool = False,
     embedding_column_name: str = "embedding",
 ) -> None:
-    """ Convert embedding parquet files to an embedding numpy files """
+    """Convert embedding parquet files to an embedding numpy files"""
 
     assert n_cores > 0
     os.makedirs(embeddings_folder, exist_ok=True)

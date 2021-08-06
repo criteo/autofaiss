@@ -44,7 +44,7 @@ def download(parquet_embeddings_path: str, dest_path: str, n_cores: int = 32, ve
 
 
 def download_one(src_dest_path: Tuple[str, str]) -> None:
-    """ Function to download one file from hdfs to local"""
+    """Function to download one file from hdfs to local"""
 
     filename, dest_path = src_dest_path
 

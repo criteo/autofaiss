@@ -49,7 +49,7 @@ def get_optimal_train_size(
 
 
 def get_optimal_batch_size(nb_vectors: int, vec_dim: int, current_memory_available: str) -> int:
-    """ compute optimal batch size to use the RAM at its full potential """
+    """compute optimal batch size to use the RAM at its full potential"""
 
     total_size = nb_vectors * vec_dim * 4  # in bytes
     memory = cast_memory_to_bytes(current_memory_available)
@@ -251,7 +251,7 @@ def get_optimal_hyperparameters(
     max_timeout_per_iteration: float = 1.0,  # seconds
     min_ef_search: int = 32,
 ) -> str:
-    """ Find the optimal hyperparameters to maximize the recall given a query speed in milliseconds/query """
+    """Find the optimal hyperparameters to maximize the recall given a query speed in milliseconds/query"""
 
     # nb_vectors = index.ntotal
 
