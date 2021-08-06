@@ -27,7 +27,6 @@ Flat Index (Simple exhaustive search)
     All the vectors are stored without compression in a 2D array.
     The search is exaustive and gives exact results, but is can be slow when there are
     many vectors.
-    -> More info: http://todo
 """,
     IndexBlock.IVF: """
 IVF (Inverted File Index):
@@ -35,7 +34,7 @@ IVF (Inverted File Index):
     The algorithm first looks for the closest cluster vectors by iterating over them one by one.
     Then, The IVF mapping is used to read the vectors in the selected groups. The algorithm reads
     each of them and select the k nearest neighbors.
-    -> More info: http://todo
+    -> More info: https://hal.inria.fr/inria-00514462/PDF/jegou_pq_postprint.pdf
 """,
     IndexBlock.IVF_HNSW: """
 IVF + HNSW (Inverted File Index + Hierarchical Navigable Small World index):
@@ -44,7 +43,7 @@ IVF + HNSW (Inverted File Index + Hierarchical Navigable Small World index):
     iterating over then one by one in the version without HNSW). Then, The IVF mapping is used
     to read the vectors in the selected groups. The algorithm reads each of them and select
     the k nearest neighbors.
-    -> More info: http://todo
+    -> More info: https://hal.inria.fr/inria-00514462/PDF/jegou_pq_postprint.pdf
 """,
     IndexBlock.PQ: """
 PQ (Product Quantization):
@@ -62,31 +61,32 @@ OPQ (Optimized Product Quantization):
 HNSW (Hierarchical Navigable Small World):
     All the vectors are stored in a 2D array without compression, and
     a bidirectional graph is build on the top of the vectors to enable a fast search.
-    -> More info: https://todo
+    -> More info: https://arxiv.org/ftp/arxiv/papers/1603/1603.09320.pdf
 """,
     IndexBlock.PAD: """
 PAD (Padding):
-    #TODO
+    Preprocessing operations where a padding with 0s is added to the end of the vectors.
 """,
 }
 
-# TODO Finish index description for padding
 
 TUNABLE_PARAMETERS_DESCRIPTION_BLOCKS = {
     TunableParam.NPROBE: """
     - nprobe: The number of vector groups to explore, the search time is proportional
       to this value. If nprobe is high, the recall will also be high.
+      -> More info: https://hal.inria.fr/inria-00514462/PDF/jegou_pq_postprint.pdf
 """,
     TunableParam.EFSEARCH: """
     - efsearch: The number of times a gready search is done in the HNSW graph. The results
       of the different gready searches are combined to get a more precise result.
-      The search time is proportional to this value. If efsearch is high, the recall will be high.        
+      The search time is proportional to this value. If efsearch is high, the recall will be high.
+      -> More info: https://arxiv.org/ftp/arxiv/papers/1603/1603.09320.pdf       
 """,
     TunableParam.HT: """
     - ht (Hamming threshold): A threshold value to approximate the vector distances using the hamming distance.
       Computing the Hamming distances between two vectors is much faster than computing the real distance,
       but it is also less precise. We found out that is was better to desactivate this parameter as it
       decreases the recall score over speed improvements (default value is 2048)
-      -> More info: https://polysemous_code
+      -> More info: https://arxiv.org/pdf/1609.01882.pdf
 """,
 }

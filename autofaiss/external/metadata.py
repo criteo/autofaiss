@@ -131,12 +131,13 @@ class IndexMetadata:
             vectors_size_in_bytes = self.nb_vectors * vector_size_byte
             centroid_size_in_bytes = self.params["ncentroids"] * self.dim_vector * 4
 
-            # TODO compute the size of the OPQ table and PAD for the size estimation
-
             total_size_in_byte = vectors_size_in_bytes + centroid_size_in_bytes
 
             if self.index_type in [IndexType.OPQ_IVF_HNSW_PQ, IndexType.PAD_IVF_HNSW_PQ]:
                 total_size_in_byte += self.params["ncentroids"] * self.params["M_HNSW"] * 2 * 4
+
+            if self.index_type in [IndexType.OPQ_IVF_PQ, IndexType.OPQ_IVF_HNSW_PQ]:
+                total_size_in_byte += self.params["M_OPQ"] * self.params["out_d"] * 4
 
             return total_size_in_byte
 
@@ -169,15 +170,4 @@ The lower the speed limit the lower the recall. With a looser constraint
 on the query time, the recall can be higher, but it is limited by the index
 structure (if there is quantization for instance).
 """
-        return description
-
-    def get_index_detailed_description(self) -> str:
-        """
-        Give a detailed description of the index.
-        """
-
-        # TODO add a detailed description for the indices.
-
-        description = "TODO"
-
         return description
