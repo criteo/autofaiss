@@ -100,10 +100,9 @@ def get_optimal_nb_clusters(nb_vectors: int) -> List[int]:
 def get_optimal_index_keys_v2(
     nb_vectors: int,
     dim_vector: int,
-    max_index_memory_usage: Optional[str] = None,
+    max_index_memory_usage: str,
     flat_threshold: int = 1000,
     hnsw_threshold: int = 10000,
-    high_quantization_threshold: int = 6_000_000,
     force_pq: Optional[int] = None,
 ):
     """
@@ -113,28 +112,24 @@ def get_optimal_index_keys_v2(
     detailed explanations.
     """
 
+    # Exception cases:
     if nb_vectors < flat_threshold:  # HNSW Faiss slower when less than 1000 vectors
         return ["Flat"]
-
-    elif nb_vectors < hnsw_threshold:  # HNSW is faster and quantization is not possible (>=10_000 vectors needed)
+    if nb_vectors < hnsw_threshold:  # HNSW is faster and quantization is not possible (>=10_000 vectors needed)
         return ["HNSW15"]
+    if force_pq is not None:
+        return get_optimal_quantization(nb_vectors, dim_vector, force_quantization_value=force_pq)
 
-    elif nb_vectors < high_quantization_threshold:  # Quantization is needed
+    # Get max memory usage
+    max_size_in_bytes = cast_memory_to_bytes(max_index_memory_usage)
 
-        if force_pq is not None:
-            pq = force_pq
-        elif dim_vector <= 128:
-            pq = 24
-        elif dim_vector <= 256:
-            pq = 32
-        elif dim_vector <= 768:
-            pq = 48
-        else:
-            pq = 64
-        return get_optimal_quantization(nb_vectors, dim_vector, force_quantization_value=pq)
+    # If we can build an HNSW, it's the best
+    m_hnsw = (max_size_in_bytes / (4 * nb_vectors) - dim_vector) / 2
+    if m_hnsw >= 8:
+        return [f"HNSW{min(m_hnsw, 32)}"]
 
-    else:  # Special case in which the dataset is big, it should fit a memory limit requirement
-        return get_optimal_quantization(nb_vectors, dim_vector, force_max_index_memory_usage=max_index_memory_usage)
+    # Otherwise, there is not enough space, let's go for quantization
+    return get_optimal_quantization(nb_vectors, dim_vector, force_max_index_memory_usage=max_index_memory_usage)
 
 
 def get_optimal_quantization(
@@ -211,34 +206,6 @@ def get_optimal_quantization(
                     y = (min(dim_vector // pq, 6) + 1) * pq
                     cluster_opt = f"IVF{nb_clusters}" if nb_clusters < 1000 else f"IVF{nb_clusters}_HNSW32"
                     relevant_list.append(f"OPQ{pq}_{y},{cluster_opt},PQ{pq}x8")
-
-    return relevant_list
-
-
-# SHOULD BE REPLACED BY V2 ?
-def get_optimal_index_keys(nb_vectors: int, dim_vector: int, max_index_memory_usage: str) -> List[str]:
-    """
-    Gives a list of interesting indices to try, *the one at the top is the most promising*
-
-    See: https://github.com/facebookresearch/faiss/wiki/Guidelines-to-choose-an-index for
-    detailed explanations.
-    """
-
-    total_bytes = 4 * nb_vectors * dim_vector  # x4 because float32
-    max_mem_bytes = cast_memory_to_bytes(max_index_memory_usage)
-
-    # index options
-    relevant_list: List[str] = []
-
-    # Cases with a lot of memory -> HNSW
-    if 1.7 * total_bytes < max_mem_bytes:
-        relevant_list.append("HNSW32")
-    elif 1.3 * total_bytes < max_mem_bytes:
-        relevant_list.append("HNSW15")
-    else:  # product quantization
-        relevant_list.extend(
-            get_optimal_quantization(nb_vectors, dim_vector, force_max_index_memory_usage=max_index_memory_usage)
-        )
 
     return relevant_list
 
