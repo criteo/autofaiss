@@ -2,7 +2,7 @@
 
 import re
 from functools import partial, reduce
-from math import log2, sqrt
+from math import log2, sqrt, floor
 from operator import mul
 from typing import List, Optional
 
@@ -123,8 +123,8 @@ def get_optimal_index_keys_v2(
     # Get max memory usage
     max_size_in_bytes = cast_memory_to_bytes(max_index_memory_usage)
 
-    # If we can build an HNSW, it's the best
-    m_hnsw = (max_size_in_bytes / (4 * nb_vectors) - dim_vector) / 2
+    # If we can build an HNSW with the given memory constraints, it's the best
+    m_hnsw = int(floor((max_size_in_bytes / (4 * nb_vectors) - dim_vector) / 2))
     if m_hnsw >= 8:
         return [f"HNSW{min(m_hnsw, 32)}"]
 
