@@ -22,71 +22,51 @@ class TunableParam(Enum):
 
 
 INDEX_DESCRIPTION_BLOCKS = {
-    IndexBlock.FLAT: """
-Flat Index (Simple exhaustive search)
+    IndexBlock.FLAT: """Flat Index (Simple exhaustive search)
     All the vectors are stored without compression in a 2D array.
-    The search is exaustive and gives exact results, but is can be slow when there are
-    many vectors.
-""",
-    IndexBlock.IVF: """
-IVF (Inverted File Index):
+    The search is exhaustive and gives exact results, but it can be slow when there are
+    many vectors.""",
+    IndexBlock.IVF: """IVF (Inverted File Index):
     The vector space is divided into several groups that are represented by a cluster vector.
     The algorithm first looks for the closest cluster vectors by iterating over them one by one.
     Then, The IVF mapping is used to read the vectors in the selected groups. The algorithm reads
     each of them and select the k nearest neighbors.
-    -> More info: https://hal.inria.fr/inria-00514462/PDF/jegou_pq_postprint.pdf
-""",
-    IndexBlock.IVF_HNSW: """
-IVF + HNSW (Inverted File Index + Hierarchical Navigable Small World index):
+    -> More info: https://hal.inria.fr/inria-00514462/PDF/jegou_pq_postprint.pdf""",
+    IndexBlock.IVF_HNSW: """IVF + HNSW (Inverted File Index + Hierarchical Navigable Small World index):
     The vector space is divided into several groups that are represented by a cluster vector. 
     The algorithm first looks for the closest cluster vectors using an HNSW index (instead of 
-    iterating over then one by one in the version without HNSW). Then, The IVF mapping is used
-    to read the vectors in the selected groups. The algorithm reads each of them and select
+    iterating over them one by one in the version without HNSW). Then, The IVF mapping is used
+    to read the vectors in the selected groups. The algorithm reads each of them and selects
     the k nearest neighbors.
-    -> More info: https://hal.inria.fr/inria-00514462/PDF/jegou_pq_postprint.pdf
-""",
-    IndexBlock.PQ: """
-PQ (Product Quantization):
+    -> More info: https://hal.inria.fr/inria-00514462/PDF/jegou_pq_postprint.pdf""",
+    IndexBlock.PQ: """PQ (Product Quantization):
     The vectors are compressed using product quantization.
-    Some clever optimization are implemented to compute distances in the compressed space.
-    -> More info: https://hal.inria.fr/inria-00514462/PDF/jegou_pq_postprint.pdf
-""",
-    IndexBlock.OPQ: """
-OPQ (Optimized Product Quantization):
+    Some clever optimizations are implemented to compute distances in the compressed space.
+    -> More info: https://hal.inria.fr/inria-00514462/PDF/jegou_pq_postprint.pdf""",
+    IndexBlock.OPQ: """OPQ (Optimized Product Quantization):
     The vectors are projected using a rotation matrix. The matrix is trained to minimize
     the average compression error.
-    -> More info: http://kaiminghe.com/publications/pami13opq.pdf
-""",
-    IndexBlock.HNSW: """
-HNSW (Hierarchical Navigable Small World):
+    -> More info: http://kaiminghe.com/publications/pami13opq.pdf""",
+    IndexBlock.HNSW: """HNSW (Hierarchical Navigable Small World):
     All the vectors are stored in a 2D array without compression, and
-    a bidirectional graph is build on the top of the vectors to enable a fast search.
-    -> More info: https://arxiv.org/ftp/arxiv/papers/1603/1603.09320.pdf
-""",
-    IndexBlock.PAD: """
-PAD (Padding):
-    Preprocessing operations where a padding with 0s is added to the end of the vectors.
-""",
+    a bidirectional graph is built on the top of the vectors to enable a fast search.
+    -> More info: https://arxiv.org/ftp/arxiv/papers/1603/1603.09320.pdf""",
+    IndexBlock.PAD: """PAD (Padding):
+    Preprocessing operations where a padding with 0s is added to the end of the vectors.""",
 }
 
 
 TUNABLE_PARAMETERS_DESCRIPTION_BLOCKS = {
-    TunableParam.NPROBE: """
-    - nprobe: The number of vector groups to explore, the search time is proportional
+    TunableParam.NPROBE: """    - nprobe: The number of vector groups to explore, the search time is proportional
       to this value. If nprobe is high, the recall will also be high.
-      -> More info: https://hal.inria.fr/inria-00514462/PDF/jegou_pq_postprint.pdf
-""",
-    TunableParam.EFSEARCH: """
-    - efsearch: The number of times a gready search is done in the HNSW graph. The results
-      of the different gready searches are combined to get a more precise result.
+      -> More info: https://hal.inria.fr/inria-00514462/PDF/jegou_pq_postprint.pdf""",
+    TunableParam.EFSEARCH: """    - efsearch: The number of times a greedy search is done in the HNSW graph. The results
+      of the different greedy searches are combined to get a more precise result.
       The search time is proportional to this value. If efsearch is high, the recall will be high.
-      -> More info: https://arxiv.org/ftp/arxiv/papers/1603/1603.09320.pdf       
-""",
-    TunableParam.HT: """
-    - ht (Hamming threshold): A threshold value to approximate the vector distances using the hamming distance.
+      -> More info: https://arxiv.org/ftp/arxiv/papers/1603/1603.09320.pdf       """,
+    TunableParam.HT: """    - ht (Hamming threshold): A threshold value to approximate the vector distances using the hamming distance.
       Computing the Hamming distances between two vectors is much faster than computing the real distance,
-      but it is also less precise. We found out that is was better to desactivate this parameter as it
+      but it is also less precise. We found out that it was better to deactivate this parameter as it
       decreases the recall score over speed improvements (default value is 2048)
-      -> More info: https://arxiv.org/pdf/1609.01882.pdf
-""",
+      -> More info: https://arxiv.org/pdf/1609.01882.pdf""",
 }

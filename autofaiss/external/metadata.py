@@ -148,24 +148,27 @@ class IndexMetadata:
         Gives a generic description of the index.
         """
 
-        description = ""
+        description = self.fast_description
 
-        description += self.fast_description + "\n\n"
+        if self.index_type == IndexType.NOT_SUPPORTED:
+            return description
+
+        description += "\n"
+        index_size_string = cast_bytes_to_memory_string(self.estimated_index_size_in_bytes())
+        description += f"The size of the index should be around {index_size_string}.\n\n"
         description += "\n".join(INDEX_DESCRIPTION_BLOCKS[desc] for desc in self.description_blocs) + "\n\n"
 
         if tunable_parameters_infos:
             if not self.tunable_params:
                 description += "No parameters can be tuned to find a query speed VS recall tradeoff\n\n"
             else:
-                description += "List of parameters that can be tuned to find a query speed VS recall tradeoff:"
+                description += "List of parameters that can be tuned to find a query speed VS recall tradeoff:\n"
                 description += (
                     "\n".join(TUNABLE_PARAMETERS_DESCRIPTION_BLOCKS[desc] for desc in self.tunable_params) + "\n\n"
                 )
 
-        index_size_string = cast_bytes_to_memory_string(self.estimated_index_size_in_bytes())
-        description += f"The size of the index should be around {index_size_string}.\n\n"
         description += """
-For all indices except the flat index, the query speed can be ajusted.
+For all indices except the flat index, the query speed can be adjusted.
 The lower the speed limit the lower the recall. With a looser constraint
 on the query time, the recall can be higher, but it is limited by the index
 structure (if there is quantization for instance).
