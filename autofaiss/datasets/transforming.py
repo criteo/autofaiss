@@ -4,6 +4,7 @@ import os
 import re
 from functools import partial
 from multiprocessing import Pool
+from typing import Optional
 
 import numpy as np
 import pyarrow.parquet as pq
@@ -27,21 +28,47 @@ def parquet_already_transformed(remote_embeddings_path: str, local_embeddings_pa
     return 2 * nb_remote_parquet_files == nb_local_map_and_emb_files
 
 
-def convert_parquet_to_numpy(parquet_file: str, embeddings_path: str, embedding_column_name: str) -> None:
+def convert_parquet_to_numpy(
+    parquet_file: str,
+    embeddings_path: str,
+    embedding_column_name: str,
+    keys_path: Optional[str] = None,
+    key_column_name: Optional[str] = None,
+) -> None:
     """ Convert one embedding parquet file to an embedding numpy file """
 
+    emb = None
     if not os.path.exists(embeddings_path):
         emb = pq.read_table(parquet_file).to_pandas()
         embeddings_raw = emb[embedding_column_name].to_numpy()
         embeddings = np.stack(embeddings_raw).astype("float32")
         np.save(embeddings_path, embeddings)
 
+    if keys_path is not None and not os.path.exists(keys_path):
+        if emb is None:
+            emb = pq.read_table(parquet_file).to_pandas()
+        key_raw = emb[key_column_name].to_numpy()
+        np.save(keys_path, key_raw)
 
-def run_one(parquet_file: str, embeddings_folder: str, delete: bool, embedding_column_name: str) -> None:
+
+def run_one(
+    parquet_file: str,
+    embeddings_folder: str,
+    delete: bool,
+    embedding_column_name: str,
+    keys_folder: Optional[str] = None,
+    key_column_name: Optional[str] = None,
+) -> None:
     """ Convertion function to call for parallel execution """
     num = parquet_file.split("/")[-1].split("-")[1]
 
-    convert_parquet_to_numpy(parquet_file, f"{embeddings_folder}/emb_{num}.npy", embedding_column_name)
+    convert_parquet_to_numpy(
+        parquet_file,
+        f"{embeddings_folder}/emb_{num}.npy",
+        embedding_column_name,
+        f"{keys_folder}/key_{num}.npy",
+        key_column_name,
+    )
 
     if delete:
         os.remove(parquet_file)
@@ -53,11 +80,17 @@ def convert_all_parquet_to_numpy(
     n_cores: int = 32,
     delete: bool = False,
     embedding_column_name: str = "embedding",
+    keys_folder: Optional[str] = None,
+    key_column_name: Optional[str] = None,
 ) -> None:
-    """ Convert embedding parquet files to an embedding numpy files """
+    """ Convert embedding parquet files to an embedding numpy files
+    Optionally also extract keys from parquet files
+    """
 
     assert n_cores > 0
     os.makedirs(embeddings_folder, exist_ok=True)
+    if keys_folder:
+        os.makedirs(keys_folder, exist_ok=True)
 
     parquet_files = [f"{parquet_folder}/{x}" for x in os.listdir(parquet_folder) if x.endswith(".parquet")]
     parquet_files.sort()
@@ -65,7 +98,12 @@ def convert_all_parquet_to_numpy(
     nb_files = len(parquet_files)
 
     func = partial(
-        run_one, embeddings_folder=embeddings_folder, delete=delete, embedding_column_name=embedding_column_name
+        run_one,
+        embeddings_folder=embeddings_folder,
+        delete=delete,
+        embedding_column_name=embedding_column_name,
+        keys_folder=keys_folder,
+        key_column_name=key_column_name,
     )
 
     with tq(total=nb_files) as pbar:
