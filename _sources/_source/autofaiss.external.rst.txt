@@ -12,10 +12,26 @@ autofaiss.external.build module
    :undoc-members:
    :show-inheritance:
 
+autofaiss.external.descriptions module
+--------------------------------------
+
+.. automodule:: autofaiss.external.descriptions
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 autofaiss.external.download module
 ----------------------------------
 
 .. automodule:: autofaiss.external.download
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+autofaiss.external.metadata module
+----------------------------------
+
+.. automodule:: autofaiss.external.metadata
    :members:
    :undoc-members:
    :show-inheritance:

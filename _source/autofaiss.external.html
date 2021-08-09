@@ -264,6 +264,74 @@ Still useful for tests</p>
 </dd></dl>
 
 </div>
+<div class="section" id="module-autofaiss.external.descriptions">
+<span id="autofaiss-external-descriptions-module"></span><h2>autofaiss.external.descriptions module<a class="headerlink" href="#module-autofaiss.external.descriptions" title="Permalink to this headline">¶</a></h2>
+<p>File that contains the descriptions of the different indices features.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="autofaiss.external.descriptions.IndexBlock">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">autofaiss.external.descriptions.</span></span><span class="sig-name descname"><span class="pre">IndexBlock</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/external/descriptions.html#IndexBlock"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.external.descriptions.IndexBlock" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.Enum" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></a></p>
+<p>An enumeration.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autofaiss.external.descriptions.IndexBlock.FLAT">
+<span class="sig-name descname"><span class="pre">FLAT</span></span><em class="property"> <span class="pre">=</span> <span class="pre">0</span></em><a class="headerlink" href="#autofaiss.external.descriptions.IndexBlock.FLAT" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autofaiss.external.descriptions.IndexBlock.HNSW">
+<span class="sig-name descname"><span class="pre">HNSW</span></span><em class="property"> <span class="pre">=</span> <span class="pre">3</span></em><a class="headerlink" href="#autofaiss.external.descriptions.IndexBlock.HNSW" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autofaiss.external.descriptions.IndexBlock.IVF">
+<span class="sig-name descname"><span class="pre">IVF</span></span><em class="property"> <span class="pre">=</span> <span class="pre">1</span></em><a class="headerlink" href="#autofaiss.external.descriptions.IndexBlock.IVF" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autofaiss.external.descriptions.IndexBlock.IVF_HNSW">
+<span class="sig-name descname"><span class="pre">IVF_HNSW</span></span><em class="property"> <span class="pre">=</span> <span class="pre">2</span></em><a class="headerlink" href="#autofaiss.external.descriptions.IndexBlock.IVF_HNSW" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autofaiss.external.descriptions.IndexBlock.OPQ">
+<span class="sig-name descname"><span class="pre">OPQ</span></span><em class="property"> <span class="pre">=</span> <span class="pre">5</span></em><a class="headerlink" href="#autofaiss.external.descriptions.IndexBlock.OPQ" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autofaiss.external.descriptions.IndexBlock.PAD">
+<span class="sig-name descname"><span class="pre">PAD</span></span><em class="property"> <span class="pre">=</span> <span class="pre">6</span></em><a class="headerlink" href="#autofaiss.external.descriptions.IndexBlock.PAD" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autofaiss.external.descriptions.IndexBlock.PQ">
+<span class="sig-name descname"><span class="pre">PQ</span></span><em class="property"> <span class="pre">=</span> <span class="pre">4</span></em><a class="headerlink" href="#autofaiss.external.descriptions.IndexBlock.PQ" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="autofaiss.external.descriptions.TunableParam">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">autofaiss.external.descriptions.</span></span><span class="sig-name descname"><span class="pre">TunableParam</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/external/descriptions.html#TunableParam"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.external.descriptions.TunableParam" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.Enum" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></a></p>
+<p>An enumeration.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autofaiss.external.descriptions.TunableParam.EFSEARCH">
+<span class="sig-name descname"><span class="pre">EFSEARCH</span></span><em class="property"> <span class="pre">=</span> <span class="pre">0</span></em><a class="headerlink" href="#autofaiss.external.descriptions.TunableParam.EFSEARCH" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autofaiss.external.descriptions.TunableParam.HT">
+<span class="sig-name descname"><span class="pre">HT</span></span><em class="property"> <span class="pre">=</span> <span class="pre">2</span></em><a class="headerlink" href="#autofaiss.external.descriptions.TunableParam.HT" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autofaiss.external.descriptions.TunableParam.NPROBE">
+<span class="sig-name descname"><span class="pre">NPROBE</span></span><em class="property"> <span class="pre">=</span> <span class="pre">1</span></em><a class="headerlink" href="#autofaiss.external.descriptions.TunableParam.NPROBE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
 <div class="section" id="module-autofaiss.external.download">
 <span id="autofaiss-external-download-module"></span><h2>autofaiss.external.download module<a class="headerlink" href="#module-autofaiss.external.download" title="Permalink to this headline">¶</a></h2>
 <p>Function that downloads a parquet file containing embeddings on the
@@ -285,6 +353,88 @@ Optionally save keys in another folder (useful to keep track of what is each emb
 <dt class="sig sig-object py" id="autofaiss.external.download.main">
 <span class="sig-prename descclassname"><span class="pre">autofaiss.external.download.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/external/download.html#main"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.external.download.main" title="Permalink to this definition">¶</a></dt>
 <dd><p>Main entry point</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-autofaiss.external.metadata">
+<span id="autofaiss-external-metadata-module"></span><h2>autofaiss.external.metadata module<a class="headerlink" href="#module-autofaiss.external.metadata" title="Permalink to this headline">¶</a></h2>
+<p>Index metadata for Faiss indices.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="autofaiss.external.metadata.IndexMetadata">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">autofaiss.external.metadata.</span></span><span class="sig-name descname"><span class="pre">IndexMetadata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_vectors</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim_vector</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/external/metadata.html#IndexMetadata"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.external.metadata.IndexMetadata" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Class to compute index metadata given the index_key, the number of vectors and their dimension.</p>
+<p>Note: We don’t create classes for each index type in order to keep the code simple.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="autofaiss.external.metadata.IndexMetadata.estimated_index_size_in_bytes">
+<span class="sig-name descname"><span class="pre">estimated_index_size_in_bytes</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/external/metadata.html#IndexMetadata.estimated_index_size_in_bytes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.external.metadata.IndexMetadata.estimated_index_size_in_bytes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the estimated size of the index in bytes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autofaiss.external.metadata.IndexMetadata.get_index_description">
+<span class="sig-name descname"><span class="pre">get_index_description</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tunable_parameters_infos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/external/metadata.html#IndexMetadata.get_index_description"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.external.metadata.IndexMetadata.get_index_description" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gives a generic description of the index.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autofaiss.external.metadata.IndexMetadata.get_index_type">
+<span class="sig-name descname"><span class="pre">get_index_type</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/external/metadata.html#IndexMetadata.get_index_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.external.metadata.IndexMetadata.get_index_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>return the index type.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#autofaiss.external.metadata.IndexType" title="autofaiss.external.metadata.IndexType"><code class="xref py py-class docutils literal notranslate"><span class="pre">IndexType</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="autofaiss.external.metadata.IndexType">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">autofaiss.external.metadata.</span></span><span class="sig-name descname"><span class="pre">IndexType</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/external/metadata.html#IndexType"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.external.metadata.IndexType" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.Enum" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></a></p>
+<p>An enumeration.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autofaiss.external.metadata.IndexType.FLAT">
+<span class="sig-name descname"><span class="pre">FLAT</span></span><em class="property"> <span class="pre">=</span> <span class="pre">0</span></em><a class="headerlink" href="#autofaiss.external.metadata.IndexType.FLAT" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autofaiss.external.metadata.IndexType.HNSW">
+<span class="sig-name descname"><span class="pre">HNSW</span></span><em class="property"> <span class="pre">=</span> <span class="pre">1</span></em><a class="headerlink" href="#autofaiss.external.metadata.IndexType.HNSW" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autofaiss.external.metadata.IndexType.NOT_SUPPORTED">
+<span class="sig-name descname"><span class="pre">NOT_SUPPORTED</span></span><em class="property"> <span class="pre">=</span> <span class="pre">5</span></em><a class="headerlink" href="#autofaiss.external.metadata.IndexType.NOT_SUPPORTED" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autofaiss.external.metadata.IndexType.OPQ_IVF_HNSW_PQ">
+<span class="sig-name descname"><span class="pre">OPQ_IVF_HNSW_PQ</span></span><em class="property"> <span class="pre">=</span> <span class="pre">3</span></em><a class="headerlink" href="#autofaiss.external.metadata.IndexType.OPQ_IVF_HNSW_PQ" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autofaiss.external.metadata.IndexType.OPQ_IVF_PQ">
+<span class="sig-name descname"><span class="pre">OPQ_IVF_PQ</span></span><em class="property"> <span class="pre">=</span> <span class="pre">2</span></em><a class="headerlink" href="#autofaiss.external.metadata.IndexType.OPQ_IVF_PQ" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autofaiss.external.metadata.IndexType.PAD_IVF_HNSW_PQ">
+<span class="sig-name descname"><span class="pre">PAD_IVF_HNSW_PQ</span></span><em class="property"> <span class="pre">=</span> <span class="pre">4</span></em><a class="headerlink" href="#autofaiss.external.metadata.IndexType.PAD_IVF_HNSW_PQ" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 </div>
@@ -314,21 +464,8 @@ Optionally save keys in another folder (useful to keep track of what is each emb
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="autofaiss.external.optimize.get_optimal_index_keys">
-<span class="sig-prename descclassname"><span class="pre">autofaiss.external.optimize.</span></span><span class="sig-name descname"><span class="pre">get_optimal_index_keys</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nb_vectors</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim_vector</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_index_memory_usage</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/external/optimize.html#get_optimal_index_keys"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.external.optimize.get_optimal_index_keys" title="Permalink to this definition">¶</a></dt>
-<dd><p>Gives a list of interesting indices to try, <em>the one at the top is the most promising</em></p>
-<p>See: <a class="reference external" href="https://github.com/facebookresearch/faiss/wiki/Guidelines-to-choose-an-index">https://github.com/facebookresearch/faiss/wiki/Guidelines-to-choose-an-index</a> for
-detailed explanations.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
 <dt class="sig sig-object py" id="autofaiss.external.optimize.get_optimal_index_keys_v2">
-<span class="sig-prename descclassname"><span class="pre">autofaiss.external.optimize.</span></span><span class="sig-name descname"><span class="pre">get_optimal_index_keys_v2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nb_vectors</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim_vector</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_index_memory_usage</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flat_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hnsw_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">high_quantization_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6000000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_pq</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/external/optimize.html#get_optimal_index_keys_v2"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.external.optimize.get_optimal_index_keys_v2" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autofaiss.external.optimize.</span></span><span class="sig-name descname"><span class="pre">get_optimal_index_keys_v2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nb_vectors</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim_vector</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_index_memory_usage</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flat_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hnsw_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_pq</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/external/optimize.html#get_optimal_index_keys_v2"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.external.optimize.get_optimal_index_keys_v2" title="Permalink to this definition">¶</a></dt>
 <dd><p>Gives a list of interesting indices to try, <em>the one at the top is the most promising</em></p>
 <p>See: <a class="reference external" href="https://github.com/facebookresearch/faiss/wiki/Guidelines-to-choose-an-index">https://github.com/facebookresearch/faiss/wiki/Guidelines-to-choose-an-index</a> for
 detailed explanations.</p>

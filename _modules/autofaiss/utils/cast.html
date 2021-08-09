@@ -224,7 +224,7 @@
 
 
 <div class="viewcode-block" id="to_faiss_metric_type"><a class="viewcode-back" href="../../../_source/autofaiss.utils.html#autofaiss.utils.cast.to_faiss_metric_type">[docs]</a><span class="k">def</span> <span class="nf">to_faiss_metric_type</span><span class="p">(</span><span class="n">metric_type</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot; convert metric_type string/enum to faiss enum of the distance metric &quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;convert metric_type string/enum to faiss enum of the distance metric&quot;&quot;&quot;</span>
 
     <span class="k">if</span> <span class="n">metric_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;ip&quot;</span><span class="p">,</span> <span class="s2">&quot;IP&quot;</span><span class="p">,</span> <span class="n">faiss</span><span class="o">.</span><span class="n">METRIC_INNER_PRODUCT</span><span class="p">]:</span>
         <span class="k">return</span> <span class="n">faiss</span><span class="o">.</span><span class="n">METRIC_INNER_PRODUCT</span>
@@ -235,7 +235,7 @@
 
 
 <div class="viewcode-block" id="to_readable_time"><a class="viewcode-back" href="../../../_source/autofaiss.utils.html#autofaiss.utils.cast.to_readable_time">[docs]</a><span class="k">def</span> <span class="nf">to_readable_time</span><span class="p">(</span><span class="n">seconds</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">rounding</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot; cast time in seconds to readable string &quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;cast time in seconds to readable string&quot;&quot;&quot;</span>
 
     <span class="n">initial_seconds</span> <span class="o">=</span> <span class="n">seconds</span>
 

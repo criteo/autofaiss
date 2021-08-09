@@ -171,7 +171,7 @@
 
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span><span class="p">,</span> <span class="n">reduce</span>
-<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">log2</span><span class="p">,</span> <span class="n">sqrt</span>
+<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">log2</span><span class="p">,</span> <span class="n">sqrt</span><span class="p">,</span> <span class="n">floor</span>
 <span class="kn">from</span> <span class="nn">operator</span> <span class="kn">import</span> <span class="n">mul</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span>
 
@@ -218,7 +218,7 @@
 
 
 <div class="viewcode-block" id="get_optimal_batch_size"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.optimize.get_optimal_batch_size">[docs]</a><span class="k">def</span> <span class="nf">get_optimal_batch_size</span><span class="p">(</span><span class="n">nb_vectors</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">vec_dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">current_memory_available</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot; compute optimal batch size to use the RAM at its full potential &quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;compute optimal batch size to use the RAM at its full potential&quot;&quot;&quot;</span>
 
     <span class="n">total_size</span> <span class="o">=</span> <span class="n">nb_vectors</span> <span class="o">*</span> <span class="n">vec_dim</span> <span class="o">*</span> <span class="mi">4</span>  <span class="c1"># in bytes</span>
     <span class="n">memory</span> <span class="o">=</span> <span class="n">cast_memory_to_bytes</span><span class="p">(</span><span class="n">current_memory_available</span><span class="p">)</span>
@@ -269,10 +269,9 @@
 <div class="viewcode-block" id="get_optimal_index_keys_v2"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.optimize.get_optimal_index_keys_v2">[docs]</a><span class="k">def</span> <span class="nf">get_optimal_index_keys_v2</span><span class="p">(</span>
     <span class="n">nb_vectors</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="n">dim_vector</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-    <span class="n">max_index_memory_usage</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">max_index_memory_usage</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">flat_threshold</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span>
     <span class="n">hnsw_threshold</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10000</span><span class="p">,</span>
-    <span class="n">high_quantization_threshold</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">6_000_000</span><span class="p">,</span>
     <span class="n">force_pq</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -282,30 +281,24 @@
 <span class="sd">    detailed explanations.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="c1"># assert 24 &lt;= dim_vector &lt;= 144</span>
-
+    <span class="c1"># Exception cases:</span>
     <span class="k">if</span> <span class="n">nb_vectors</span> <span class="o">&lt;</span> <span class="n">flat_threshold</span><span class="p">:</span>  <span class="c1"># HNSW Faiss slower when less than 1000 vectors</span>
         <span class="k">return</span> <span class="p">[</span><span class="s2">&quot;Flat&quot;</span><span class="p">]</span>
-
-    <span class="k">elif</span> <span class="n">nb_vectors</span> <span class="o">&lt;</span> <span class="n">hnsw_threshold</span><span class="p">:</span>  <span class="c1"># HNSW is faster and quantization is not possible (&gt;=10_000 vectors needed)</span>
+    <span class="k">if</span> <span class="n">nb_vectors</span> <span class="o">&lt;</span> <span class="n">hnsw_threshold</span><span class="p">:</span>  <span class="c1"># HNSW is faster and quantization is not possible (&gt;=10_000 vectors needed)</span>
         <span class="k">return</span> <span class="p">[</span><span class="s2">&quot;HNSW15&quot;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">force_pq</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">get_optimal_quantization</span><span class="p">(</span><span class="n">nb_vectors</span><span class="p">,</span> <span class="n">dim_vector</span><span class="p">,</span> <span class="n">force_quantization_value</span><span class="o">=</span><span class="n">force_pq</span><span class="p">)</span>
 
-    <span class="k">elif</span> <span class="n">nb_vectors</span> <span class="o">&lt;</span> <span class="n">high_quantization_threshold</span><span class="p">:</span>  <span class="c1"># Quantization is needed</span>
+    <span class="c1"># Get max memory usage</span>
+    <span class="n">max_size_in_bytes</span> <span class="o">=</span> <span class="n">cast_memory_to_bytes</span><span class="p">(</span><span class="n">max_index_memory_usage</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">force_pq</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">pq</span> <span class="o">=</span> <span class="n">force_pq</span>
-        <span class="k">elif</span> <span class="n">dim_vector</span> <span class="o">&lt;=</span> <span class="mi">128</span><span class="p">:</span>
-            <span class="n">pq</span> <span class="o">=</span> <span class="mi">24</span>
-        <span class="k">elif</span> <span class="n">dim_vector</span> <span class="o">&lt;=</span> <span class="mi">256</span><span class="p">:</span>
-            <span class="n">pq</span> <span class="o">=</span> <span class="mi">32</span>
-        <span class="k">elif</span> <span class="n">dim_vector</span> <span class="o">&lt;=</span> <span class="mi">768</span><span class="p">:</span>
-            <span class="n">pq</span> <span class="o">=</span> <span class="mi">48</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">pq</span> <span class="o">=</span> <span class="mi">64</span>
-        <span class="k">return</span> <span class="n">get_optimal_quantization</span><span class="p">(</span><span class="n">nb_vectors</span><span class="p">,</span> <span class="n">dim_vector</span><span class="p">,</span> <span class="n">force_quantization_value</span><span class="o">=</span><span class="n">pq</span><span class="p">)</span>
+    <span class="c1"># If we can build an HNSW with the given memory constraints, it&#39;s the best</span>
+    <span class="n">m_hnsw</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">floor</span><span class="p">((</span><span class="n">max_size_in_bytes</span> <span class="o">/</span> <span class="p">(</span><span class="mi">4</span> <span class="o">*</span> <span class="n">nb_vectors</span><span class="p">)</span> <span class="o">-</span> <span class="n">dim_vector</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">m_hnsw</span> <span class="o">&gt;=</span> <span class="mi">8</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;HNSW</span><span class="si">{</span><span class="nb">min</span><span class="p">(</span><span class="n">m_hnsw</span><span class="p">,</span> <span class="mi">32</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span>
 
-    <span class="k">else</span><span class="p">:</span>  <span class="c1"># Special case in which the dataset is big, it should fit a memory limit requirement</span>
-        <span class="k">return</span> <span class="n">get_optimal_quantization</span><span class="p">(</span><span class="n">nb_vectors</span><span class="p">,</span> <span class="n">dim_vector</span><span class="p">,</span> <span class="n">force_max_index_memory_usage</span><span class="o">=</span><span class="n">max_index_memory_usage</span><span class="p">)</span></div>
+    <span class="c1"># Otherwise, there is not enough space, let&#39;s go for quantization</span>
+    <span class="k">return</span> <span class="n">get_optimal_quantization</span><span class="p">(</span><span class="n">nb_vectors</span><span class="p">,</span> <span class="n">dim_vector</span><span class="p">,</span> <span class="n">force_max_index_memory_usage</span><span class="o">=</span><span class="n">max_index_memory_usage</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="get_optimal_quantization"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.optimize.get_optimal_quantization">[docs]</a><span class="k">def</span> <span class="nf">get_optimal_quantization</span><span class="p">(</span>
@@ -386,34 +379,6 @@
     <span class="k">return</span> <span class="n">relevant_list</span></div>
 
 
-<span class="c1"># SHOULD BE REPLACED BY V2 ?</span>
-<div class="viewcode-block" id="get_optimal_index_keys"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.optimize.get_optimal_index_keys">[docs]</a><span class="k">def</span> <span class="nf">get_optimal_index_keys</span><span class="p">(</span><span class="n">nb_vectors</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">dim_vector</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">max_index_memory_usage</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Gives a list of interesting indices to try, *the one at the top is the most promising*</span>
-
-<span class="sd">    See: https://github.com/facebookresearch/faiss/wiki/Guidelines-to-choose-an-index for</span>
-<span class="sd">    detailed explanations.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="n">total_bytes</span> <span class="o">=</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">nb_vectors</span> <span class="o">*</span> <span class="n">dim_vector</span>  <span class="c1"># x4 because float32</span>
-    <span class="n">max_mem_bytes</span> <span class="o">=</span> <span class="n">cast_memory_to_bytes</span><span class="p">(</span><span class="n">max_index_memory_usage</span><span class="p">)</span>
-
-    <span class="c1"># index options</span>
-    <span class="n">relevant_list</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-
-    <span class="c1"># Cases with a lot of memory -&gt; HNSW</span>
-    <span class="k">if</span> <span class="mf">1.7</span> <span class="o">*</span> <span class="n">total_bytes</span> <span class="o">&lt;</span> <span class="n">max_mem_bytes</span><span class="p">:</span>
-        <span class="n">relevant_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;HNSW32&quot;</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="mf">1.3</span> <span class="o">*</span> <span class="n">total_bytes</span> <span class="o">&lt;</span> <span class="n">max_mem_bytes</span><span class="p">:</span>
-        <span class="n">relevant_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;HNSW15&quot;</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>  <span class="c1"># product quantization</span>
-        <span class="n">relevant_list</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
-            <span class="n">get_optimal_quantization</span><span class="p">(</span><span class="n">nb_vectors</span><span class="p">,</span> <span class="n">dim_vector</span><span class="p">,</span> <span class="n">force_max_index_memory_usage</span><span class="o">=</span><span class="n">max_index_memory_usage</span><span class="p">)</span>
-        <span class="p">)</span>
-
-    <span class="k">return</span> <span class="n">relevant_list</span></div>
-
-
 <div class="viewcode-block" id="get_optimal_hyperparameters"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.optimize.get_optimal_hyperparameters">[docs]</a><span class="k">def</span> <span class="nf">get_optimal_hyperparameters</span><span class="p">(</span>
     <span class="n">index</span><span class="p">,</span>
     <span class="n">index_key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -422,7 +387,7 @@
     <span class="n">max_timeout_per_iteration</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>  <span class="c1"># seconds</span>
     <span class="n">min_ef_search</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">32</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot; Find the optimal hyperparameters to maximize the recall given a query speed in milliseconds/query &quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Find the optimal hyperparameters to maximize the recall given a query speed in milliseconds/query&quot;&quot;&quot;</span>
 
     <span class="c1"># nb_vectors = index.ntotal</span>
 

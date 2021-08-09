@@ -1,0 +1,391 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>autofaiss.external.metadata &mdash; autofaiss 1.0.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> autofaiss
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption" role="heading"><span class="caption-text">Introduction and installation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../introduction/introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../introduction/introduction.html#installing-the-requirements">Installing the requirements</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Getting started with the CLI</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting_started/quantization.html">Creating an index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting_started/quantization.html#tuning-an-existing-index">Tuning an existing index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting_started/quantization.html#getting-scores-on-an-index">Getting scores on an index</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Getting started with notebooks</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/autofaiss_getting_started.html">Autofaiss getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/autofaiss_index_selection_demo.html">Autofaiss Index selection demo slider</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">autofaiss</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>autofaiss.external.metadata</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for autofaiss.external.metadata</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Index metadata for Faiss indices.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">from</span> <span class="nn">enum</span> <span class="kn">import</span> <span class="n">Enum</span>
+<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">ceil</span><span class="p">,</span> <span class="n">log2</span>
+
+<span class="kn">from</span> <span class="nn">autofaiss.utils.cast</span> <span class="kn">import</span> <span class="n">cast_bytes_to_memory_string</span>
+<span class="kn">from</span> <span class="nn">autofaiss.external.descriptions</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">INDEX_DESCRIPTION_BLOCKS</span><span class="p">,</span>
+    <span class="n">IndexBlock</span><span class="p">,</span>
+    <span class="n">TUNABLE_PARAMETERS_DESCRIPTION_BLOCKS</span><span class="p">,</span>
+    <span class="n">TunableParam</span><span class="p">,</span>
+<span class="p">)</span>
+
+
+<div class="viewcode-block" id="IndexType"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.metadata.IndexType">[docs]</a><span class="k">class</span> <span class="nc">IndexType</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+    <span class="n">FLAT</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">HNSW</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">OPQ_IVF_PQ</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="n">OPQ_IVF_HNSW_PQ</span> <span class="o">=</span> <span class="mi">3</span>
+    <span class="n">PAD_IVF_HNSW_PQ</span> <span class="o">=</span> <span class="mi">4</span>
+    <span class="n">NOT_SUPPORTED</span> <span class="o">=</span> <span class="mi">5</span></div>
+
+
+<div class="viewcode-block" id="IndexMetadata"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.metadata.IndexMetadata">[docs]</a><span class="k">class</span> <span class="nc">IndexMetadata</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Class to compute index metadata given the index_key, the number of vectors and their dimension.</span>
+
+<span class="sd">    Note: We don&#39;t create classes for each index type in order to keep the code simple.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index_key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">nb_vectors</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">dim_vector</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">index_key</span> <span class="o">=</span> <span class="n">index_key</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nb_vectors</span> <span class="o">=</span> <span class="n">nb_vectors</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dim_vector</span> <span class="o">=</span> <span class="n">dim_vector</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fast_description</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">description_blocs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tunable_params</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">params</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="n">params</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;\d+&quot;</span><span class="p">,</span> <span class="n">index_key</span><span class="p">)]</span>
+
+        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;OPQ\d+_\d+,IVF\d+,PQ\d+&quot;</span><span class="p">,</span> <span class="n">index_key</span><span class="p">)):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">index_type</span> <span class="o">=</span> <span class="n">IndexType</span><span class="o">.</span><span class="n">OPQ_IVF_PQ</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fast_description</span> <span class="o">=</span> <span class="s2">&quot;An inverted file index (IVF) with quantization and OPQ preprocessing.&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">description_blocs</span> <span class="o">=</span> <span class="p">[</span><span class="n">IndexBlock</span><span class="o">.</span><span class="n">IVF</span><span class="p">,</span> <span class="n">IndexBlock</span><span class="o">.</span><span class="n">PQ</span><span class="p">,</span> <span class="n">IndexBlock</span><span class="o">.</span><span class="n">OPQ</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tunable_params</span> <span class="o">=</span> <span class="p">[</span><span class="n">TunableParam</span><span class="o">.</span><span class="n">NPROBE</span><span class="p">,</span> <span class="n">TunableParam</span><span class="o">.</span><span class="n">HT</span><span class="p">]</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;pq&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;nbits&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">params</span><span class="p">)</span> <span class="o">==</span> <span class="mi">5</span> <span class="k">else</span> <span class="mi">8</span>  <span class="c1"># default value</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;ncentroids&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;out_d&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;M_OPQ&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="k">elif</span> <span class="nb">any</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;OPQ\d+_\d+,IVF\d+_HNSW\d+,PQ\d+&quot;</span><span class="p">,</span> <span class="n">index_key</span><span class="p">)):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">index_type</span> <span class="o">=</span> <span class="n">IndexType</span><span class="o">.</span><span class="n">OPQ_IVF_HNSW_PQ</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fast_description</span> <span class="o">=</span> <span class="s2">&quot;An inverted file index (IVF) with quantization, OPQ preprocessing, and HNSW index.&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">description_blocs</span> <span class="o">=</span> <span class="p">[</span><span class="n">IndexBlock</span><span class="o">.</span><span class="n">IVF_HNSW</span><span class="p">,</span> <span class="n">IndexBlock</span><span class="o">.</span><span class="n">HNSW</span><span class="p">,</span> <span class="n">IndexBlock</span><span class="o">.</span><span class="n">PQ</span><span class="p">,</span> <span class="n">IndexBlock</span><span class="o">.</span><span class="n">OPQ</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tunable_params</span> <span class="o">=</span> <span class="p">[</span><span class="n">TunableParam</span><span class="o">.</span><span class="n">NPROBE</span><span class="p">,</span> <span class="n">TunableParam</span><span class="o">.</span><span class="n">EFSEARCH</span><span class="p">,</span> <span class="n">TunableParam</span><span class="o">.</span><span class="n">HT</span><span class="p">]</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;M_HNSW&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;pq&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;nbits&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">params</span><span class="p">)</span> <span class="o">==</span> <span class="mi">6</span> <span class="k">else</span> <span class="mi">8</span>  <span class="c1"># default value</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;ncentroids&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;out_d&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;M_OPQ&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="k">elif</span> <span class="nb">any</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;Pad\d+,IVF\d+_HNSW\d+,PQ\d+&quot;</span><span class="p">,</span> <span class="n">index_key</span><span class="p">)):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">index_type</span> <span class="o">=</span> <span class="n">IndexType</span><span class="o">.</span><span class="n">PAD_IVF_HNSW_PQ</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fast_description</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="s2">&quot;An inverted file index (IVF) with quantization, a padding on input vectors, and HNSW index.&quot;</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">description_blocs</span> <span class="o">=</span> <span class="p">[</span><span class="n">IndexBlock</span><span class="o">.</span><span class="n">IVF_HNSW</span><span class="p">,</span> <span class="n">IndexBlock</span><span class="o">.</span><span class="n">HNSW</span><span class="p">,</span> <span class="n">IndexBlock</span><span class="o">.</span><span class="n">PQ</span><span class="p">,</span> <span class="n">IndexBlock</span><span class="o">.</span><span class="n">PAD</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tunable_params</span> <span class="o">=</span> <span class="p">[</span><span class="n">TunableParam</span><span class="o">.</span><span class="n">NPROBE</span><span class="p">,</span> <span class="n">TunableParam</span><span class="o">.</span><span class="n">EFSEARCH</span><span class="p">,</span> <span class="n">TunableParam</span><span class="o">.</span><span class="n">HT</span><span class="p">]</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;out_d&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;M_HNSW&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;pq&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;nbits&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">params</span><span class="p">)</span> <span class="o">==</span> <span class="mi">5</span> <span class="k">else</span> <span class="mi">8</span>  <span class="c1"># default value</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;ncentroids&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="k">elif</span> <span class="nb">any</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;HNSW\d+&quot;</span><span class="p">,</span> <span class="n">index_key</span><span class="p">)):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">index_type</span> <span class="o">=</span> <span class="n">IndexType</span><span class="o">.</span><span class="n">HNSW</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fast_description</span> <span class="o">=</span> <span class="s2">&quot;An HNSW index.&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">description_blocs</span> <span class="o">=</span> <span class="p">[</span><span class="n">IndexBlock</span><span class="o">.</span><span class="n">HNSW</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tunable_params</span> <span class="o">=</span> <span class="p">[</span><span class="n">TunableParam</span><span class="o">.</span><span class="n">EFSEARCH</span><span class="p">]</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;M_HNSW&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="k">elif</span> <span class="n">index_key</span> <span class="o">==</span> <span class="s2">&quot;Flat&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">index_type</span> <span class="o">=</span> <span class="n">IndexType</span><span class="o">.</span><span class="n">FLAT</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fast_description</span> <span class="o">=</span> <span class="s2">&quot;A simple flat index.&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">description_blocs</span> <span class="o">=</span> <span class="p">[</span><span class="n">IndexBlock</span><span class="o">.</span><span class="n">FLAT</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tunable_params</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">index_type</span> <span class="o">=</span> <span class="n">IndexType</span><span class="o">.</span><span class="n">NOT_SUPPORTED</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fast_description</span> <span class="o">=</span> <span class="s2">&quot;No description for this index, feel free to contribute :)&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">description_blocs</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tunable_params</span> <span class="o">=</span> <span class="p">[]</span>
+
+<div class="viewcode-block" id="IndexMetadata.get_index_type"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.metadata.IndexMetadata.get_index_type">[docs]</a>    <span class="k">def</span> <span class="nf">get_index_type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">IndexType</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        return the index type.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">index_type</span></div>
+
+<div class="viewcode-block" id="IndexMetadata.estimated_index_size_in_bytes"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.metadata.IndexMetadata.estimated_index_size_in_bytes">[docs]</a>    <span class="k">def</span> <span class="nf">estimated_index_size_in_bytes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute the estimated size of the index in bytes.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">index_type</span> <span class="o">==</span> <span class="n">IndexType</span><span class="o">.</span><span class="n">FLAT</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">nb_vectors</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim_vector</span> <span class="o">*</span> <span class="mi">4</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">index_type</span> <span class="o">==</span> <span class="n">IndexType</span><span class="o">.</span><span class="n">HNSW</span><span class="p">:</span>
+            <span class="c1"># M bidirectional links per vector in the HNSW graph</span>
+            <span class="n">hnsw_graph_in_bytes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nb_vectors</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;M_HNSW&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">*</span> <span class="mi">4</span>
+            <span class="n">vectors_size_in_bytes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nb_vectors</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim_vector</span> <span class="o">*</span> <span class="mi">4</span>
+            <span class="k">return</span> <span class="n">vectors_size_in_bytes</span> <span class="o">+</span> <span class="n">hnsw_graph_in_bytes</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">index_type</span> <span class="ow">in</span> <span class="p">[</span><span class="n">IndexType</span><span class="o">.</span><span class="n">OPQ_IVF_PQ</span><span class="p">,</span> <span class="n">IndexType</span><span class="o">.</span><span class="n">OPQ_IVF_HNSW_PQ</span><span class="p">,</span> <span class="n">IndexType</span><span class="o">.</span><span class="n">PAD_IVF_HNSW_PQ</span><span class="p">]:</span>
+            <span class="c1"># We neglict the size of the OPQ table for the moment.</span>
+            <span class="n">code_size</span> <span class="o">=</span> <span class="n">ceil</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;pq&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;nbits&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="mi">8</span><span class="p">)</span>
+            <span class="n">cluster_size_byte</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">+</span> <span class="nb">int</span><span class="p">((</span><span class="n">log2</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;ncentroids&quot;</span><span class="p">])</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="mi">8</span><span class="p">)</span>
+            <span class="n">vector_size_byte</span> <span class="o">=</span> <span class="n">code_size</span> <span class="o">+</span> <span class="n">cluster_size_byte</span>
+
+            <span class="n">vectors_size_in_bytes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nb_vectors</span> <span class="o">*</span> <span class="n">vector_size_byte</span>
+            <span class="n">centroid_size_in_bytes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;ncentroids&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim_vector</span> <span class="o">*</span> <span class="mi">4</span>
+
+            <span class="n">total_size_in_byte</span> <span class="o">=</span> <span class="n">vectors_size_in_bytes</span> <span class="o">+</span> <span class="n">centroid_size_in_bytes</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">index_type</span> <span class="ow">in</span> <span class="p">[</span><span class="n">IndexType</span><span class="o">.</span><span class="n">OPQ_IVF_HNSW_PQ</span><span class="p">,</span> <span class="n">IndexType</span><span class="o">.</span><span class="n">PAD_IVF_HNSW_PQ</span><span class="p">]:</span>
+                <span class="n">total_size_in_byte</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;ncentroids&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;M_HNSW&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">*</span> <span class="mi">4</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">index_type</span> <span class="ow">in</span> <span class="p">[</span><span class="n">IndexType</span><span class="o">.</span><span class="n">OPQ_IVF_PQ</span><span class="p">,</span> <span class="n">IndexType</span><span class="o">.</span><span class="n">OPQ_IVF_HNSW_PQ</span><span class="p">]:</span>
+                <span class="n">total_size_in_byte</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;M_OPQ&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;out_d&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="mi">4</span>
+
+            <span class="k">return</span> <span class="n">total_size_in_byte</span>
+
+        <span class="k">return</span> <span class="o">-</span><span class="mi">1</span></div>
+
+<div class="viewcode-block" id="IndexMetadata.get_index_description"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.metadata.IndexMetadata.get_index_description">[docs]</a>    <span class="k">def</span> <span class="nf">get_index_description</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tunable_parameters_infos</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Gives a generic description of the index.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">description</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fast_description</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">index_type</span> <span class="o">==</span> <span class="n">IndexType</span><span class="o">.</span><span class="n">NOT_SUPPORTED</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">description</span>
+
+        <span class="n">description</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="n">index_size_string</span> <span class="o">=</span> <span class="n">cast_bytes_to_memory_string</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">estimated_index_size_in_bytes</span><span class="p">())</span>
+        <span class="n">description</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;The size of the index should be around </span><span class="si">{</span><span class="n">index_size_string</span><span class="si">}</span><span class="s2">.</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+        <span class="n">description</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">INDEX_DESCRIPTION_BLOCKS</span><span class="p">[</span><span class="n">desc</span><span class="p">]</span> <span class="k">for</span> <span class="n">desc</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">description_blocs</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+
+        <span class="k">if</span> <span class="n">tunable_parameters_infos</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">tunable_params</span><span class="p">:</span>
+                <span class="n">description</span> <span class="o">+=</span> <span class="s2">&quot;No parameters can be tuned to find a query speed VS recall tradeoff</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">description</span> <span class="o">+=</span> <span class="s2">&quot;List of parameters that can be tuned to find a query speed VS recall tradeoff:</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="n">description</span> <span class="o">+=</span> <span class="p">(</span>
+                    <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">TUNABLE_PARAMETERS_DESCRIPTION_BLOCKS</span><span class="p">[</span><span class="n">desc</span><span class="p">]</span> <span class="k">for</span> <span class="n">desc</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">tunable_params</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+                <span class="p">)</span>
+
+        <span class="n">description</span> <span class="o">+=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">For all indices except the flat index, the query speed can be adjusted.</span>
+<span class="s2">The lower the speed limit the lower the recall. With a looser constraint</span>
+<span class="s2">on the query time, the recall can be higher, but it is limited by the index</span>
+<span class="s2">structure (if there is quantization for instance).</span>
+<span class="s2">&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">description</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2020, Criteo.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

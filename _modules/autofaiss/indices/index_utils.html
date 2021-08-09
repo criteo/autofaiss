@@ -182,7 +182,7 @@
 
 
 <div class="viewcode-block" id="get_index_size"><a class="viewcode-back" href="../../../_source/autofaiss.indices.html#autofaiss.indices.index_utils.get_index_size">[docs]</a><span class="k">def</span> <span class="nf">get_index_size</span><span class="p">(</span><span class="n">index</span><span class="p">:</span> <span class="n">faiss</span><span class="o">.</span><span class="n">Index</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot; Returns the size in RAM of a given index &quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Returns the size in RAM of a given index&quot;&quot;&quot;</span>
 
     <span class="n">index_file</span> <span class="o">=</span> <span class="s2">&quot;/tmp/tmp_index&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">random</span><span class="o">.</span><span class="n">randrange</span><span class="p">(</span><span class="mi">100000</span><span class="p">))</span> <span class="o">+</span> <span class="s2">&quot;.idx&quot;</span>
 
@@ -200,7 +200,7 @@
 <div class="viewcode-block" id="speed_test_ms_per_query"><a class="viewcode-back" href="../../../_source/autofaiss.indices.html#autofaiss.indices.index_utils.speed_test_ms_per_query">[docs]</a><span class="k">def</span> <span class="nf">speed_test_ms_per_query</span><span class="p">(</span>
     <span class="n">index</span><span class="p">:</span> <span class="n">faiss</span><span class="o">.</span><span class="n">Index</span><span class="p">,</span> <span class="n">query</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">ksearch</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">40</span><span class="p">,</span> <span class="n">timout_s</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mf">5.0</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot; Evaluate the average speed in milliseconds of the index without using batch &quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Evaluate the average speed in milliseconds of the index without using batch&quot;&quot;&quot;</span>
 
     <span class="n">nb_samples</span> <span class="o">=</span> <span class="mi">2_000</span>
 
@@ -227,7 +227,7 @@
 <div class="viewcode-block" id="search_speed_test"><a class="viewcode-back" href="../../../_source/autofaiss.indices.html#autofaiss.indices.index_utils.search_speed_test">[docs]</a><span class="k">def</span> <span class="nf">search_speed_test</span><span class="p">(</span>
     <span class="n">index</span><span class="p">:</span> <span class="n">faiss</span><span class="o">.</span><span class="n">Index</span><span class="p">,</span> <span class="n">query</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">ksearch</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">40</span><span class="p">,</span> <span class="n">timout_s</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mf">10.0</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot; return the average and 99p search speed &quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;return the average and 99p search speed&quot;&quot;&quot;</span>
 
     <span class="n">nb_samples</span> <span class="o">=</span> <span class="mi">2_000</span>
 
@@ -265,25 +265,25 @@
 
 
 <div class="viewcode-block" id="format_speed_ms_per_query"><a class="viewcode-back" href="../../../_source/autofaiss.indices.html#autofaiss.indices.index_utils.format_speed_ms_per_query">[docs]</a><span class="k">def</span> <span class="nf">format_speed_ms_per_query</span><span class="p">(</span><span class="n">speed</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot; format the speed (ms/query) into a nice string &quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;format the speed (ms/query) into a nice string&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">speed</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> ms/query&quot;</span></div>
 
 
 <div class="viewcode-block" id="quantize_vec_without_modifying_index"><a class="viewcode-back" href="../../../_source/autofaiss.indices.html#autofaiss.indices.index_utils.quantize_vec_without_modifying_index">[docs]</a><span class="k">def</span> <span class="nf">quantize_vec_without_modifying_index</span><span class="p">(</span><span class="n">index</span><span class="p">:</span> <span class="n">faiss</span><span class="o">.</span><span class="n">Index</span><span class="p">,</span> <span class="n">vecs</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot; qantize a batch of vectors &quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;qantize a batch of vectors&quot;&quot;&quot;</span>
     <span class="n">quantized_vecs</span> <span class="o">=</span> <span class="n">index</span><span class="o">.</span><span class="n">sa_decode</span><span class="p">(</span><span class="n">index</span><span class="o">.</span><span class="n">sa_encode</span><span class="p">(</span><span class="n">vecs</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">quantized_vecs</span></div>
 
 
 <div class="viewcode-block" id="set_search_hyperparameters"><a class="viewcode-back" href="../../../_source/autofaiss.indices.html#autofaiss.indices.index_utils.set_search_hyperparameters">[docs]</a><span class="k">def</span> <span class="nf">set_search_hyperparameters</span><span class="p">(</span><span class="n">index</span><span class="p">:</span> <span class="n">faiss</span><span class="o">.</span><span class="n">Index</span><span class="p">,</span> <span class="n">param_str</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">use_gpu</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot; set hyperparameters to an index &quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;set hyperparameters to an index&quot;&quot;&quot;</span>
     <span class="c1"># depends on installed faiss version # pylint: disable=no-member</span>
     <span class="n">params</span> <span class="o">=</span> <span class="n">faiss</span><span class="o">.</span><span class="n">ParameterSpace</span><span class="p">()</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">use_gpu</span> <span class="k">else</span> <span class="n">faiss</span><span class="o">.</span><span class="n">GpuParameterSpace</span><span class="p">()</span>
     <span class="n">params</span><span class="o">.</span><span class="n">set_index_parameters</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">param_str</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="save_index_on_hdfs"><a class="viewcode-back" href="../../../_source/autofaiss.indices.html#autofaiss.indices.index_utils.save_index_on_hdfs">[docs]</a><span class="k">def</span> <span class="nf">save_index_on_hdfs</span><span class="p">(</span><span class="n">my_index</span><span class="p">:</span> <span class="n">faiss</span><span class="o">.</span><span class="n">Index</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot; function to save a faiss index on hdfs &quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;function to save a faiss index on hdfs&quot;&quot;&quot;</span>
 
     <span class="n">index_path</span> <span class="o">=</span> <span class="s2">&quot;/tmp/tmp_index.index&quot;</span>
 
@@ -306,7 +306,7 @@
 
 
 <div class="viewcode-block" id="load_index_from_hdfs"><a class="viewcode-back" href="../../../_source/autofaiss.indices.html#autofaiss.indices.index_utils.load_index_from_hdfs">[docs]</a><span class="k">def</span> <span class="nf">load_index_from_hdfs</span><span class="p">(</span><span class="n">src_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Load a faiss index stored on the HDFS &quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Load a faiss index stored on the HDFS&quot;&quot;&quot;</span>
 
     <span class="n">index_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;/tmp/</span><span class="si">{</span><span class="n">src_path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
 

@@ -175,7 +175,7 @@
 
 
 <div class="viewcode-block" id="run_command"><a class="viewcode-back" href="../../../_source/autofaiss.utils.html#autofaiss.utils.os_tools.run_command">[docs]</a><span class="k">def</span> <span class="nf">run_command</span><span class="p">(</span><span class="n">cmd</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot; Function to run a bash command &quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Function to run a bash command&quot;&quot;&quot;</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">cmd</span><span class="o">.</span><span class="n">split</span><span class="p">(),</span> <span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">True</span>
@@ -184,7 +184,7 @@
 
 
 <div class="viewcode-block" id="list_local_files"><a class="viewcode-back" href="../../../_source/autofaiss.utils.html#autofaiss.utils.os_tools.list_local_files">[docs]</a><span class="k">def</span> <span class="nf">list_local_files</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot; function to list the files in a directory &quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;function to list the files in a directory&quot;&quot;&quot;</span>
 
     <span class="k">for</span> <span class="n">infos</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">infos</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>

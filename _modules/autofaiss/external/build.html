@@ -170,17 +170,16 @@
 <span></span><span class="sd">&quot;&quot;&quot; gather functions necessary to build an index &quot;&quot;&quot;</span>
 
 <span class="kn">import</span> <span class="nn">re</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Optional</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
 
 <span class="kn">import</span> <span class="nn">faiss</span>
-
 <span class="kn">from</span> <span class="nn">autofaiss.datasets.readers.local_iterators</span> <span class="kn">import</span> <span class="n">read_embeddings_local</span>
 <span class="kn">from</span> <span class="nn">autofaiss.datasets.readers.remote_iterators</span> <span class="kn">import</span> <span class="n">read_embeddings_remote</span><span class="p">,</span> <span class="n">read_filenames</span>
 <span class="kn">from</span> <span class="nn">autofaiss.external.optimize</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">get_optimal_batch_size</span><span class="p">,</span>
+    <span class="n">get_optimal_index_keys_v2</span><span class="p">,</span>
     <span class="n">get_optimal_train_size</span><span class="p">,</span>
     <span class="n">set_search_hyperparameters</span><span class="p">,</span>
-    <span class="n">get_optimal_index_keys</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span> <span class="nn">autofaiss.indices.index_factory</span> <span class="kn">import</span> <span class="n">index_factory</span>
 <span class="kn">from</span> <span class="nn">autofaiss.utils.cast</span> <span class="kn">import</span> <span class="n">to_faiss_metric_type</span><span class="p">,</span> <span class="n">to_readable_time</span>
@@ -197,7 +196,7 @@
 
     <span class="k">if</span> <span class="n">index_key</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">max_index_memory_usage</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">index_key</span> <span class="o">=</span> <span class="n">get_optimal_index_keys</span><span class="p">(</span><span class="n">nb_vectors</span><span class="p">,</span> <span class="n">vec_dim</span><span class="p">,</span> <span class="n">max_index_memory_usage</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">index_key</span> <span class="o">=</span> <span class="n">get_optimal_index_keys_v2</span><span class="p">(</span><span class="n">nb_vectors</span><span class="p">,</span> <span class="n">vec_dim</span><span class="p">,</span> <span class="n">max_index_memory_usage</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;you should give max_index_memory_usage value if no index_key is given&quot;</span><span class="p">)</span>
 

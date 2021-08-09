@@ -176,7 +176,7 @@
 
 
 <div class="viewcode-block" id="reconstruction_error"><a class="viewcode-back" href="../../../_source/autofaiss.metrics.html#autofaiss.metrics.reconstruction.reconstruction_error">[docs]</a><span class="k">def</span> <span class="nf">reconstruction_error</span><span class="p">(</span><span class="n">before</span><span class="p">,</span> <span class="n">after</span><span class="p">,</span> <span class="n">avg_norm_before</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot; Computes the average reconstruction error &quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Computes the average reconstruction error&quot;&quot;&quot;</span>
     <span class="n">diff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">after</span> <span class="o">-</span> <span class="n">before</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
     <span class="k">if</span> <span class="n">avg_norm_before</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">avg_norm_before</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">before</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
@@ -184,7 +184,7 @@
 
 
 <div class="viewcode-block" id="quantize_vec_without_modifying_index"><a class="viewcode-back" href="../../../_source/autofaiss.metrics.html#autofaiss.metrics.reconstruction.quantize_vec_without_modifying_index">[docs]</a><span class="k">def</span> <span class="nf">quantize_vec_without_modifying_index</span><span class="p">(</span><span class="n">index</span><span class="p">:</span> <span class="n">faiss</span><span class="o">.</span><span class="n">Index</span><span class="p">,</span> <span class="n">vecs</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot; Quantizes a batch of vectors if the index given uses quantization &quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Quantizes a batch of vectors if the index given uses quantization&quot;&quot;&quot;</span>
 
     <span class="k">try</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">index</span><span class="o">.</span><span class="n">sa_decode</span><span class="p">(</span><span class="n">index</span><span class="o">.</span><span class="n">sa_encode</span><span class="p">(</span><span class="n">vecs</span><span class="p">))</span>

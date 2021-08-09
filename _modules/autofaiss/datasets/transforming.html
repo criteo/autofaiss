@@ -184,7 +184,7 @@
 
 
 <div class="viewcode-block" id="parquet_already_transformed"><a class="viewcode-back" href="../../../_source/autofaiss.datasets.html#autofaiss.datasets.transforming.parquet_already_transformed">[docs]</a><span class="k">def</span> <span class="nf">parquet_already_transformed</span><span class="p">(</span><span class="n">remote_embeddings_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">local_embeddings_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot; Checks if embeddings were all transformed in .npy arrays or should be downloaded again &quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Checks if embeddings were all transformed in .npy arrays or should be downloaded again&quot;&quot;&quot;</span>
 
     <span class="n">remote_filenames</span> <span class="o">=</span> <span class="n">read_filenames</span><span class="p">(</span><span class="n">remote_embeddings_path</span><span class="p">)</span>
     <span class="n">nb_remote_parquet_files</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">remote_filenames</span><span class="p">)</span>
