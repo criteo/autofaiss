@@ -10,7 +10,8 @@ It selects the best indexing parameters to achieve the highest recalls given mem
 
 Using [faiss](https://github.com/facebookresearch/faiss) efficient indices, binary search, and heuristics, Autofaiss makes it possible to *automatically* build in 3 hours a large (200 million vectors, 1TB) KNN index in a low amount of memory (15 GB) with latency in milliseconds (10ms).
 
-Get started by running this [colab notebook](https://colab.research.google.com/github/criteo/autofaiss/blob/master/docs/notebooks/autofaiss_getting_started.ipynb), then check the [full documentation](https://criteo.github.io/autofaiss).
+Get started by running this [colab notebook](https://colab.research.google.com/github/criteo/autofaiss/blob/master/docs/notebooks/autofaiss_getting_started.ipynb), then check the [full documentation](https://criteo.github.io/autofaiss).  
+Get some insights on the automatic index selection function with this [colab notebook](https://colab.research.google.com/github/criteo/autofaiss/blob/master/docs/notebooks/autofaiss_index_selection_demo.ipynb).
 
 ## How to use autofaiss?
 
