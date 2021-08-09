@@ -33,7 +33,7 @@ def convert_parquet_to_numpy(
     embeddings_path: str,
     embedding_column_name: str,
     keys_path: Optional[str] = None,
-    key_column_name: Optional[float] = None,
+    key_column_name: Optional[str] = None,
 ) -> None:
     """ Convert one embedding parquet file to an embedding numpy file """
 
@@ -56,8 +56,8 @@ def run_one(
     embeddings_folder: str,
     delete: bool,
     embedding_column_name: str,
-    keys_folder: Optional[float] = None,
-    key_column_name: Optional[float] = None,
+    keys_folder: Optional[str] = None,
+    key_column_name: Optional[str] = None,
 ) -> None:
     """ Convertion function to call for parallel execution """
     num = parquet_file.split("/")[-1].split("-")[1]
