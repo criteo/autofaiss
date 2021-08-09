@@ -183,15 +183,18 @@
 <div class="viewcode-block" id="download_from_hdfs"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.download.download_from_hdfs">[docs]</a><span class="k">def</span> <span class="nf">download_from_hdfs</span><span class="p">(</span>
     <span class="n">embeddings_hdfs_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">local_save_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-    <span class="n">n_cores</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">44</span><span class="p">,</span>
+    <span class="n">n_cores</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
     <span class="n">delete_tmp_files</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="n">bandwidth_gbytes_per_sec</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="n">embedding_column_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;embedding&quot;</span><span class="p">,</span>
+    <span class="n">keys_folder</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">key_column_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Download a file containing embeddings in parquet format on hdfs and</span>
 <span class="sd">    convert it to several .npy files</span>
+<span class="sd">    Optionally save keys in another folder (useful to keep track of what is each embedding)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">bandwidth_gbytes_per_sec</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">infos</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">get_estimated_download_time_infos</span><span class="p">(</span><span class="n">embeddings_hdfs_path</span><span class="p">,</span> <span class="n">bandwidth_gbytes_per_sec</span><span class="p">)</span>
@@ -202,7 +205,13 @@
 
     <span class="k">with</span> <span class="n">Timeit</span><span class="p">(</span><span class="s2">&quot;Convert .parquet files to numpy arrays&quot;</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
         <span class="n">convert_all_parquet_to_numpy</span><span class="p">(</span>
-            <span class="n">local_save_path</span><span class="p">,</span> <span class="n">local_save_path</span><span class="p">,</span> <span class="n">delete</span><span class="o">=</span><span class="n">delete_tmp_files</span><span class="p">,</span> <span class="n">embedding_column_name</span><span class="o">=</span><span class="n">embedding_column_name</span>
+            <span class="n">local_save_path</span><span class="p">,</span>
+            <span class="n">local_save_path</span><span class="p">,</span>
+            <span class="n">delete</span><span class="o">=</span><span class="n">delete_tmp_files</span><span class="p">,</span>
+            <span class="n">embedding_column_name</span><span class="o">=</span><span class="n">embedding_column_name</span><span class="p">,</span>
+            <span class="n">n_cores</span><span class="o">=</span><span class="n">n_cores</span><span class="p">,</span>
+            <span class="n">keys_folder</span><span class="o">=</span><span class="n">keys_folder</span><span class="p">,</span>
+            <span class="n">key_column_name</span><span class="o">=</span><span class="n">key_column_name</span><span class="p">,</span>
         <span class="p">)</span></div>
 
 
