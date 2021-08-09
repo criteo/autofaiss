@@ -27,6 +27,7 @@ def parquet_already_transformed(remote_embeddings_path: str, local_embeddings_pa
 
     return 2 * nb_remote_parquet_files == nb_local_map_and_emb_files
 
+
 def convert_parquet_to_numpy(
     parquet_file: str,
     embeddings_path: str,
