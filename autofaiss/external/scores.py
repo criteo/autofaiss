@@ -21,7 +21,7 @@ def compute_fast_metrics(
     omp_threads: Optional[int] = None,
     query_max: Optional[int] = 1000,
 ) -> Dict[str, Union[str, int, float]]:
-    """ compute query speed, size and reconstruction of an index """
+    """compute query speed, size and reconstruction of an index"""
     infos: Dict[str, Union[str, int, float]] = {}
 
     size_bytes = get_index_size(index)
@@ -66,7 +66,7 @@ def compute_medium_metrics(
     ground_truth: Optional[np.ndarray] = None,
     eval_item_ids: Optional[np.ndarray] = None,
 ) -> Dict[str, float]:
-    """ Compute recall@R and intersection recall@R of an index """
+    """Compute recall@R and intersection recall@R of an index"""
 
     nb_test_points = 500
 
@@ -130,7 +130,7 @@ def get_ground_truth(
     query_embeddings: np.ndarray,
     memory_available: Union[str, float],
 ):
-    """ compute the ground truth (result with a perfect index) of the query on the embeddings """
+    """compute the ground truth (result with a perfect index) of the query on the embeddings"""
 
     dim = query_embeddings.shape[-1]
 

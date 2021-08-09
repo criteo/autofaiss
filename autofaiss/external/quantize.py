@@ -15,7 +15,7 @@ from autofaiss.external.build import (
     get_estimated_construction_time_infos,
     get_nb_vectors_and_dim,
 )
-from autofaiss.external.optimize import get_optimal_hyperparameters, get_optimal_index_keys
+from autofaiss.external.optimize import get_optimal_hyperparameters, get_optimal_index_keys_v2
 from autofaiss.external.scores import compute_fast_metrics, compute_medium_metrics
 from autofaiss.indices.index_utils import set_search_hyperparameters, load_index_from_hdfs
 from autofaiss.utils.decorators import Timeit
@@ -23,10 +23,10 @@ from autofaiss.utils.cast import cast_memory_to_bytes, cast_bytes_to_memory_stri
 
 
 class Quantizer:
-    """ class defining the quantization pipeline """
+    """class defining the quantization pipeline"""
 
     def __init__(self):
-        """ Empty constructor """
+        """Empty constructor"""
 
     def quantize(
         self,
@@ -99,7 +99,7 @@ class Quantizer:
             if index_key is None:
                 with Timeit("Selecting most promising index types given data characteristics", indent=1):
                     _, vec_dim = next(read_embeddings_local(embeddings_path, verbose=False)).shape
-                    best_index_keys = get_optimal_index_keys(nb_vectors, vec_dim, max_index_memory_usage)
+                    best_index_keys = get_optimal_index_keys_v2(nb_vectors, vec_dim, max_index_memory_usage)
                     if not best_index_keys:
                         return "Constraint on memory too high, no index can be that small"
                     index_key = best_index_keys[0]

@@ -3,6 +3,9 @@
 .env
 .pytest_cache
 .coverage
+*.npy
+*.index
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -8,13 +8,13 @@ from autofaiss.utils.array_functions import multi_array_split
 
 
 def test_multi_array_split():
-    """ test multi_array_split fct number 1 """
+    """test multi_array_split fct number 1"""
     assert len(list(multi_array_split([np.zeros((123, 2)), np.zeros((123, 5))], 41))) == 41
 
 
 @pytest.mark.parametrize("seed", list(range(1, 10)))
 def test_multi_array_split_2(seed):
-    """ test multi_array_split fct number 2 """
+    """test multi_array_split fct number 2"""
 
     np.random.seed(seed)
     length = np.random.randint(1, 100)

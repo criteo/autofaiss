@@ -1,17 +1,16 @@
 """ gather functions necessary to build an index """
 
 import re
-from typing import Tuple, Union, Optional
+from typing import Optional, Tuple, Union
 
 import faiss
-
 from autofaiss.datasets.readers.local_iterators import read_embeddings_local
 from autofaiss.datasets.readers.remote_iterators import read_embeddings_remote, read_filenames
 from autofaiss.external.optimize import (
     get_optimal_batch_size,
+    get_optimal_index_keys_v2,
     get_optimal_train_size,
     set_search_hyperparameters,
-    get_optimal_index_keys,
 )
 from autofaiss.indices.index_factory import index_factory
 from autofaiss.utils.cast import to_faiss_metric_type, to_readable_time
@@ -28,7 +27,7 @@ def estimate_memory_required_for_index_creation(
 
     if index_key is None:
         if max_index_memory_usage is not None:
-            index_key = get_optimal_index_keys(nb_vectors, vec_dim, max_index_memory_usage)[0]
+            index_key = get_optimal_index_keys_v2(nb_vectors, vec_dim, max_index_memory_usage)[0]
         else:
             raise ValueError("you should give max_index_memory_usage value if no index_key is given")
 

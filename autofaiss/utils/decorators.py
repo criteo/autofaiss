@@ -8,7 +8,7 @@ from typing import Optional
 
 
 class Timeit(ContextDecorator):
-    """ Timing class, used as a context manager """
+    """Timing class, used as a context manager"""
 
     def __init__(self, comment: Optional[str] = None, indent: int = 0, verbose: bool = True):
         self.start_time = 0

@@ -39,7 +39,7 @@ class MemEfficientFlatIndex(FaissIndexWrapper):
         self.prod_emb_path: Optional[str] = None
 
     def delete_vectors(self):
-        """ delete the vectors of the index """
+        """delete the vectors of the index"""
         self.prod_emb = np.zeros((0, self.dim))
 
     # pylint: disable=missing-function-docstring, invalid-name

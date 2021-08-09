@@ -13,7 +13,7 @@ def r_recall_at_r_single(
     r_max: int = 40,
     eval_item_ids: Optional[np.ndarray] = None,
 ) -> List[int]:
-    """ Compute an R-recall@R array for each R in range [1, R_max] """
+    """Compute an R-recall@R array for each R in range [1, R_max]"""
     # O(r_max)
 
     _, inds = other_index.search(np.expand_dims(query, 0), r_max)
@@ -115,7 +115,7 @@ def one_recall_at_r(
     r_max: int = 40,
     eval_item_ids: Optional[np.ndarray] = None,
 ) -> List[float]:
-    """ Compute an 1-recall@R array for each R in range [1, r_max] """
+    """Compute an 1-recall@R array for each R in range [1, r_max]"""
     # O(r_max)
 
     if r_max <= 0:

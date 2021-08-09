@@ -11,14 +11,14 @@ from autofaiss.indices.memory_efficient_flat_index import MemEfficientFlatIndex
 
 @pytest.fixture(name="prod_emb")
 def fixture_prod_emb():
-    """ generate random database vectors """
+    """generate random database vectors"""
     np.random.seed(15)
     return np.random.rand(5003, 99).astype(np.float32)
 
 
 @pytest.fixture(name="user_emb")
 def fixture_user_emb():
-    """ generate random query vectors """
+    """generate random query vectors"""
     np.random.seed(17)
     return np.random.rand(501, 99).astype(np.float32)
 
@@ -29,7 +29,7 @@ def fixture_user_emb():
 @pytest.mark.parametrize("nb_query_vectors", [1, 10, 100])
 @pytest.mark.parametrize("k", [1, 10, 101])
 def test_memory_efficient_flat_index(prod_emb, user_emb, dataset_size, batch_size, nb_query_vectors, k):
-    """ Test our flat index vs. FAISS flat index """
+    """Test our flat index vs. FAISS flat index"""
 
     dim = prod_emb.shape[-1]  # vectors dim
 

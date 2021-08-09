@@ -15,7 +15,7 @@ from autofaiss.utils.os_tools import list_local_files
 
 
 def parquet_already_transformed(remote_embeddings_path: str, local_embeddings_path: str) -> bool:
-    """ Checks if embeddings were all transformed in .npy arrays or should be downloaded again """
+    """Checks if embeddings were all transformed in .npy arrays or should be downloaded again"""
 
     remote_filenames = read_filenames(remote_embeddings_path)
     nb_remote_parquet_files = len(remote_filenames)

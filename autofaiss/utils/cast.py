@@ -55,7 +55,7 @@ def cast_bytes_to_memory_string(num_bytes: float) -> str:
 
 
 def to_faiss_metric_type(metric_type: Union[str, int]) -> int:
-    """ convert metric_type string/enum to faiss enum of the distance metric """
+    """convert metric_type string/enum to faiss enum of the distance metric"""
 
     if metric_type in ["ip", "IP", faiss.METRIC_INNER_PRODUCT]:
         return faiss.METRIC_INNER_PRODUCT
@@ -66,7 +66,7 @@ def to_faiss_metric_type(metric_type: Union[str, int]) -> int:
 
 
 def to_readable_time(seconds: float, rounding: bool = False) -> str:
-    """ cast time in seconds to readable string """
+    """cast time in seconds to readable string"""
 
     initial_seconds = seconds
 

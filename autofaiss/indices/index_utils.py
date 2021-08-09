@@ -13,7 +13,7 @@ from autofaiss.utils.os_tools import run_command
 
 
 def get_index_size(index: faiss.Index) -> int:
-    """ Returns the size in RAM of a given index """
+    """Returns the size in RAM of a given index"""
 
     index_file = "/tmp/tmp_index" + str(random.randrange(100000)) + ".idx"
 
@@ -31,7 +31,7 @@ def get_index_size(index: faiss.Index) -> int:
 def speed_test_ms_per_query(
     index: faiss.Index, query: Optional[np.ndarray] = None, ksearch: int = 40, timout_s: Union[float, int] = 5.0
 ) -> float:
-    """ Evaluate the average speed in milliseconds of the index without using batch """
+    """Evaluate the average speed in milliseconds of the index without using batch"""
 
     nb_samples = 2_000
 
@@ -58,7 +58,7 @@ def speed_test_ms_per_query(
 def search_speed_test(
     index: faiss.Index, query: Optional[np.ndarray] = None, ksearch: int = 40, timout_s: Union[float, int] = 10.0
 ) -> Dict[str, float]:
-    """ return the average and 99p search speed """
+    """return the average and 99p search speed"""
 
     nb_samples = 2_000
 
@@ -96,25 +96,25 @@ def search_speed_test(
 
 
 def format_speed_ms_per_query(speed: float) -> str:
-    """ format the speed (ms/query) into a nice string """
+    """format the speed (ms/query) into a nice string"""
     return f"{speed:.2f} ms/query"
 
 
 def quantize_vec_without_modifying_index(index: faiss.Index, vecs: np.ndarray) -> np.ndarray:
-    """ qantize a batch of vectors """
+    """qantize a batch of vectors"""
     quantized_vecs = index.sa_decode(index.sa_encode(vecs))
     return quantized_vecs
 
 
 def set_search_hyperparameters(index: faiss.Index, param_str: str, use_gpu: bool = False) -> None:
-    """ set hyperparameters to an index """
+    """set hyperparameters to an index"""
     # depends on installed faiss version # pylint: disable=no-member
     params = faiss.ParameterSpace() if not use_gpu else faiss.GpuParameterSpace()
     params.set_index_parameters(index, param_str)
 
 
 def save_index_on_hdfs(my_index: faiss.Index, dst_path: str) -> bool:
-    """ function to save a faiss index on hdfs """
+    """function to save a faiss index on hdfs"""
 
     index_path = "/tmp/tmp_index.index"
 
@@ -137,7 +137,7 @@ def save_index_on_hdfs(my_index: faiss.Index, dst_path: str) -> bool:
 
 
 def load_index_from_hdfs(src_path: str):
-    """ Load a faiss index stored on the HDFS """
+    """Load a faiss index stored on the HDFS"""
 
     index_path = f"/tmp/{src_path.split('/')[-1]}"
 
