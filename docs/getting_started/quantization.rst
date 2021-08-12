@@ -12,16 +12,70 @@ recall scores given a memory and query speed constraint.
 The quantize command
 --------------------
 
-Quick description of the `autofaiss quantize` command:
+The ``autofaiss quantize`` command takes the following parameters:
 
-*embeddings_path*           -> Source path of the embeddings in numpy.  
-*output_path*               -> Destination path of the created index.
-*metric_type*               -> Similarity distance for the queries.  
++----------------------------+----------+----------------------------+
+| Flag available             | Default  | Description                |
++============================+==========+============================+
+| --embeddings_path          | required | Source path of the         |
+|                            |          | directory containing your  |
+|                            |          | .npy embedding files. If   |
+|                            |          | there are several files,   |
+|                            |          | they are read in the       |
+|                            |          | lexicographical order.     |
++----------------------------+----------+----------------------------+
+| --output_path              | required | Destination path of the    |
+|                            |          | faiss index on local       |
+|                            |          | machine.                   |
++----------------------------+----------+----------------------------+
+| --metric_type              | "ip"     | (Optional) Similarity      |
+|                            |          | function used for query:   |
+|                            |          | ("ip" for inner product,   |
+|                            |          | "l2" for euclidian         |
+|                            |          | distance)                  |
++----------------------------+----------+----------------------------+
+| --max_index_memory_usage   | "32GB"   | (Optional) Maximum size in |
+|                            |          | GB of the created index,   |
+|                            |          | this bound is strict.      |
++----------------------------+----------+----------------------------+
+| --current_memory_available | "32GB"   | (Optional) Memory          |
+|                            |          | available (in GB) on the   |
+|                            |          | machine creating the       |
+|                            |          | index, having more memory  |
+|                            |          | is a boost because it      |
+|                            |          | reduces the swipe between  |
+|                            |          | RAM and disk.              |
++----------------------------+----------+----------------------------+
+| --max_index_query_time_ms  | 10       | (Optional) Bound on the    |
+|                            |          | query time for KNN search, |
+|                            |          | this bound is              |
+|                            |          | approximative.             |
++----------------------------+----------+----------------------------+
+| --index_key                | None     | (Optional) If present, the |
+|                            |          | Faiss index will be build  |
+|                            |          | using this description     |
+|                            |          | string in the              |
+|                            |          | index_factory, more detail |
+|                            |          | in the `Faiss              |
+|                            |          | documentation`_            |
++----------------------------+----------+----------------------------+
+| --index_param              | None     | (Optional) If present, the |
+|                            |          | Faiss index will be set    |
+|                            |          | using this description     |
+|                            |          | string of hyperparameters, |
+|                            |          | more detail in the `Faiss  |
+|                            |          | docume                     |
+|                            |          | ntation <https://github.co |
+|                            |          | m/facebookresearch/faiss/w |
+|                            |          | iki/Index-IO,-cloning-and- |
+|                            |          | hyper-parameter-tuning>`__ |
++----------------------------+----------+----------------------------+
+| --use_gpu                  | False    | (Optional) Experimental,   |
+|                            |          | gpu training can be        |
+|                            |          | faster, but this feature   |
++----------------------------+----------+----------------------------+
 
-*index_key*                 -> (optional) Describe the index to build.  
-*index_param*               -> (optional) Describe the hyperparameters of the index.  
-*current_memory_available*  -> (optional) Describe the amount of memory available on the machine.  
-*use_gpu*                   -> (optional) Whether to use GPU or not (not tested).  
+.. _Faiss documentation: https://github.com/facebookresearch/faiss/wiki/The-index-factory
 
 It is possible to force the creation of a specific index with specific hyperparameters if more control is needed.
 Here is some documentation <https://github.com/facebookresearch/faiss/wiki/Guidelines-to-choose-an-index> and
@@ -48,7 +102,30 @@ This command creates a new index with different hyperparameters to be closer to 
 The tuning command
 ------------------
 
-You just need to put the path of your index, the index_key describing the index and a maximum query-time value in milliseconds/query.
+The tuning command set the hyperparameters for the given index.
+
+If an index_param is given, set this hyperparameters to the index,
+otherwise perform a greedy heusistic to make the best out or the max_index_query_time_ms constraint
+
+Parameters
+----------
+index_path : str
+    Path to .index file on local disk if is_local_index_path is True,
+    otherwise path on hdfs.
+index_key: str
+    String to give to the index factory in order to create the index.
+index_param: Optional(str)
+    Optional string with hyperparameters to set to the index.
+    If None, the hyper-parameters are chosen based on an heuristic.
+dest_path: Optional[str]
+    Path to the newly created .index file. On local disk if is_local_index_path is True,
+    otherwise on hdfs. If None id given, index_path is the destination path.
+is_local_index_path: bool
+    True if the dest_path and index_path are local path, False if there are hdfs paths.
+max_index_query_time_ms: float
+    Query speed constraint for the index to create.
+use_gpu: bool
+    Experimental, gpu training is faster, not tested so far.
 
 Time required
 -------------
@@ -84,6 +161,21 @@ The score command
 
 You just need the path to your index and the embeddings for this one.
 Be careful, computing accurate metrics is slow.
+
+Compute metrics on a given index, use cached ground truth for fast scoring the next times.
+
+Parameters
+----------
+index_path : str
+    Path to .index file on local disk if is_local_index_path is True,
+    otherwise path on hdfs.
+embeddings_path: str
+    Local path containing all preprocessed vectors and cached files.
+is_local_index_path: bool
+    True if the dest_path and index_path are local path, False if there are hdfs paths.
+current_memory_available: str
+    Memory available on the current machine, having more memory is a boost
+    because it reduces the swipe between RAM and disk.
 
 
 Time required

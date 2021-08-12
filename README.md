@@ -55,6 +55,10 @@ distances, indices = my_index.search(query_vector, k)
 print(list(zip(distances[0], indices[0])))
 ```
 
+## Using from python
+
+If you want to use autofaiss directly from python, check the [API documentation](https://criteo.github.io/autofaiss/)
+
 ## How are indices selected ?
 
 To understand better why indices are selected and what are their characteristics, check the [index selection demo](https://colab.research.google.com/github/criteo/autofaiss/blob/master/docs/notebooks/autofaiss_index_selection_demo.ipynb)
