@@ -15,6 +15,8 @@ Get some insights on the automatic index selection function with this [colab not
 
 Then you can check our [multimodal search example](https://colab.research.google.com/github/criteo/autofaiss/blob/master/docs/notebooks/autofaiss_multimodal_search.ipynb) (using OpenAI Clip model).
 
+Read the [medium post](https://medium.com/criteo-engineering/introducing-autofaiss-an-automatic-k-nearest-neighbor-indexing-library-at-scale-c90842005a11) to learn more about it!
+
 ## How to use autofaiss?
 
 To install run `pip install autofaiss`
