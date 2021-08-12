@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Introduction &mdash; autofaiss 1.0.0 documentation</title>
+  <title>Python documentation &mdash; autofaiss 1.0.0 documentation</title>
   
 
   
@@ -42,8 +42,8 @@
     
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Creating an index" href="../getting_started/quantization.html" />
-    <link rel="prev" title="autofaiss reference documentation" href="../index.html" /> 
+    <link rel="next" title="autofaiss.external.quantize.Quantizer.quantize" href="_autosummary/autofaiss.external.quantize.Quantizer.quantize.html" />
+    <link rel="prev" title="Creating an index" href="../getting_started/quantization.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -89,9 +89,9 @@
             
             
               <p class="caption" role="heading"><span class="caption-text">Introduction and installation</span></p>
-<ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="#installing-the-requirements">Installing the requirements</a></li>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../introduction/introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../introduction/introduction.html#installing-the-requirements">Installing the requirements</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Getting started with the CLI</span></p>
 <ul>
@@ -100,8 +100,16 @@
 <li class="toctree-l1"><a class="reference internal" href="../getting_started/quantization.html#getting-scores-on-an-index">Getting scores on an index</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Use autofaiss from python</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../API/api.html">Python documentation</a></li>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Python documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#quantize">Quantize</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/autofaiss.external.quantize.Quantizer.quantize.html">autofaiss.external.quantize.Quantizer.quantize</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/autofaiss.external.quantize.Quantizer.score_index.html">autofaiss.external.quantize.Quantizer.score_index</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/autofaiss.external.quantize.Quantizer.tuning.html">autofaiss.external.quantize.Quantizer.tuning</a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="../_source/modules.html">autofaiss</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Getting started with notebooks</span></p>
@@ -156,13 +164,13 @@
     
       <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
         
-      <li>Introduction</li>
+      <li>Python documentation</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
           
-            <a href="../_sources/introduction/introduction.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/API/api.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -199,20 +207,29 @@
     text-align: unset;
 }
 </style>
-<div class="section" id="introduction">
-<h1>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h1>
-<p>This lib creates quantized indices for similarity search on dense vectors.
-Once the index is created with this library, you can use deepr_knn to deploy you index and use it through an API.</p>
+<div class="section" id="python-documentation">
+<h1>Python documentation<a class="headerlink" href="#python-documentation" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="quantize">
+<h2>Quantize<a class="headerlink" href="#quantize" title="Permalink to this headline">¶</a></h2>
+<p>Quantizer module contains the exported functions</p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="../_source/autofaiss.external.html#autofaiss.external.quantize.Quantizer.quantize" title="autofaiss.external.quantize.Quantizer.quantize"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Quantizer.quantize</span></code></a>(embeddings_path, output_path)</p></td>
+<td><p>Reads embeddings and creates a quantized index from them.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../_source/autofaiss.external.html#autofaiss.external.quantize.Quantizer.score_index" title="autofaiss.external.quantize.Quantizer.score_index"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Quantizer.score_index</span></code></a>(index_path, …[, …])</p></td>
+<td><p>Compute metrics on a given index, use cached ground truth for fast scoring the next times.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../_source/autofaiss.external.html#autofaiss.external.quantize.Quantizer.tuning" title="autofaiss.external.quantize.Quantizer.tuning"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Quantizer.tuning</span></code></a>(index_path, index_key[, …])</p></td>
+<td><p>Set hyperparameters to the given index.</p></td>
+</tr>
+</tbody>
+</table>
 </div>
-<div class="section" id="installing-the-requirements">
-<h1>Installing the requirements<a class="headerlink" href="#installing-the-requirements" title="Permalink to this headline">¶</a></h1>
-<ol class="arabic simple">
-<li><p>First, create a virtual environement with <cite>python3.6 -m venv .venvs/quantization_env</cite></p></li>
-<li><p>Then, activate it with <cite>source .venvs/quantization_env/bin/activate</cite></p></li>
-<li><p>Next, go to deepr_python/autofaiss with <cite>cd</cite> command</p></li>
-<li><p>Finally, install autofaiss with <cite>pip install -e .</cite></p></li>
-</ol>
-<p>It is now possible to use the CLI commands and run the notebooks.</p>
 </div>
 
 
@@ -221,8 +238,8 @@ Once the index is created with this library, you can use deepr_knn to deploy you
           </div>
           <footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="../getting_started/quantization.html" class="btn btn-neutral float-right" title="Creating an index" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
-        <a href="../index.html" class="btn btn-neutral float-left" title="autofaiss reference documentation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="_autosummary/autofaiss.external.quantize.Quantizer.quantize.html" class="btn btn-neutral float-right" title="autofaiss.external.quantize.Quantizer.quantize" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="../getting_started/quantization.html" class="btn btn-neutral float-left" title="Creating an index" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
 
   <hr/>

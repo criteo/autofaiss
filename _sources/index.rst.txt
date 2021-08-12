@@ -20,6 +20,13 @@ Creating and tuning quantized KNN indices for efficient similarity search with l
    getting_started/quantization
 
 .. toctree::
+   :maxdepth: 2
+   :caption: Use autofaiss from python
+
+   API/api
+   _source/modules
+
+.. toctree::
    :glob:
    :maxdepth: 2
    :caption: Getting started with notebooks

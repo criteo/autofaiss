@@ -1,0 +1,6 @@
+﻿autofaiss.external.quantize.Quantizer.score\_index
+==================================================
+
+.. currentmodule:: autofaiss.external.quantize
+
+.. automethod:: Quantizer.score_index

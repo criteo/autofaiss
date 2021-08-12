@@ -1,0 +1,6 @@
+﻿autofaiss.external.quantize.Quantizer.quantize
+==============================================
+
+.. currentmodule:: autofaiss.external.quantize
+
+.. automethod:: Quantizer.quantize
