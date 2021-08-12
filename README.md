@@ -60,7 +60,7 @@ print(list(zip(distances[0], indices[0])))
 
 ## Using from python
 
-If you want to use autofaiss directly from python, check the [API documentation](https://criteo.github.io/autofaiss/)
+If you want to use autofaiss directly from python, check the [API documentation](https://criteo.github.io/autofaiss/API/api.html)
 
 ## How are indices selected ?
 
