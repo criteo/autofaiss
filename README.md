@@ -13,6 +13,8 @@ Using [faiss](https://github.com/facebookresearch/faiss) efficient indices, bina
 Get started by running this [colab notebook](https://colab.research.google.com/github/criteo/autofaiss/blob/master/docs/notebooks/autofaiss_getting_started.ipynb), then check the [full documentation](https://criteo.github.io/autofaiss).  
 Get some insights on the automatic index selection function with this [colab notebook](https://colab.research.google.com/github/criteo/autofaiss/blob/master/docs/notebooks/autofaiss_index_selection_demo.ipynb).
 
+Then you can check our [multimodal search example](https://colab.research.google.com/github/criteo/autofaiss/blob/master/docs/notebooks/autofaiss_multimodal_search.ipynb) (using OpenAI Clip model).
+
 ## How to use autofaiss?
 
 To install run `pip install autofaiss`
