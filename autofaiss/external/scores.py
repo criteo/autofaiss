@@ -84,6 +84,8 @@ def compute_medium_metrics(
                 embedding_block = next(read_embeddings_local(embeddings_path, stack_input=stacks, verbose=False))
             except:
                 embedding_block = next(read_embeddings_remote(embeddings_path, stack_input=stacks, verbose=False))
+
+        query_embeddings = embedding_block[:nb_test_points]
     else:
         embedding_block = embeddings_path
 
