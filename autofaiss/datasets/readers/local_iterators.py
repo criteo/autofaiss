@@ -74,7 +74,10 @@ def read_arrays_local(
             embeddings_stack = []
 
         try:
-            embeddings_stack.append(np.load(f"{local_path}/{file_name}"))
+            emb = np.load(f"{local_path}/{file_name}")
+            if emb.dtype != "float32":
+                emb = emb.astype("float32")
+            embeddings_stack.append(emb)
         except Exception as e:  # pylint: disable=broad-except
             print(e)
 
