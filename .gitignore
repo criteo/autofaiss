@@ -125,3 +125,8 @@ adapt_template.sh
 .project
 .settings
 .vscode
+
+embedding_folder
+image_folder
+myimglist.txt
+newcat.jpg

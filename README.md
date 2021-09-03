@@ -100,8 +100,8 @@ The `autofaiss quantize` command takes the following parameters:
 
 First, create a virtual env and install dependencies:
 ```
-python -m venv .venv/autofaiss_env
-source .venv/autofaiss_env/bin/activate
+python3 -m venv .env
+source .env/bin/activate
 make install
 ```
 
