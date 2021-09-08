@@ -4,7 +4,7 @@ import re
 from typing import Optional, Tuple, Union
 
 import faiss
-from autofaiss.datasets.readers.local_iterators import read_embeddings_local
+from autofaiss.datasets.readers.local_iterators import read_embeddings_local, read_shapes_local
 from autofaiss.datasets.readers.remote_iterators import read_embeddings_remote, read_filenames
 from autofaiss.external.optimize import (
     get_optimal_batch_size,
@@ -108,8 +108,8 @@ def get_nb_vectors_and_dim(embeddings_path: str) -> Tuple[int, int]:
     tot_vec = 0
     vec_dim = -1
 
-    for emb_array in read_embeddings_local(embeddings_path, verbose=False):
-        batch_length, dim = emb_array.shape
+    for shape in read_shapes_local(embeddings_path):
+        batch_length, dim = shape
         tot_vec += batch_length
         vec_dim = dim
 
@@ -135,7 +135,7 @@ def build_index(
         metric_type = to_faiss_metric_type(metric_type)
 
         # Get information for one partition
-        avg_batch_length, vec_dim = next(read_embeddings_local(embeddings_path, verbose=False)).shape
+        avg_batch_length, vec_dim = next(read_shapes_local(embeddings_path))
 
         # Instanciate the index
         index = index_factory(vec_dim, index_key, metric_type)
@@ -166,6 +166,8 @@ def build_index(
         f"-> Training the index with {train_vectors.shape[0]} vectors of dim {train_vectors.shape[1]}", indent=2
     ):
         index.train(train_vectors)
+
+    del train_vectors
 
     # Add the vectors to the index.
     with Timeit("-> Adding the vectors to the index", indent=2):

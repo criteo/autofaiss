@@ -8,6 +8,30 @@ import numpy as np
 from tqdm import tqdm as tq
 
 
+def read_shapes_local(local_path: str, reg_exp_pattern: str = r".+\.npy") -> Iterator[np.ndarray]:
+    """
+    Iterate over shapes saved on disk.
+
+    Parameters
+    ----------
+    local_embeddings_path : str
+        Path on local disk of the embedding in numpy format.
+
+    Returns
+    -------
+    shape_iterator : Iterator[np.ndarray]
+        An iterator over shapes.
+    """
+    reg_exp = re.compile(reg_exp_pattern)
+    filenames = os.walk(local_path).__next__()[2]
+    filenames = [filename for filename in filenames if reg_exp.match(filename)]
+    filenames.sort()
+    for file_name in filenames:
+        # https://stackoverflow.com/a/48592009
+        shape = np.load(f"{local_path}/{file_name}", mmap_mode="r").shape
+        yield shape
+
+
 def read_embeddings_local(local_embeddings_path: str, stack_input: int = 1, verbose=True) -> Iterator[np.ndarray]:
     """
     Iterate over embeddings arrays saved on disk.
