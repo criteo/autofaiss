@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and this project adheres to [Semantic Versioning](https://semver.org).
 
+## [1.4.0] - 2021-09-08
+
+### Added
+### Changed
+speed improvements
+
+* when estimating shape of numpy files, use memory mapping ; reduce estimation from hours to seconds
+* do not keep the training vector in memory after training, reduce memory requirements by a factor 2
+### Deprecated
+### Removed
+### Fixed
+### Security
+
 ## [1.3.2] - 2021-09-03
 
 ### Added
