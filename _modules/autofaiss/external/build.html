@@ -178,7 +178,7 @@
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
 
 <span class="kn">import</span> <span class="nn">faiss</span>
-<span class="kn">from</span> <span class="nn">autofaiss.datasets.readers.local_iterators</span> <span class="kn">import</span> <span class="n">read_embeddings_local</span>
+<span class="kn">from</span> <span class="nn">autofaiss.datasets.readers.local_iterators</span> <span class="kn">import</span> <span class="n">read_embeddings_local</span><span class="p">,</span> <span class="n">read_shapes_local</span>
 <span class="kn">from</span> <span class="nn">autofaiss.datasets.readers.remote_iterators</span> <span class="kn">import</span> <span class="n">read_embeddings_remote</span><span class="p">,</span> <span class="n">read_filenames</span>
 <span class="kn">from</span> <span class="nn">autofaiss.external.optimize</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">get_optimal_batch_size</span><span class="p">,</span>
@@ -282,8 +282,8 @@
     <span class="n">tot_vec</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="n">vec_dim</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
 
-    <span class="k">for</span> <span class="n">emb_array</span> <span class="ow">in</span> <span class="n">read_embeddings_local</span><span class="p">(</span><span class="n">embeddings_path</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-        <span class="n">batch_length</span><span class="p">,</span> <span class="n">dim</span> <span class="o">=</span> <span class="n">emb_array</span><span class="o">.</span><span class="n">shape</span>
+    <span class="k">for</span> <span class="n">shape</span> <span class="ow">in</span> <span class="n">read_shapes_local</span><span class="p">(</span><span class="n">embeddings_path</span><span class="p">):</span>
+        <span class="n">batch_length</span><span class="p">,</span> <span class="n">dim</span> <span class="o">=</span> <span class="n">shape</span>
         <span class="n">tot_vec</span> <span class="o">+=</span> <span class="n">batch_length</span>
         <span class="n">vec_dim</span> <span class="o">=</span> <span class="n">dim</span>
 
@@ -309,7 +309,7 @@
         <span class="n">metric_type</span> <span class="o">=</span> <span class="n">to_faiss_metric_type</span><span class="p">(</span><span class="n">metric_type</span><span class="p">)</span>
 
         <span class="c1"># Get information for one partition</span>
-        <span class="n">avg_batch_length</span><span class="p">,</span> <span class="n">vec_dim</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">read_embeddings_local</span><span class="p">(</span><span class="n">embeddings_path</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span><span class="o">.</span><span class="n">shape</span>
+        <span class="n">avg_batch_length</span><span class="p">,</span> <span class="n">vec_dim</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">read_shapes_local</span><span class="p">(</span><span class="n">embeddings_path</span><span class="p">))</span>
 
         <span class="c1"># Instanciate the index</span>
         <span class="n">index</span> <span class="o">=</span> <span class="n">index_factory</span><span class="p">(</span><span class="n">vec_dim</span><span class="p">,</span> <span class="n">index_key</span><span class="p">,</span> <span class="n">metric_type</span><span class="p">)</span>
@@ -340,6 +340,8 @@
         <span class="sa">f</span><span class="s2">&quot;-&gt; Training the index with </span><span class="si">{</span><span class="n">train_vectors</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2"> vectors of dim </span><span class="si">{</span><span class="n">train_vectors</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span>
     <span class="p">):</span>
         <span class="n">index</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">train_vectors</span><span class="p">)</span>
+
+    <span class="k">del</span> <span class="n">train_vectors</span>
 
     <span class="c1"># Add the vectors to the index.</span>
     <span class="k">with</span> <span class="n">Timeit</span><span class="p">(</span><span class="s2">&quot;-&gt; Adding the vectors to the index&quot;</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
