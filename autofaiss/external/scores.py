@@ -81,7 +81,7 @@ def compute_medium_metrics(
             stacks = int(nb_test_points // embedding_block.shape[0]) + 1
             # pylint: disable=bare-except
             try:
-                embedding_block = next(read_embeddings_local(embeddings_path, stack_input=stacks, verbose=False))
+                embedding_block = next(read_embeddings_local(embeddings_path, batch_size=nb_test_points, verbose=False))
             except:
                 embedding_block = next(read_embeddings_remote(embeddings_path, stack_input=stacks, verbose=False))
 
@@ -139,18 +139,16 @@ def get_ground_truth(
     if isinstance(embeddings_path, str):
         perfect_index = MemEfficientFlatIndex(dim, faiss_metric_type)
         perfect_index.add_files(embeddings_path)
-        block_bytes = next(read_embeddings_local(embeddings_path, verbose=False)).nbytes
     else:
         perfect_index = faiss.IndexFlat(dim, faiss_metric_type)
         perfect_index.add(embeddings_path.astype("float32"))  # pylint: disable= no-value-for-parameter
-        block_bytes = embeddings_path.nbytes
 
     memory_available = cast_memory_to_bytes(memory_available) if isinstance(memory_available, str) else memory_available
 
-    stack_input = max(int(0.25 * memory_available / block_bytes), 1)
+    batch_size = int(memory_available * 0.25)
 
     if isinstance(embeddings_path, str):
-        _, ground_truth = perfect_index.search_files(query_embeddings, k=40, stack_input=stack_input)
+        _, ground_truth = perfect_index.search_files(query_embeddings, k=40, batch_size=batch_size)
     else:
         _, ground_truth = perfect_index.search(query_embeddings, k=40)
 

@@ -8,7 +8,6 @@ from typing import Dict, Optional, Union
 import faiss
 
 import fire
-from autofaiss.datasets.readers.local_iterators import read_embeddings_local
 from autofaiss.external.build import (
     build_index,
     estimate_memory_required_for_index_creation,
@@ -83,6 +82,10 @@ class Quantizer:
                 necessary_mem, index_key_used = estimate_memory_required_for_index_creation(
                     nb_vectors, vec_dim, index_key, max_index_memory_usage
                 )
+                print(
+                    f"{cast_bytes_to_memory_string(necessary_mem)} of memory "
+                    "will be needed to train the index (more might be used if you have more)"
+                )
 
                 prefix = "(default) " if index_key is None else ""
 
@@ -98,7 +101,6 @@ class Quantizer:
 
             if index_key is None:
                 with Timeit("Selecting most promising index types given data characteristics", indent=1):
-                    _, vec_dim = next(read_embeddings_local(embeddings_path, verbose=False)).shape
                     best_index_keys = get_optimal_index_keys_v2(nb_vectors, vec_dim, max_index_memory_usage)
                     if not best_index_keys:
                         return "Constraint on memory too high, no index can be that small"

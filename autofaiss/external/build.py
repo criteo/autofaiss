@@ -13,7 +13,7 @@ from autofaiss.external.optimize import (
     set_search_hyperparameters,
 )
 from autofaiss.indices.index_factory import index_factory
-from autofaiss.utils.cast import to_faiss_metric_type, to_readable_time
+from autofaiss.utils.cast import cast_bytes_to_memory_string, to_faiss_metric_type, to_readable_time
 from autofaiss.utils.decorators import Timeit
 
 
@@ -135,7 +135,7 @@ def build_index(
         metric_type = to_faiss_metric_type(metric_type)
 
         # Get information for one partition
-        avg_batch_length, vec_dim = next(read_shapes_local(embeddings_path))
+        _, vec_dim = next(read_shapes_local(embeddings_path))
 
         # Instanciate the index
         index = index_factory(vec_dim, index_key, metric_type)
@@ -145,10 +145,13 @@ def build_index(
 
         # Determine the number of vectors necessary to train the index
         train_size = get_optimal_train_size(nb_vectors, index_key, current_memory_available, vec_dim)
+        print(
+            f"Will use {train_size} vectors to train the index, "
+            f"{cast_bytes_to_memory_string(train_size*vec_dim*4)} of memory"
+        )
 
         # Extract training vectors
-        nb_stack = max(train_size // avg_batch_length + 1, 1)
-        train_vectors = next(read_embeddings_local(embeddings_path, stack_input=nb_stack, verbose=True))
+        train_vectors = next(read_embeddings_local(embeddings_path, batch_size=train_size, verbose=True))
 
     # Instanciate the index and train it
     # pylint: disable=no-member
@@ -171,9 +174,8 @@ def build_index(
 
     # Add the vectors to the index.
     with Timeit("-> Adding the vectors to the index", indent=2):
-        batch_size = get_optimal_batch_size(nb_vectors, vec_dim, current_memory_available)
-        nb_stack = max(batch_size // avg_batch_length, 1)
-        for vec_batch in read_embeddings_local(embeddings_path, stack_input=nb_stack, verbose=True):
+        batch_size = get_optimal_batch_size(vec_dim, current_memory_available)
+        for vec_batch in read_embeddings_local(embeddings_path, batch_size=batch_size, verbose=True):
             index.add(vec_batch)
 
     # Give standard values for index hyperparameters if possible.
