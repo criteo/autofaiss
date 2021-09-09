@@ -48,13 +48,14 @@ def get_optimal_train_size(
     return train_size
 
 
-def get_optimal_batch_size(nb_vectors: int, vec_dim: int, current_memory_available: str) -> int:
-    """compute optimal batch size to use the RAM at its full potential"""
+def get_optimal_batch_size(vec_dim: int, current_memory_available: str) -> int:
+    """compute optimal batch size to use the RAM at its full potential for adding vectors"""
 
-    total_size = nb_vectors * vec_dim * 4  # in bytes
     memory = cast_memory_to_bytes(current_memory_available)
 
-    batch_size = int(0.5 * total_size / memory)
+    batch_size = min(
+        2 ** 14, int(memory / (vec_dim * 4))
+    )  # larger batch size than 16384 do not improve add speed and consume more ram
 
     return batch_size
 

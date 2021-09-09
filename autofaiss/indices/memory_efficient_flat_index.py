@@ -229,7 +229,7 @@ class MemEfficientFlatIndex(FaissIndexWrapper):
 
         return D, I
 
-    def search_files(self, x: np.ndarray, k: int, stack_input: int = 1):
+    def search_files(self, x: np.ndarray, k: int, batch_size: Optional[int] = None):
 
         if self.prod_emb_path is None:
             raise ValueError("The index is empty")
@@ -248,7 +248,7 @@ class MemEfficientFlatIndex(FaissIndexWrapper):
         offset = 0
 
         # For each batch
-        for emb_array in read_embeddings_local(self.prod_emb_path, stack_input, verbose=True):
+        for emb_array in read_embeddings_local(self.prod_emb_path, batch_size, verbose=True):
             # for i in trange(0, self.prod_emb.shape[0], batch_size):
 
             # instanciate a Flat index
