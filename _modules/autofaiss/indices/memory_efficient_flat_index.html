@@ -403,7 +403,7 @@
 
         <span class="k">return</span> <span class="n">D</span><span class="p">,</span> <span class="n">I</span></div>
 
-<div class="viewcode-block" id="MemEfficientFlatIndex.search_files"><a class="viewcode-back" href="../../../_source/autofaiss.indices.html#autofaiss.indices.memory_efficient_flat_index.MemEfficientFlatIndex.search_files">[docs]</a>    <span class="k">def</span> <span class="nf">search_files</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">stack_input</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">):</span>
+<div class="viewcode-block" id="MemEfficientFlatIndex.search_files"><a class="viewcode-back" href="../../../_source/autofaiss.indices.html#autofaiss.indices.memory_efficient_flat_index.MemEfficientFlatIndex.search_files">[docs]</a>    <span class="k">def</span> <span class="nf">search_files</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">prod_emb_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The index is empty&quot;</span><span class="p">)</span>
@@ -422,7 +422,7 @@
         <span class="n">offset</span> <span class="o">=</span> <span class="mi">0</span>
 
         <span class="c1"># For each batch</span>
-        <span class="k">for</span> <span class="n">emb_array</span> <span class="ow">in</span> <span class="n">read_embeddings_local</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prod_emb_path</span><span class="p">,</span> <span class="n">stack_input</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">emb_array</span> <span class="ow">in</span> <span class="n">read_embeddings_local</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prod_emb_path</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
             <span class="c1"># for i in trange(0, self.prod_emb.shape[0], batch_size):</span>
 
             <span class="c1"># instanciate a Flat index</span>

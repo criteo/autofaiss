@@ -286,38 +286,21 @@ numpy arrays and store it in the local desination path.</p>
 <span id="autofaiss-datasets-readers-local-iterators-module"></span><h2>autofaiss.datasets.readers.local_iterators module<a class="headerlink" href="#module-autofaiss.datasets.readers.local_iterators" title="Permalink to this headline">¶</a></h2>
 <p>Functions that read efficiently files stored on disk</p>
 <dl class="py function">
-<dt class="sig sig-object py" id="autofaiss.datasets.readers.local_iterators.read_arrays_local">
-<span class="sig-prename descclassname"><span class="pre">autofaiss.datasets.readers.local_iterators.</span></span><span class="sig-name descname"><span class="pre">read_arrays_local</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">local_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reg_exp_pattern</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.+\\\\.npy'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stack_input</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/datasets/readers/local_iterators.html#read_arrays_local"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.datasets.readers.local_iterators.read_arrays_local" title="Permalink to this definition">¶</a></dt>
-<dd><p>Iterate over numpy array files that match the reg ex pattern and yield their content.
-It is possible to iterate over the stacked content of several arrays.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>local_embeddings_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Path on local disk of arrays in numpy format.</p></li>
-<li><p><strong>stack_input</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a><em> (</em><em>default 1</em><em>)</em>) – Number of arrays that should be stacked at each iterations.
-This parameter is useful when working with many small files.</p></li>
-<li><p><strong>verbose</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – Print detailed informations if set to True</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><strong>arrays_iterator</strong> – An iterator over batchs of stacked arrays.</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>Iterator[np.ndarray]</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
 <dt class="sig sig-object py" id="autofaiss.datasets.readers.local_iterators.read_embeddings_local">
-<span class="sig-prename descclassname"><span class="pre">autofaiss.datasets.readers.local_iterators.</span></span><span class="sig-name descname"><span class="pre">read_embeddings_local</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">local_embeddings_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stack_input</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/datasets/readers/local_iterators.html#read_embeddings_local"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.datasets.readers.local_iterators.read_embeddings_local" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autofaiss.datasets.readers.local_iterators.</span></span><span class="sig-name descname"><span class="pre">read_embeddings_local</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">local_embeddings_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reg_exp_pattern</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.+\\\\.npy'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/datasets/readers/local_iterators.html#read_embeddings_local"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.datasets.readers.local_iterators.read_embeddings_local" title="Permalink to this definition">¶</a></dt>
 <dd><p>Iterate over embeddings arrays saved on disk.
 It is possible to iterate over batchs of files and yield stacked embeddings arrays.</p>
+<p>The implementation adopted here is chosen for memory concern: it is very important
+for autofaiss to avoid using more memory than necessary.
+In particular, for the faiss training, a large embedding array is nessary.
+It is not possible to save it twice in memory.
+This implementation pre-allocate an array of size batch_size and keep it updated during the iteration over files.
+The maximum memory usage is batch_size * dim * 4</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>local_embeddings_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Path on local disk of the embedding in numpy format.</p></li>
-<li><p><strong>stack_input</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a><em> (</em><em>default 1</em><em>)</em>) – Number of arrays that should be stacked at each iterations.
+<li><p><strong>batch_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a><em> (</em><em>default None</em><em>)</em>) – Outputs a maximum of batch_size vectors, the default is the size of the first file
 This parameter is useful when working with many small files.</p></li>
 <li><p><strong>verbose</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – Print detailed informations if set to True</p></li>
 </ul>
