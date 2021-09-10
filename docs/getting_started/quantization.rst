@@ -164,6 +164,8 @@ Be careful, computing accurate metrics is slow.
 
 Compute metrics on a given index, use cached ground truth for fast scoring the next times.
 
+``autofaiss score_index --embeddings_path="folder/embs" --index_path="some.index" --is_local_index_path True --current_memory_available="4G"``
+
 Parameters
 ----------
 index_path : str

@@ -64,6 +64,11 @@ print(list(zip(distances[0], indices[0])))
 
 If you want to use autofaiss directly from python, check the [API documentation](https://criteo.github.io/autofaiss/API/api.html)
 
+```python
+quantizer = Quantizer()
+quantizer.quantize(embeddings_path="embeddings", output_path="my_index_folder", max_index_memory_usage="4G", current_memory_available="4G")
+```
+
 ## How are indices selected ?
 
 To understand better why indices are selected and what are their characteristics, check the [index selection demo](https://colab.research.google.com/github/criteo/autofaiss/blob/master/docs/notebooks/autofaiss_index_selection_demo.ipynb)
