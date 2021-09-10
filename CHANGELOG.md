@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and this project adheres to [Semantic Versioning](https://semver.org).
 
+## [1.5.1] - 2021-09-10
+
+### Added
+add explicit example in score index doc and in readme
+### Changed
+### Deprecated
+### Removed
+### Fixed
+fix the batch size of scoring
+### Security
+
 ## [1.5.0] - 2021-09-09
 
 ### Added
