@@ -323,11 +323,13 @@
     <span class="k">if</span> <span class="ow">not</span> <span class="n">run_command</span><span class="p">(</span><span class="n">cmd</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;no file at </span><span class="si">{</span><span class="n">src_path</span><span class="si">}</span><span class="s2"> on HDFS&quot;</span><span class="p">)</span>
 
+    <span class="n">index_memory</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">getsize</span><span class="p">(</span><span class="n">index_path</span><span class="p">)</span>
+
     <span class="n">index</span> <span class="o">=</span> <span class="n">faiss</span><span class="o">.</span><span class="n">read_index</span><span class="p">(</span><span class="n">index_path</span><span class="p">)</span>
 
     <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">index_path</span><span class="p">)</span>
 
-    <span class="k">return</span> <span class="n">index</span></div>
+    <span class="k">return</span> <span class="n">index</span><span class="p">,</span> <span class="n">index_memory</span></div>
 </pre></div>
 
            </div>
