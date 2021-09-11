@@ -105,7 +105,7 @@ class Quantizer:
                 )
                 print(
                     f"{cast_bytes_to_memory_string(necessary_mem)} of memory "
-                    "will be needed to train the index (more might be used if you have more)"
+                    "will be needed to build the index (more might be used if you have more)"
                 )
 
                 prefix = "(default) " if index_key is None else ""
