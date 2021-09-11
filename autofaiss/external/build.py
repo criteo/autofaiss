@@ -4,6 +4,7 @@ import re
 from typing import Optional, Tuple, Union
 
 import faiss
+from autofaiss.external.metadata import IndexMetadata
 from autofaiss.datasets.readers.local_iterators import read_embeddings_local, read_shapes_local
 from autofaiss.datasets.readers.remote_iterators import read_embeddings_remote, read_filenames
 from autofaiss.external.optimize import (
@@ -13,7 +14,12 @@ from autofaiss.external.optimize import (
     set_search_hyperparameters,
 )
 from autofaiss.indices.index_factory import index_factory
-from autofaiss.utils.cast import cast_bytes_to_memory_string, to_faiss_metric_type, to_readable_time
+from autofaiss.utils.cast import (
+    cast_bytes_to_memory_string,
+    cast_memory_to_bytes,
+    to_faiss_metric_type,
+    to_readable_time,
+)
 from autofaiss.utils.decorators import Timeit
 
 
@@ -31,11 +37,19 @@ def estimate_memory_required_for_index_creation(
         else:
             raise ValueError("you should give max_index_memory_usage value if no index_key is given")
 
+    metadata = IndexMetadata(index_key, nb_vectors, vec_dim)
+
+    index_memory = metadata.estimated_index_size_in_bytes()
+    needed_for_adding = min(index_memory * 0.1, 10 ** 9)
+    index_overhead = index_memory * 0.1
+
     # Compute the smallest number of vectors required to train the index given
     # the maximal memory constraint
     nb_vectors_train = get_optimal_train_size(nb_vectors, index_key, "1K", vec_dim)
 
-    return 4 * nb_vectors_train * vec_dim, index_key
+    memory_for_training = 4 * nb_vectors_train * vec_dim
+
+    return (int(index_overhead + max(index_memory + needed_for_adding, memory_for_training))), index_key
 
 
 def get_estimated_download_time_infos(
@@ -140,11 +154,21 @@ def build_index(
         # Instanciate the index
         index = index_factory(vec_dim, index_key, metric_type)
 
+    metadata = IndexMetadata(index_key, nb_vectors, vec_dim)
+
+    print(
+        f"The index size will be approximately {cast_bytes_to_memory_string(metadata.estimated_index_size_in_bytes())}"
+    )
+
     # Extract training vectors
     with Timeit("-> Extract training vectors", indent=2):
 
+        memory_available_for_training = cast_bytes_to_memory_string(
+            cast_memory_to_bytes(current_memory_available) - metadata.estimated_index_size_in_bytes() * 0.1
+        )
+
         # Determine the number of vectors necessary to train the index
-        train_size = get_optimal_train_size(nb_vectors, index_key, current_memory_available, vec_dim)
+        train_size = get_optimal_train_size(nb_vectors, index_key, memory_available_for_training, vec_dim)
         print(
             f"Will use {train_size} vectors to train the index, "
             f"{cast_bytes_to_memory_string(train_size*vec_dim*4)} of memory"
@@ -172,9 +196,21 @@ def build_index(
 
     del train_vectors
 
+    memory_available_for_adding = cast_bytes_to_memory_string(
+        cast_memory_to_bytes(current_memory_available) - metadata.estimated_index_size_in_bytes()
+    )
+
+    print(
+        f"The memory available for adding the vectors is {memory_available_for_adding}"
+        "(total available - used by the index)"
+    )
+    print("Will be using at most 1GB of ram for adding")
     # Add the vectors to the index.
     with Timeit("-> Adding the vectors to the index", indent=2):
-        batch_size = get_optimal_batch_size(vec_dim, current_memory_available)
+        batch_size = get_optimal_batch_size(vec_dim, memory_available_for_adding)
+        print(
+            f"Using a batch size of {batch_size} (memory overhead {cast_bytes_to_memory_string(batch_size*vec_dim*4)})"
+        )
         for vec_batch in read_embeddings_local(embeddings_path, batch_size=batch_size, verbose=True):
             index.add(vec_batch)
 

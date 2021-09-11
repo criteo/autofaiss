@@ -4,6 +4,7 @@ import logging
 import os
 from pprint import pprint as pp
 from typing import Dict, Optional, Union
+import multiprocessing
 
 import faiss
 
@@ -34,10 +35,11 @@ class Quantizer:
         index_key: Optional[str] = None,
         index_param: Optional[str] = None,
         max_index_query_time_ms: float = 10.0,
-        max_index_memory_usage: str = "32G",
+        max_index_memory_usage: str = "16G",
         current_memory_available: str = "32G",
         use_gpu: bool = False,
         metric_type: str = "ip",
+        nb_cores: Optional[int] = None,
     ) -> str:
         """
         Reads embeddings and creates a quantized index from them.
@@ -69,11 +71,30 @@ class Quantizer:
             Similarity function used for query:
                 - "ip" for inner product
                 - "l2" for euclidian distance
+        nb_cores: Optional[int]
+            Number of cores to use. Will try to guess the right number if not provided
         """
+
+        current_bytes = cast_memory_to_bytes(current_memory_available)
+        max_index_bytes = cast_memory_to_bytes(max_index_memory_usage)
+        memory_left = current_bytes - max_index_bytes
+
+        if memory_left < current_bytes * 0.1:
+            print(
+                "You do not have enough memory to build this index"
+                "please increase current_memory_available or decrease max_index_memory_usage"
+            )
+            return "Not enough memory"
+
+        if nb_cores is None:
+            nb_cores = multiprocessing.cpu_count()
+        print(f"Using {nb_cores} omp threads (processes), consider increasing --nb_cores if you have more")
+        faiss.omp_set_num_threads(nb_cores)
 
         with Timeit("Launching the whole pipeline"):
 
             nb_vectors, vec_dim = get_nb_vectors_and_dim(embeddings_path)
+            print(f"There are {nb_vectors} embeddings of dim {vec_dim}")
 
             with Timeit("Compute estimated construction time of the index", indent=1):
                 print(get_estimated_construction_time_infos(nb_vectors, vec_dim, indent=2))
@@ -89,15 +110,17 @@ class Quantizer:
 
                 prefix = "(default) " if index_key is None else ""
 
-                if 0.9 * necessary_mem > cast_memory_to_bytes(current_memory_available):
-
-                    return (
+                if necessary_mem > cast_memory_to_bytes(current_memory_available):
+                    r = (
                         f"The current memory available on your machine ({current_memory_available}) is not "
                         f"enough to create the {prefix}index {index_key_used} that requires "
                         f"{cast_bytes_to_memory_string(necessary_mem)} to train. "
                         "You can decrease the number of clusters of you index since the Kmeans algorithm "
                         "used for clusterisation is responsible for this high memory usage."
+                        "Consider increasing the options current_memory_available or decreasing max_index_memory_usage"
                     )
+                    print(r)
+                    return r
 
             if index_key is None:
                 with Timeit("Selecting most promising index types given data characteristics", indent=1):
@@ -229,6 +252,7 @@ class Quantizer:
             Memory available on the current machine, having more memory is a boost
             because it reduces the swipe between RAM and disk.
         """
+        faiss.omp_set_num_threads(multiprocessing.cpu_count())
 
         if is_local_index_path:
             with Timeit("Loading index from local disk"):

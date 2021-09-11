@@ -100,6 +100,7 @@ The `autofaiss quantize` command takes the following parameters:
 | --index_key                |   None   | (Optional) If present, the Faiss index will be build using this description string in the index_factory, more detail in the [Faiss documentation](https://github.com/facebookresearch/faiss/wiki/The-index-factory)
 | --index_param              |   None   | (Optional) If present, the Faiss index will be set using this description string of hyperparameters, more detail in the [Faiss documentation](https://github.com/facebookresearch/faiss/wiki/Index-IO,-cloning-and-hyper-parameter-tuning) |
 | --use_gpu                  |   False  | (Optional) Experimental, gpu training can be faster, but this feature is not tested so far.                                                                                                                                         |
+| --nb_cores                  |   None  | (Optional) The number of cores to use, by default will use all cores                                                                                                                                         |
 
 ## Install from source
 

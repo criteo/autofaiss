@@ -93,7 +93,7 @@ def compute_medium_metrics(
 
     if ground_truth is None:
         if isinstance(embeddings_path, str):
-            ground_truth_path = f"{embeddings_path}/small_ground_truth_test.npy"
+            ground_truth_path = f"{embeddings_path}/small_ground_truth_test.gt"
             if not os.path.exists(ground_truth_path):
 
                 with Timeit("-> Compute small ground truth", indent=1):

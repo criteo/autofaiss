@@ -53,9 +53,7 @@ def get_optimal_batch_size(vec_dim: int, current_memory_available: str) -> int:
 
     memory = cast_memory_to_bytes(current_memory_available)
 
-    batch_size = min(
-        2 ** 14, int(memory / (vec_dim * 4))
-    )  # larger batch size than 16384 do not improve add speed and consume more ram
+    batch_size = int(min(memory, 10 ** 9) / (vec_dim * 4))  # using more than 1GB of ram is not faster here
 
     return batch_size
 
