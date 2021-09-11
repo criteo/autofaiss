@@ -178,6 +178,7 @@
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">from</span> <span class="nn">pprint</span> <span class="kn">import</span> <span class="n">pprint</span> <span class="k">as</span> <span class="n">pp</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">import</span> <span class="nn">multiprocessing</span>
 
 <span class="kn">import</span> <span class="nn">faiss</span>
 
@@ -208,10 +209,11 @@
         <span class="n">index_key</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">index_param</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">max_index_query_time_ms</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">10.0</span><span class="p">,</span>
-        <span class="n">max_index_memory_usage</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;32G&quot;</span><span class="p">,</span>
+        <span class="n">max_index_memory_usage</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;16G&quot;</span><span class="p">,</span>
         <span class="n">current_memory_available</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;32G&quot;</span><span class="p">,</span>
         <span class="n">use_gpu</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">metric_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;ip&quot;</span><span class="p">,</span>
+        <span class="n">nb_cores</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Reads embeddings and creates a quantized index from them.</span>
@@ -243,11 +245,30 @@
 <span class="sd">            Similarity function used for query:</span>
 <span class="sd">                - &quot;ip&quot; for inner product</span>
 <span class="sd">                - &quot;l2&quot; for euclidian distance</span>
+<span class="sd">        nb_cores: Optional[int]</span>
+<span class="sd">            Number of cores to use. Will try to guess the right number if not provided</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">current_bytes</span> <span class="o">=</span> <span class="n">cast_memory_to_bytes</span><span class="p">(</span><span class="n">current_memory_available</span><span class="p">)</span>
+        <span class="n">max_index_bytes</span> <span class="o">=</span> <span class="n">cast_memory_to_bytes</span><span class="p">(</span><span class="n">max_index_memory_usage</span><span class="p">)</span>
+        <span class="n">memory_left</span> <span class="o">=</span> <span class="n">current_bytes</span> <span class="o">-</span> <span class="n">max_index_bytes</span>
+
+        <span class="k">if</span> <span class="n">memory_left</span> <span class="o">&lt;</span> <span class="n">current_bytes</span> <span class="o">*</span> <span class="mf">0.1</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="s2">&quot;You do not have enough memory to build this index&quot;</span>
+                <span class="s2">&quot;please increase current_memory_available or decrease max_index_memory_usage&quot;</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="s2">&quot;Not enough memory&quot;</span>
+
+        <span class="k">if</span> <span class="n">nb_cores</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">nb_cores</span> <span class="o">=</span> <span class="n">multiprocessing</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Using </span><span class="si">{</span><span class="n">nb_cores</span><span class="si">}</span><span class="s2"> omp threads (processes), consider increasing --nb_cores if you have more&quot;</span><span class="p">)</span>
+        <span class="n">faiss</span><span class="o">.</span><span class="n">omp_set_num_threads</span><span class="p">(</span><span class="n">nb_cores</span><span class="p">)</span>
 
         <span class="k">with</span> <span class="n">Timeit</span><span class="p">(</span><span class="s2">&quot;Launching the whole pipeline&quot;</span><span class="p">):</span>
 
             <span class="n">nb_vectors</span><span class="p">,</span> <span class="n">vec_dim</span> <span class="o">=</span> <span class="n">get_nb_vectors_and_dim</span><span class="p">(</span><span class="n">embeddings_path</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;There are </span><span class="si">{</span><span class="n">nb_vectors</span><span class="si">}</span><span class="s2"> embeddings of dim </span><span class="si">{</span><span class="n">vec_dim</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
             <span class="k">with</span> <span class="n">Timeit</span><span class="p">(</span><span class="s2">&quot;Compute estimated construction time of the index&quot;</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
                 <span class="nb">print</span><span class="p">(</span><span class="n">get_estimated_construction_time_infos</span><span class="p">(</span><span class="n">nb_vectors</span><span class="p">,</span> <span class="n">vec_dim</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">))</span>
@@ -263,15 +284,17 @@
 
                 <span class="n">prefix</span> <span class="o">=</span> <span class="s2">&quot;(default) &quot;</span> <span class="k">if</span> <span class="n">index_key</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
 
-                <span class="k">if</span> <span class="mf">0.9</span> <span class="o">*</span> <span class="n">necessary_mem</span> <span class="o">&gt;</span> <span class="n">cast_memory_to_bytes</span><span class="p">(</span><span class="n">current_memory_available</span><span class="p">):</span>
-
-                    <span class="k">return</span> <span class="p">(</span>
+                <span class="k">if</span> <span class="n">necessary_mem</span> <span class="o">&gt;</span> <span class="n">cast_memory_to_bytes</span><span class="p">(</span><span class="n">current_memory_available</span><span class="p">):</span>
+                    <span class="n">r</span> <span class="o">=</span> <span class="p">(</span>
                         <span class="sa">f</span><span class="s2">&quot;The current memory available on your machine (</span><span class="si">{</span><span class="n">current_memory_available</span><span class="si">}</span><span class="s2">) is not &quot;</span>
                         <span class="sa">f</span><span class="s2">&quot;enough to create the </span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s2">index </span><span class="si">{</span><span class="n">index_key_used</span><span class="si">}</span><span class="s2"> that requires &quot;</span>
                         <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cast_bytes_to_memory_string</span><span class="p">(</span><span class="n">necessary_mem</span><span class="p">)</span><span class="si">}</span><span class="s2"> to train. &quot;</span>
                         <span class="s2">&quot;You can decrease the number of clusters of you index since the Kmeans algorithm &quot;</span>
                         <span class="s2">&quot;used for clusterisation is responsible for this high memory usage.&quot;</span>
+                        <span class="s2">&quot;Consider increasing the options current_memory_available or decreasing max_index_memory_usage&quot;</span>
                     <span class="p">)</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="n">r</span>
 
             <span class="k">if</span> <span class="n">index_key</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">with</span> <span class="n">Timeit</span><span class="p">(</span><span class="s2">&quot;Selecting most promising index types given data characteristics&quot;</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
@@ -403,6 +426,7 @@
 <span class="sd">            Memory available on the current machine, having more memory is a boost</span>
 <span class="sd">            because it reduces the swipe between RAM and disk.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">faiss</span><span class="o">.</span><span class="n">omp_set_num_threads</span><span class="p">(</span><span class="n">multiprocessing</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">())</span>
 
         <span class="k">if</span> <span class="n">is_local_index_path</span><span class="p">:</span>
             <span class="k">with</span> <span class="n">Timeit</span><span class="p">(</span><span class="s2">&quot;Loading index from local disk&quot;</span><span class="p">):</span>

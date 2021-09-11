@@ -227,9 +227,7 @@
 
     <span class="n">memory</span> <span class="o">=</span> <span class="n">cast_memory_to_bytes</span><span class="p">(</span><span class="n">current_memory_available</span><span class="p">)</span>
 
-    <span class="n">batch_size</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span>
-        <span class="mi">2</span> <span class="o">**</span> <span class="mi">14</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">memory</span> <span class="o">/</span> <span class="p">(</span><span class="n">vec_dim</span> <span class="o">*</span> <span class="mi">4</span><span class="p">))</span>
-    <span class="p">)</span>  <span class="c1"># larger batch size than 16384 do not improve add speed and consume more ram</span>
+    <span class="n">batch_size</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">memory</span><span class="p">,</span> <span class="mi">10</span> <span class="o">**</span> <span class="mi">9</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">vec_dim</span> <span class="o">*</span> <span class="mi">4</span><span class="p">))</span>  <span class="c1"># using more than 1GB of ram is not faster here</span>
 
     <span class="k">return</span> <span class="n">batch_size</span></div>
 

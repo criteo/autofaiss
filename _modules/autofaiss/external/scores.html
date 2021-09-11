@@ -267,7 +267,7 @@
 
     <span class="k">if</span> <span class="n">ground_truth</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">embeddings_path</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-            <span class="n">ground_truth_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">embeddings_path</span><span class="si">}</span><span class="s2">/small_ground_truth_test.npy&quot;</span>
+            <span class="n">ground_truth_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">embeddings_path</span><span class="si">}</span><span class="s2">/small_ground_truth_test.gt&quot;</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">ground_truth_path</span><span class="p">):</span>
 
                 <span class="k">with</span> <span class="n">Timeit</span><span class="p">(</span><span class="s2">&quot;-&gt; Compute small ground truth&quot;</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
