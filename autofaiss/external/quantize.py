@@ -17,7 +17,7 @@ from autofaiss.external.build import (
 )
 from autofaiss.external.optimize import get_optimal_hyperparameters, get_optimal_index_keys_v2
 from autofaiss.external.scores import compute_fast_metrics, compute_medium_metrics
-from autofaiss.indices.index_utils import set_search_hyperparameters, load_index_from_hdfs
+from autofaiss.indices.index_utils import set_search_hyperparameters, load_index_from_hdfs, save_index_on_hdfs
 from autofaiss.utils.decorators import Timeit
 from autofaiss.utils.cast import cast_memory_to_bytes, cast_bytes_to_memory_string
 
@@ -210,7 +210,7 @@ class Quantizer:
                 index = faiss.read_index(index_path)
         else:
             with Timeit("Loading index from HDFS"):
-                index = load_index_from_hdfs(index_path)
+                index, _ = load_index_from_hdfs(index_path)
 
         if index_param is None:
 
@@ -225,7 +225,7 @@ class Quantizer:
                 faiss.write_index(index, dest_path)
         else:
             with Timeit("Saving index to HDFS"):
-                load_index_from_hdfs(dest_path)
+                save_index_on_hdfs(index, dest_path)
 
         return f"The optimal hyperparameters are {index_param}, the index with these parameters has been saved."
 
@@ -256,10 +256,11 @@ class Quantizer:
 
         if is_local_index_path:
             with Timeit("Loading index from local disk"):
+                index_memory = os.path.getsize(index_path)
                 index = faiss.read_index(index_path)
         else:
             with Timeit("Loading index from HDFS"):
-                index = load_index_from_hdfs(index_path)
+                index, index_memory = load_index_from_hdfs(index_path)
 
         infos: Dict[str, Union[str, float, int]] = {}
 
@@ -269,8 +270,18 @@ class Quantizer:
         print("Intermediate recap:")
         pp(infos)
 
+        current_in_bytes = cast_memory_to_bytes(current_memory_available)
+        memory_left = current_in_bytes - index_memory
+
+        if memory_left < current_in_bytes * 0.1:
+            print(
+                f"Not enough memory, at least {cast_bytes_to_memory_string(index_memory*1.1)}"
+                "is needed, please increase current_memory_available"
+            )
+            return
+
         with Timeit("Compute medium metrics"):
-            infos.update(compute_medium_metrics(embeddings_path, index, current_memory_available))
+            infos.update(compute_medium_metrics(embeddings_path, index, memory_left))
 
         print("Performances recap:")
         pp(infos)

@@ -149,8 +149,10 @@ def load_index_from_hdfs(src_path: str):
     if not run_command(cmd):
         raise ValueError(f"no file at {src_path} on HDFS")
 
+    index_memory = os.path.getsize(index_path)
+
     index = faiss.read_index(index_path)
 
     os.remove(index_path)
 
-    return index
+    return index, index_memory
