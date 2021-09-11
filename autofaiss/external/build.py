@@ -47,7 +47,7 @@ def estimate_memory_required_for_index_creation(
     # the maximal memory constraint
     nb_vectors_train = get_optimal_train_size(nb_vectors, index_key, "1K", vec_dim)
 
-    memory_for_training = 4 * nb_vectors_train * vec_dim
+    memory_for_training = 4 * nb_vectors_train * vec_dim + index_memory*0.5
 
     return (int(index_overhead + max(index_memory + needed_for_adding, memory_for_training))), index_key
 
@@ -164,7 +164,7 @@ def build_index(
     with Timeit("-> Extract training vectors", indent=2):
 
         memory_available_for_training = cast_bytes_to_memory_string(
-            cast_memory_to_bytes(current_memory_available) - metadata.estimated_index_size_in_bytes() * 0.1
+            cast_memory_to_bytes(current_memory_available) - metadata.estimated_index_size_in_bytes() * 0.5
         )
 
         # Determine the number of vectors necessary to train the index
