@@ -221,7 +221,7 @@
     <span class="c1"># the maximal memory constraint</span>
     <span class="n">nb_vectors_train</span> <span class="o">=</span> <span class="n">get_optimal_train_size</span><span class="p">(</span><span class="n">nb_vectors</span><span class="p">,</span> <span class="n">index_key</span><span class="p">,</span> <span class="s2">&quot;1K&quot;</span><span class="p">,</span> <span class="n">vec_dim</span><span class="p">)</span>
 
-    <span class="n">memory_for_training</span> <span class="o">=</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">nb_vectors_train</span> <span class="o">*</span> <span class="n">vec_dim</span>
+    <span class="n">memory_for_training</span> <span class="o">=</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">nb_vectors_train</span> <span class="o">*</span> <span class="n">vec_dim</span> <span class="o">+</span> <span class="n">index_memory</span><span class="o">*</span><span class="mf">0.5</span>
 
     <span class="k">return</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">index_overhead</span> <span class="o">+</span> <span class="nb">max</span><span class="p">(</span><span class="n">index_memory</span> <span class="o">+</span> <span class="n">needed_for_adding</span><span class="p">,</span> <span class="n">memory_for_training</span><span class="p">))),</span> <span class="n">index_key</span></div>
 
@@ -338,7 +338,7 @@
     <span class="k">with</span> <span class="n">Timeit</span><span class="p">(</span><span class="s2">&quot;-&gt; Extract training vectors&quot;</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
 
         <span class="n">memory_available_for_training</span> <span class="o">=</span> <span class="n">cast_bytes_to_memory_string</span><span class="p">(</span>
-            <span class="n">cast_memory_to_bytes</span><span class="p">(</span><span class="n">current_memory_available</span><span class="p">)</span> <span class="o">-</span> <span class="n">metadata</span><span class="o">.</span><span class="n">estimated_index_size_in_bytes</span><span class="p">()</span> <span class="o">*</span> <span class="mf">0.1</span>
+            <span class="n">cast_memory_to_bytes</span><span class="p">(</span><span class="n">current_memory_available</span><span class="p">)</span> <span class="o">-</span> <span class="n">metadata</span><span class="o">.</span><span class="n">estimated_index_size_in_bytes</span><span class="p">()</span> <span class="o">*</span> <span class="mf">0.5</span>
         <span class="p">)</span>
 
         <span class="c1"># Determine the number of vectors necessary to train the index</span>
