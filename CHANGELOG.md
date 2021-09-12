@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and this project adheres to [Semantic Versioning](https://semver.org).
 
+## [1.8.0] - 2021-09-12
+
+### Added
+* add pq 128 in list to create large indices
+### Changed
+### Deprecated
+### Removed
+### Fixed
+### Security
+
 ## [1.7.0] - 2021-09-11
 
 ### Added
