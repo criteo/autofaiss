@@ -163,7 +163,7 @@ def get_optimal_quantization(
     """
 
     # Default values
-    pq_values = [64, 48, 32, 24, 16, 8, 4]
+    pq_values = [128, 64, 48, 32, 24, 16, 8, 4]
     targeted_compression_ratio = 0.0  # 0 = no constraint
 
     # Force compression ratio if required
