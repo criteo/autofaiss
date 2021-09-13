@@ -1,74 +1,35 @@
-
-
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
-  
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
   <title>Creating an index &mdash; autofaiss 1.0.0 documentation</title>
-  
-
-  
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-
-  
-  
-
-  
-  
-
-  
-
-  
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-    
-    <script type="text/javascript" src="../_static/js/theme.js"></script>
-
-    
+    <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Python documentation" href="../API/api.html" />
     <link rel="prev" title="Introduction" href="../introduction/introduction.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
-
-          
             <a href="../index.html" class="icon icon-home"> autofaiss
-          
-
-          
           </a>
-
-          
-            
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -76,18 +37,7 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Introduction and installation</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../introduction/introduction.html">Introduction</a></li>
@@ -128,71 +78,30 @@
 <li class="toctree-l1"><a class="reference internal" href="../notebooks/autofaiss_index_selection_demo.html">Autofaiss Index selection demo slider</a></li>
 </ul>
 
-            
-          
         </div>
-        
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../index.html">autofaiss</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
       <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-        
       <li>Creating an index</li>
-    
-    
       <li class="wy-breadcrumbs-aside">
-        
-          
             <a href="../_sources/getting_started/quantization.rst.txt" rel="nofollow"> View page source</a>
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
+             
   
 <style>
 /* CSS overrides for sphinx_rtd_theme */
@@ -217,16 +126,16 @@
     text-align: unset;
 }
 </style>
-<div class="section" id="creating-an-index">
-<h1>Creating an index<a class="headerlink" href="#creating-an-index" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="the-use-case">
-<h2>The use-case<a class="headerlink" href="#the-use-case" title="Permalink to this headline">¶</a></h2>
+<section id="creating-an-index">
+<h1>Creating an index<a class="headerlink" href="#creating-an-index" title="Permalink to this headline"></a></h1>
+<section id="the-use-case">
+<h2>The use-case<a class="headerlink" href="#the-use-case" title="Permalink to this headline"></a></h2>
 <p>You have limited RAM constraint but need to do similarity search on a lot of vectors?
 Great! You are in the right place :) This lib automatically builds a quantized index that maximizes the
 recall scores given a memory and query speed constraint.</p>
-</div>
-<div class="section" id="the-quantize-command">
-<h2>The quantize command<a class="headerlink" href="#the-quantize-command" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="the-quantize-command">
+<h2>The quantize command<a class="headerlink" href="#the-quantize-command" title="Permalink to this headline"></a></h2>
 <p>The <code class="docutils literal notranslate"><span class="pre">autofaiss</span> <span class="pre">quantize</span></code> command takes the following parameters:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -318,32 +227,32 @@ faster, but this feature</p></td>
 <p>It is possible to force the creation of a specific index with specific hyperparameters if more control is needed.
 Here is some documentation &lt;<a class="reference external" href="https://github.com/facebookresearch/faiss/wiki/Guidelines-to-choose-an-index">https://github.com/facebookresearch/faiss/wiki/Guidelines-to-choose-an-index</a>&gt; and
 &lt;<a class="reference external" href="https://github.com/facebookresearch/faiss/wiki/The-index-factory">https://github.com/facebookresearch/faiss/wiki/The-index-factory</a>&gt; to help you to choose which index you need.</p>
-</div>
-<div class="section" id="time-required">
-<h2>Time required<a class="headerlink" href="#time-required" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="time-required">
+<h2>Time required<a class="headerlink" href="#time-required" title="Permalink to this headline"></a></h2>
 <p>The time required to run this command is:</p>
 <ul class="simple">
 <li><p>For 1TB of vectors -&gt; 2 hours</p></li>
 <li><p>For 150GB of vectors -&gt; 1 hour</p></li>
 <li><p>For 50GB of vectors -&gt; 20 minutes</p></li>
 </ul>
-</div>
-</div>
-<div class="section" id="tuning-an-existing-index">
-<h1>Tuning an existing index<a class="headerlink" href="#tuning-an-existing-index" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="id1">
-<h2>The use-case<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+</section>
+</section>
+<section id="tuning-an-existing-index">
+<h1>Tuning an existing index<a class="headerlink" href="#tuning-an-existing-index" title="Permalink to this headline"></a></h1>
+<section id="id1">
+<h2>The use-case<a class="headerlink" href="#id1" title="Permalink to this headline"></a></h2>
 <p>You have already created a Faiss index but you would like to have a better recall/query-time ratio?
 This command creates a new index with different hyperparameters to be closer to your requirements.</p>
-</div>
-<div class="section" id="the-tuning-command">
-<h2>The tuning command<a class="headerlink" href="#the-tuning-command" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="the-tuning-command">
+<h2>The tuning command<a class="headerlink" href="#the-tuning-command" title="Permalink to this headline"></a></h2>
 <p>The tuning command set the hyperparameters for the given index.</p>
 <p>If an index_param is given, set this hyperparameters to the index,
 otherwise perform a greedy heusistic to make the best out or the max_index_query_time_ms constraint</p>
-</div>
-<div class="section" id="parameters">
-<h2>Parameters<a class="headerlink" href="#parameters" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="parameters">
+<h2>Parameters<a class="headerlink" href="#parameters" title="Permalink to this headline"></a></h2>
 <dl class="simple">
 <dt>index_path<span class="classifier">str</span></dt><dd><p>Path to .index file on local disk if is_local_index_path is True,
 otherwise path on hdfs.</p>
@@ -363,13 +272,13 @@ otherwise on hdfs. If None id given, index_path is the destination path.</p>
 <dt>use_gpu: bool</dt><dd><p>Experimental, gpu training is faster, not tested so far.</p>
 </dd>
 </dl>
-</div>
-<div class="section" id="id2">
-<h2>Time required<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="id2">
+<h2>Time required<a class="headerlink" href="#id2" title="Permalink to this headline"></a></h2>
 <p>The time required to run this command is around 1 minute.</p>
-</div>
-<div class="section" id="what-it-does-behind">
-<h2>What it does behind<a class="headerlink" href="#what-it-does-behind" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="what-it-does-behind">
+<h2>What it does behind<a class="headerlink" href="#what-it-does-behind" title="Permalink to this headline"></a></h2>
 <p>The tuning only works for inverted index with HNSW on top of it (95% of indices created by the lib).
 there are 3 parameters to tune for that index:</p>
 <ul class="simple">
@@ -379,24 +288,24 @@ there are 3 parameters to tune for that index:</p>
 </ul>
 <p>efSearch is set to be 2 times higher than nprobe, and the Hamming threshold is desactivated by setting it to a high value.</p>
 <p>By doing so, we can optimize on only one dimension by applying a binary search given a query time constraint.</p>
-</div>
-</div>
-<div class="section" id="getting-scores-on-an-index">
-<h1>Getting scores on an index<a class="headerlink" href="#getting-scores-on-an-index" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="id3">
-<h2>The use-case<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+</section>
+</section>
+<section id="getting-scores-on-an-index">
+<h1>Getting scores on an index<a class="headerlink" href="#getting-scores-on-an-index" title="Permalink to this headline"></a></h1>
+<section id="id3">
+<h2>The use-case<a class="headerlink" href="#id3" title="Permalink to this headline"></a></h2>
 <p>You have a faiss index and you would like to know it’s 1-recall, intersection recall, query speed, …?
 There is a command for that too, it’s the score command.</p>
-</div>
-<div class="section" id="the-score-command">
-<h2>The score command<a class="headerlink" href="#the-score-command" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="the-score-command">
+<h2>The score command<a class="headerlink" href="#the-score-command" title="Permalink to this headline"></a></h2>
 <p>You just need the path to your index and the embeddings for this one.
 Be careful, computing accurate metrics is slow.</p>
 <p>Compute metrics on a given index, use cached ground truth for fast scoring the next times.</p>
 <p><code class="docutils literal notranslate"><span class="pre">autofaiss</span> <span class="pre">score_index</span> <span class="pre">--embeddings_path=&quot;folder/embs&quot;</span> <span class="pre">--index_path=&quot;some.index&quot;</span> <span class="pre">--is_local_index_path</span> <span class="pre">True</span> <span class="pre">--current_memory_available=&quot;4G&quot;</span></code></p>
-</div>
-<div class="section" id="id4">
-<h2>Parameters<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="id4">
+<h2>Parameters<a class="headerlink" href="#id4" title="Permalink to this headline"></a></h2>
 <dl class="simple">
 <dt>index_path<span class="classifier">str</span></dt><dd><p>Path to .index file on local disk if is_local_index_path is True,
 otherwise path on hdfs.</p>
@@ -409,60 +318,43 @@ otherwise path on hdfs.</p>
 because it reduces the swipe between RAM and disk.</p>
 </dd>
 </dl>
-</div>
-<div class="section" id="id5">
-<h2>Time required<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="id5">
+<h2>Time required<a class="headerlink" href="#id5" title="Permalink to this headline"></a></h2>
 <p>The time required to run this command is around 1 hour for 200M vectors of 1280d (1TB).
 If the whole dataset fits in RAM it can be much faster.</p>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>
-           
           </div>
-          <footer>
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="../API/api.html" class="btn btn-neutral float-right" title="Python documentation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="../introduction/introduction.html" class="btn btn-neutral float-left" title="Introduction" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../API/api.html" class="btn btn-neutral float-right" title="Python documentation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &#169; Copyright 2020, Criteo.
-
-    </p>
+    <p>&#169; Copyright 2020, Criteo.</p>
   </div>
-    
-    
-    
-    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
-    
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>
