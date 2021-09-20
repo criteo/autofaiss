@@ -376,6 +376,12 @@ Optionally save keys in another folder (useful to keep track of what is each emb
 <span id="autofaiss-external-optimize-module"></span><h2>autofaiss.external.optimize module<a class="headerlink" href="#module-autofaiss.external.optimize" title="Permalink to this headline"></a></h2>
 <p>Functions to find optimal index parameters</p>
 <dl class="py function">
+<dt class="sig sig-object py" id="autofaiss.external.optimize.compute_memory_necessary_for_training">
+<span class="sig-prename descclassname"><span class="pre">autofaiss.external.optimize.</span></span><span class="sig-name descname"><span class="pre">compute_memory_necessary_for_training</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nb_training_vectors</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vec_dim</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/external/optimize.html#compute_memory_necessary_for_training"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.external.optimize.compute_memory_necessary_for_training" title="Permalink to this definition"></a></dt>
+<dd><p>Function that computes the memory necessary to train an index with nb_training_vectors vectors</p>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="autofaiss.external.optimize.get_optimal_batch_size">
 <span class="sig-prename descclassname"><span class="pre">autofaiss.external.optimize.</span></span><span class="sig-name descname"><span class="pre">get_optimal_batch_size</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vec_dim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current_memory_available</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/external/optimize.html#get_optimal_batch_size"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.external.optimize.get_optimal_batch_size" title="Permalink to this definition"></a></dt>
 <dd><p>compute optimal batch size to use the RAM at its full potential for adding vectors</p>
@@ -458,6 +464,12 @@ train the index, based on faiss heuristics for k-means clustering.</p>
 <dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autofaiss.external.optimize.index_key_to_nb_cluster">
+<span class="sig-prename descclassname"><span class="pre">autofaiss.external.optimize.</span></span><span class="sig-name descname"><span class="pre">index_key_to_nb_cluster</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index_key</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/external/optimize.html#index_key_to_nb_cluster"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.external.optimize.index_key_to_nb_cluster" title="Permalink to this definition"></a></dt>
+<dd><p>Function that takes an index key and returns the number of clusters</p>
 </dd></dl>
 
 </section>

@@ -96,6 +96,41 @@
 <span class="kn">from</span> <span class="nn">autofaiss.utils.decorators</span> <span class="kn">import</span> <span class="n">Timeit</span>
 
 
+<div class="viewcode-block" id="index_key_to_nb_cluster"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.optimize.index_key_to_nb_cluster">[docs]</a><span class="k">def</span> <span class="nf">index_key_to_nb_cluster</span><span class="p">(</span><span class="n">index_key</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Function that takes an index key and returns the number of clusters</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">matching</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;IVF\d+|IMI\d+x\d+&quot;</span><span class="p">,</span> <span class="n">index_key</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">matching</span><span class="p">:</span>
+        <span class="c1"># case IVF index</span>
+        <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;IVF\d+&quot;</span><span class="p">,</span> <span class="n">matching</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+            <span class="n">nb_clusters</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">matching</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">3</span><span class="p">:])</span>
+        <span class="c1"># case IMI index</span>
+        <span class="k">elif</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;IMI\d+x\d+&quot;</span><span class="p">,</span> <span class="n">matching</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+            <span class="n">nb_clusters</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">**</span> <span class="n">reduce</span><span class="p">(</span><span class="n">mul</span><span class="p">,</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">num</span><span class="p">)</span> <span class="k">for</span> <span class="n">num</span> <span class="ow">in</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;\d+&quot;</span><span class="p">,</span> <span class="n">matching</span><span class="p">[</span><span class="mi">0</span><span class="p">])])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unable to determine the number of clusters for index </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">index_key</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unable to determine the number of clusters for index </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">index_key</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">nb_clusters</span></div>
+
+
+<div class="viewcode-block" id="compute_memory_necessary_for_training"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.optimize.compute_memory_necessary_for_training">[docs]</a><span class="k">def</span> <span class="nf">compute_memory_necessary_for_training</span><span class="p">(</span><span class="n">nb_training_vectors</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">index_key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">vec_dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Function that computes the memory necessary to train an index with nb_training_vectors vectors</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">memory_per_vector</span> <span class="o">=</span> <span class="mf">4.0</span> <span class="o">*</span> <span class="n">vec_dim</span>
+    <span class="n">matching_opq</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;OPQ\d+_(\d+)&quot;</span><span class="p">,</span> <span class="n">index_key</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">matching_opq</span><span class="p">:</span>
+        <span class="n">input_size_opq</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">matching_opq</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+        <span class="n">memory_per_vector</span> <span class="o">+=</span> <span class="n">input_size_opq</span> <span class="o">*</span> <span class="mf">4.0</span>
+    <span class="k">return</span> <span class="n">memory_per_vector</span> <span class="o">*</span> <span class="n">nb_training_vectors</span></div>
+
+
 <div class="viewcode-block" id="get_optimal_train_size"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.optimize.get_optimal_train_size">[docs]</a><span class="k">def</span> <span class="nf">get_optimal_train_size</span><span class="p">(</span>
     <span class="n">nb_vectors</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">index_key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">current_memory_available</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">vec_dim</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
@@ -104,30 +139,24 @@
 <span class="sd">    train the index, based on faiss heuristics for k-means clustering.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">train_size</span> <span class="o">=</span> <span class="n">nb_vectors</span>
-
     <span class="n">matching</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;IVF\d+|IMI\d+x\d+&quot;</span><span class="p">,</span> <span class="n">index_key</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">matching</span><span class="p">:</span>
-
-        <span class="n">nb_clusters</span> <span class="o">=</span> <span class="n">nb_vectors</span>
-        <span class="c1"># case IVF index</span>
-        <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;IVF\d+&quot;</span><span class="p">,</span> <span class="n">matching</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
-            <span class="n">nb_clusters</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">matching</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">3</span><span class="p">:])</span>
-        <span class="c1"># case IMI index</span>
-        <span class="k">elif</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;IMI\d+x\d+&quot;</span><span class="p">,</span> <span class="n">matching</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
-            <span class="n">nb_clusters</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">**</span> <span class="n">reduce</span><span class="p">(</span><span class="n">mul</span><span class="p">,</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">num</span><span class="p">)</span> <span class="k">for</span> <span class="n">num</span> <span class="ow">in</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;\d+&quot;</span><span class="p">,</span> <span class="n">matching</span><span class="p">[</span><span class="mi">0</span><span class="p">])])</span>
-
+        <span class="n">nb_clusters</span> <span class="o">=</span> <span class="n">index_key_to_nb_cluster</span><span class="p">(</span><span class="n">index_key</span><span class="p">)</span>
         <span class="n">points_per_cluster</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">100</span>
 
         <span class="c1"># compute best possible number of vectors to give to train the index</span>
         <span class="c1"># given memory constraints</span>
         <span class="k">if</span> <span class="n">current_memory_available</span> <span class="ow">and</span> <span class="n">vec_dim</span><span class="p">:</span>
+            <span class="n">memory_per_cluster_set</span> <span class="o">=</span> <span class="n">compute_memory_necessary_for_training</span><span class="p">(</span><span class="n">nb_clusters</span><span class="p">,</span> <span class="n">index_key</span><span class="p">,</span> <span class="n">vec_dim</span><span class="p">)</span>
             <span class="n">size</span> <span class="o">=</span> <span class="n">cast_memory_to_bytes</span><span class="p">(</span><span class="n">current_memory_available</span><span class="p">)</span>
-            <span class="n">points_per_cluster</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">size</span> <span class="o">/</span> <span class="p">(</span><span class="mf">4.0</span> <span class="o">*</span> <span class="n">nb_clusters</span> <span class="o">*</span> <span class="n">vec_dim</span><span class="p">),</span> <span class="n">points_per_cluster</span><span class="p">),</span> <span class="mf">31.0</span><span class="p">)</span>
+            <span class="n">points_per_cluster</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">size</span> <span class="o">/</span> <span class="n">memory_per_cluster_set</span><span class="p">,</span> <span class="n">points_per_cluster</span><span class="p">),</span> <span class="mf">31.0</span><span class="p">)</span>
 
         <span class="c1"># You will need between 30 * nb_clusters and 256 * nb_clusters to train the index</span>
         <span class="n">train_size</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">points_per_cluster</span> <span class="o">*</span> <span class="n">nb_clusters</span><span class="p">),</span> <span class="n">nb_vectors</span><span class="p">)</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown index type: </span><span class="si">{</span><span class="n">index_key</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">train_size</span></div>
 
