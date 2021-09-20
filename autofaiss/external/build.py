@@ -8,6 +8,7 @@ from autofaiss.external.metadata import IndexMetadata
 from autofaiss.datasets.readers.local_iterators import read_embeddings_local, read_shapes_local
 from autofaiss.datasets.readers.remote_iterators import read_embeddings_remote, read_filenames
 from autofaiss.external.optimize import (
+    compute_memory_necessary_for_training,
     get_optimal_batch_size,
     get_optimal_index_keys_v2,
     get_optimal_train_size,
@@ -47,7 +48,9 @@ def estimate_memory_required_for_index_creation(
     # the maximal memory constraint
     nb_vectors_train = get_optimal_train_size(nb_vectors, index_key, "1K", vec_dim)
 
-    memory_for_training = 4 * nb_vectors_train * vec_dim + index_memory * 0.5
+    memory_for_training = (
+        compute_memory_necessary_for_training(nb_vectors_train, index_key, vec_dim) + index_memory * 0.25
+    )
 
     return (int(index_overhead + max(index_memory + needed_for_adding, memory_for_training))), index_key
 
@@ -164,14 +167,15 @@ def build_index(
     with Timeit("-> Extract training vectors", indent=2):
 
         memory_available_for_training = cast_bytes_to_memory_string(
-            cast_memory_to_bytes(current_memory_available) - metadata.estimated_index_size_in_bytes() * 0.5
+            cast_memory_to_bytes(current_memory_available) - metadata.estimated_index_size_in_bytes() * 0.25
         )
 
         # Determine the number of vectors necessary to train the index
         train_size = get_optimal_train_size(nb_vectors, index_key, memory_available_for_training, vec_dim)
+        memory_needed_for_training = compute_memory_necessary_for_training(train_size, index_key, vec_dim)
         print(
             f"Will use {train_size} vectors to train the index, "
-            f"{cast_bytes_to_memory_string(train_size*vec_dim*4)} of memory"
+            f"that will use {cast_bytes_to_memory_string(memory_needed_for_training)} of memory"
         )
 
         # Extract training vectors

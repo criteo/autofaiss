@@ -12,6 +12,41 @@ from autofaiss.utils.cast import cast_memory_to_bytes
 from autofaiss.utils.decorators import Timeit
 
 
+def index_key_to_nb_cluster(index_key: str):
+    """
+    Function that takes an index key and returns the number of clusters
+    """
+
+    matching = re.findall(r"IVF\d+|IMI\d+x\d+", index_key)
+
+    if matching:
+        # case IVF index
+        if re.findall(r"IVF\d+", matching[0]):
+            nb_clusters = int(matching[0][3:])
+        # case IMI index
+        elif re.findall(r"IMI\d+x\d+", matching[0]):
+            nb_clusters = 2 ** reduce(mul, [int(num) for num in re.findall(r"\d+", matching[0])])
+        else:
+            raise ValueError("Unable to determine the number of clusters for index {}".format(index_key))
+    else:
+        raise ValueError("Unable to determine the number of clusters for index {}".format(index_key))
+
+    return nb_clusters
+
+
+def compute_memory_necessary_for_training(nb_training_vectors: int, index_key: str, vec_dim: int):
+    """
+    Function that computes the memory necessary to train an index with nb_training_vectors vectors
+    """
+
+    memory_per_vector = 4.0 * vec_dim
+    matching_opq = re.search(r"OPQ\d+_(\d+)", index_key)
+    if matching_opq:
+        input_size_opq = int(matching_opq.group(1))
+        memory_per_vector += input_size_opq * 4.0
+    return memory_per_vector * nb_training_vectors
+
+
 def get_optimal_train_size(
     nb_vectors: int, index_key: str, current_memory_available: Optional[str], vec_dim: Optional[int]
 ) -> int:
@@ -20,30 +55,24 @@ def get_optimal_train_size(
     train the index, based on faiss heuristics for k-means clustering.
     """
 
-    train_size = nb_vectors
-
     matching = re.findall(r"IVF\d+|IMI\d+x\d+", index_key)
 
     if matching:
-
-        nb_clusters = nb_vectors
-        # case IVF index
-        if re.findall(r"IVF\d+", matching[0]):
-            nb_clusters = int(matching[0][3:])
-        # case IMI index
-        elif re.findall(r"IMI\d+x\d+", matching[0]):
-            nb_clusters = 2 ** reduce(mul, [int(num) for num in re.findall(r"\d+", matching[0])])
-
+        nb_clusters = index_key_to_nb_cluster(index_key)
         points_per_cluster: float = 100
 
         # compute best possible number of vectors to give to train the index
         # given memory constraints
         if current_memory_available and vec_dim:
+            memory_per_cluster_set = compute_memory_necessary_for_training(nb_clusters, index_key, vec_dim)
             size = cast_memory_to_bytes(current_memory_available)
-            points_per_cluster = max(min(size / (4.0 * nb_clusters * vec_dim), points_per_cluster), 31.0)
+            points_per_cluster = max(min(size / memory_per_cluster_set, points_per_cluster), 31.0)
 
         # You will need between 30 * nb_clusters and 256 * nb_clusters to train the index
         train_size = min(round(points_per_cluster * nb_clusters), nb_vectors)
+
+    else:
+        raise ValueError(f"Unknown index type: {index_key}")
 
     return train_size
 
