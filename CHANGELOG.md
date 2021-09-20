@@ -4,20 +4,24 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and this project adheres to [Semantic Versioning](https://semver.org).
 
+## [1.9.0] - 2021-09-20
+
+### Added
+### Changed
+* improve estimation of the memory needed for training
+### Deprecated
+### Removed
+### Fixed
+### Security
+
 ## [1.8.1] - 2021-09-13
 
 ### Added
-
 * add pq 256 in list to create large indices
-
 ### Changed
-
 ### Deprecated
-
 ### Removed
-
 ### Fixed
-
 ### Security
 
 ## [1.8.0] - 2021-09-12
