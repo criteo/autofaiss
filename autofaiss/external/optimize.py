@@ -12,6 +12,19 @@ from autofaiss.utils.cast import cast_memory_to_bytes
 from autofaiss.utils.decorators import Timeit
 
 
+def check_if_index_needs_training(index_key: str):
+    """
+    Function that checks if the index needs to be trained
+    """
+
+    if "IVF" in index_key:
+        return True
+    elif "IMI" in index_key:
+        return True
+    else:
+        return False
+
+
 def index_key_to_nb_cluster(index_key: str):
     """
     Function that takes an index key and returns the number of clusters

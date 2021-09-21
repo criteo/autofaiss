@@ -8,6 +8,7 @@ from autofaiss.external.metadata import IndexMetadata
 from autofaiss.datasets.readers.local_iterators import read_embeddings_local, read_shapes_local
 from autofaiss.datasets.readers.remote_iterators import read_embeddings_remote, read_filenames
 from autofaiss.external.optimize import (
+    check_if_index_needs_training,
     compute_memory_necessary_for_training,
     get_optimal_batch_size,
     get_optimal_index_keys_v2,
@@ -44,13 +45,18 @@ def estimate_memory_required_for_index_creation(
     needed_for_adding = min(index_memory * 0.1, 10 ** 9)
     index_overhead = index_memory * 0.1
 
-    # Compute the smallest number of vectors required to train the index given
-    # the maximal memory constraint
-    nb_vectors_train = get_optimal_train_size(nb_vectors, index_key, "1K", vec_dim)
+    index_needs_training = check_if_index_needs_training(index_key)
 
-    memory_for_training = (
-        compute_memory_necessary_for_training(nb_vectors_train, index_key, vec_dim) + index_memory * 0.25
-    )
+    if index_needs_training:
+        # Compute the smallest number of vectors required to train the index given
+        # the maximal memory constraint
+        nb_vectors_train = get_optimal_train_size(nb_vectors, index_key, "1K", vec_dim)
+
+        memory_for_training = (
+            compute_memory_necessary_for_training(nb_vectors_train, index_key, vec_dim) + index_memory * 0.25
+        )
+    else:
+        memory_for_training = 0
 
     return (int(index_overhead + max(index_memory + needed_for_adding, memory_for_training))), index_key
 
@@ -163,42 +169,46 @@ def build_index(
         f"The index size will be approximately {cast_bytes_to_memory_string(metadata.estimated_index_size_in_bytes())}"
     )
 
-    # Extract training vectors
-    with Timeit("-> Extract training vectors", indent=2):
+    index_needs_training = check_if_index_needs_training(index_key)
 
-        memory_available_for_training = cast_bytes_to_memory_string(
-            cast_memory_to_bytes(current_memory_available) - metadata.estimated_index_size_in_bytes() * 0.25
-        )
-
-        # Determine the number of vectors necessary to train the index
-        train_size = get_optimal_train_size(nb_vectors, index_key, memory_available_for_training, vec_dim)
-        memory_needed_for_training = compute_memory_necessary_for_training(train_size, index_key, vec_dim)
-        print(
-            f"Will use {train_size} vectors to train the index, "
-            f"that will use {cast_bytes_to_memory_string(memory_needed_for_training)} of memory"
-        )
+    if index_needs_training:
 
         # Extract training vectors
-        train_vectors = next(read_embeddings_local(embeddings_path, batch_size=train_size, verbose=True))
+        with Timeit("-> Extract training vectors", indent=2):
 
-    # Instanciate the index and train it
-    # pylint: disable=no-member
-    if use_gpu:
-        # if this fails, it means that the GPU version was not comp.
-        assert (
-            faiss.StandardGpuResources
-        ), "FAISS was not compiled with GPU support, or loading _swigfaiss_gpu.so failed"
-        res = faiss.StandardGpuResources()
-        dev_no = 0
-        # transfer to GPU (may be partial).
-        index = faiss.index_cpu_to_gpu(res, dev_no, index)
+            memory_available_for_training = cast_bytes_to_memory_string(
+                cast_memory_to_bytes(current_memory_available) - metadata.estimated_index_size_in_bytes() * 0.25
+            )
 
-    with Timeit(
-        f"-> Training the index with {train_vectors.shape[0]} vectors of dim {train_vectors.shape[1]}", indent=2
-    ):
-        index.train(train_vectors)
+            # Determine the number of vectors necessary to train the index
+            train_size = get_optimal_train_size(nb_vectors, index_key, memory_available_for_training, vec_dim)
+            memory_needed_for_training = compute_memory_necessary_for_training(train_size, index_key, vec_dim)
+            print(
+                f"Will use {train_size} vectors to train the index, "
+                f"that will use {cast_bytes_to_memory_string(memory_needed_for_training)} of memory"
+            )
 
-    del train_vectors
+            # Extract training vectors
+            train_vectors = next(read_embeddings_local(embeddings_path, batch_size=train_size, verbose=True))
+
+        # Instanciate the index and train it
+        # pylint: disable=no-member
+        if use_gpu:
+            # if this fails, it means that the GPU version was not comp.
+            assert (
+                faiss.StandardGpuResources
+            ), "FAISS was not compiled with GPU support, or loading _swigfaiss_gpu.so failed"
+            res = faiss.StandardGpuResources()
+            dev_no = 0
+            # transfer to GPU (may be partial).
+            index = faiss.index_cpu_to_gpu(res, dev_no, index)
+
+        with Timeit(
+            f"-> Training the index with {train_vectors.shape[0]} vectors of dim {train_vectors.shape[1]}", indent=2
+        ):
+            index.train(train_vectors)
+
+        del train_vectors
 
     memory_available_for_adding = cast_bytes_to_memory_string(
         cast_memory_to_bytes(current_memory_available) - metadata.estimated_index_size_in_bytes()
