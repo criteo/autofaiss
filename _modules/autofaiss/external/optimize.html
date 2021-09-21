@@ -96,6 +96,19 @@
 <span class="kn">from</span> <span class="nn">autofaiss.utils.decorators</span> <span class="kn">import</span> <span class="n">Timeit</span>
 
 
+<div class="viewcode-block" id="check_if_index_needs_training"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.optimize.check_if_index_needs_training">[docs]</a><span class="k">def</span> <span class="nf">check_if_index_needs_training</span><span class="p">(</span><span class="n">index_key</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Function that checks if the index needs to be trained</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="s2">&quot;IVF&quot;</span> <span class="ow">in</span> <span class="n">index_key</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">elif</span> <span class="s2">&quot;IMI&quot;</span> <span class="ow">in</span> <span class="n">index_key</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
+
+
 <div class="viewcode-block" id="index_key_to_nb_cluster"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.optimize.index_key_to_nb_cluster">[docs]</a><span class="k">def</span> <span class="nf">index_key_to_nb_cluster</span><span class="p">(</span><span class="n">index_key</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Function that takes an index key and returns the number of clusters</span>
