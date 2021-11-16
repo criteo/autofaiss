@@ -158,7 +158,7 @@ def build_index(
         metric_type = to_faiss_metric_type(metric_type)
 
         # Get information for one partition
-        _, vec_dim = next(read_shapes_local(embeddings_path))
+        _, vec_dim = next(read_shapes(embeddings_path))
 
         # Instanciate the index
         index = index_factory(vec_dim, index_key, metric_type)
@@ -189,7 +189,7 @@ def build_index(
             )
 
             # Extract training vectors
-            train_vectors = next(read_embeddings_local(embeddings_path, batch_size=train_size, verbose=True))
+            train_vectors = next(read_embeddings(embeddings_path, batch_size=train_size, verbose=True))
 
         # Instanciate the index and train it
         # pylint: disable=no-member
@@ -225,7 +225,7 @@ def build_index(
         print(
             f"Using a batch size of {batch_size} (memory overhead {cast_bytes_to_memory_string(batch_size*vec_dim*4)})"
         )
-        for vec_batch in read_embeddings_local(embeddings_path, batch_size=batch_size, verbose=True):
+        for vec_batch in read_embeddings(embeddings_path, batch_size=batch_size, verbose=True):
             index.add(vec_batch)
 
     # Give standard values for index hyperparameters if possible.
