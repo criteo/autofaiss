@@ -5,11 +5,7 @@ from typing import Optional, Tuple, Union
 
 import faiss
 
-from autofaiss.readers.embeddings_iterators import (
-    read_first_file_shape,
-    read_embeddings,
-    read_total_nb_vectors_and_dim,
-)
+from autofaiss.readers.embeddings_iterators import read_first_file_shape, read_embeddings
 from autofaiss.external.metadata import IndexMetadata
 from autofaiss.external.optimize import (
     check_if_index_needs_training,
@@ -84,13 +80,6 @@ def get_estimated_construction_time_infos(nb_vectors: int, vec_dim: int, indent:
     infos = tab + infos.replace("\n", "\n" + tab)
 
     return infos
-
-
-def get_nb_vectors_approx_and_dim_from_hdfs(parquet_embeddings_path: str) -> Tuple[int, int]:
-    """legacy function to give the dimensions of a parquet file
-    Still useful for tests"""
-
-    return read_total_nb_vectors_and_dim(parquet_embeddings_path, file_format="parquet")
 
 
 def build_index(
