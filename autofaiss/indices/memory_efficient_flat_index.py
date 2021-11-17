@@ -7,7 +7,7 @@ import faiss
 import numpy as np
 from tqdm import trange
 
-from autofaiss.datasets.readers.embeddings_iterators import read_embeddings
+from autofaiss.readers.embeddings_iterators import read_embeddings
 from autofaiss.indices.faiss_index_wrapper import FaissIndexWrapper
 
 

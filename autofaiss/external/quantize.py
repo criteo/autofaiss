@@ -11,7 +11,7 @@ import faiss
 import fire
 import fsspec
 
-from autofaiss.datasets.readers.embeddings_iterators import read_total_nb_vectors_and_dim
+from autofaiss.readers.embeddings_iterators import read_total_nb_vectors_and_dim
 from autofaiss.external.build import (
     build_index,
     estimate_memory_required_for_index_creation,

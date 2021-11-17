@@ -5,7 +5,7 @@ from typing import Dict, Union, Optional
 import numpy as np
 import faiss
 
-from autofaiss.datasets.readers.embeddings_iterators import read_embeddings
+from autofaiss.readers.embeddings_iterators import read_embeddings
 from autofaiss.indices.index_utils import get_index_size, search_speed_test
 from autofaiss.indices.memory_efficient_flat_index import MemEfficientFlatIndex
 from autofaiss.metrics.recalls import one_recall_at_r, r_recall_at_r

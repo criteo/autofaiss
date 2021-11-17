@@ -3,7 +3,7 @@ import os
 import random
 import shutil
 
-from autofaiss.datasets.readers.embeddings_iterators import (
+from autofaiss.readers.embeddings_iterators import (
     read_first_file_shape,
     read_embeddings,
     read_total_nb_vectors_and_dim,
