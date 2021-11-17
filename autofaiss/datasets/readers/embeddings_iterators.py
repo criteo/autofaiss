@@ -8,8 +8,15 @@ import numpy as np
 from tqdm import tqdm as tq
 import fsspec
 import pyarrow.parquet as pq
+import re
 
 LOGGER = logging.getLogger(__name__)
+
+
+def get_shape_numpy(f):
+    first_line = f.readline()
+    result = re.search(r"'shape': \(([0-9]+), ([0-9]+)\)", str(first_line))
+    return (int(result.group(1)), int(result.group(2)))
 
 
 def read_first_file_shape(
@@ -43,11 +50,10 @@ def read_first_file_shape(
     first_file = filenames[0]
     first_file_path = os.path.join(embeddings_path, first_file)
     LOGGER.info(f"First file in path {embeddings_path} = {first_file_path}")
-    # no, to fix
     if file_format == "npy":
         LOGGER.info(f"Opening numpy file {first_file_path}")
         with fs.open(first_file_path, "rb") as f:
-            shape = np.load(f).shape
+            shape = get_shape_numpy(f)
     elif file_format == "parquet":
         LOGGER.info(f"Opening parquet file {first_file_path} and getting column {embedding_column_name}")
         with fs.open(first_file_path, "rb") as f:
@@ -90,7 +96,7 @@ def read_total_nb_vectors_and_dim(
         file_path = os.path.join(embeddings_path, filename)
         if file_format == "npy":
             with fs.open(file_path, "rb") as f:
-                shape = np.load(f).shape
+                shape = get_shape_numpy(f)
                 return shape[0]
         elif file_format == "parquet":
             with fs.open(file_path) as file:
