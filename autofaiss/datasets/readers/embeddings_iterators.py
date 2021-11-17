@@ -34,11 +34,13 @@ def read_first_file_shape(
     """
     fs, path_in_fs = fsspec.core.url_to_fs(embeddings_path)
     LOGGER.debug(f"Using filesystem {fs} for {embeddings_path}")
-    files = [f for f in fs.ls(path_in_fs) if f.endswith(f".{file_format}")]
+    filenames = fs.walk(path_in_fs).__next__()[2]
+    filenames = [filename for filename in filenames if filename.endswith(f".{file_format}")]
+    filenames.sort()
     LOGGER.debug(f"Found files in path {embeddings_path}: ")
-    LOGGER.debug("\n".join(f"\t{f}" for f in files))
+    LOGGER.debug("\n".join(f"\t{f}" for f in filenames))
 
-    first_file = files[0]
+    first_file = filenames[0]
     first_file_path = os.path.join(embeddings_path, first_file)
     LOGGER.info(f"First file in path {embeddings_path} = {first_file_path}")
     # no, to fix
@@ -76,7 +78,9 @@ def read_total_nb_vectors_and_dim(
             dim: embedding dimension
         """
     fs, path_in_fs = fsspec.core.url_to_fs(embeddings_path)
-    files = [filename for filename in fs.ls(path_in_fs) if filename.endswith(f".{file_format}")]
+    filenames = fs.walk(path_in_fs).__next__()[2]
+    filenames = [filename for filename in filenames if filename.endswith(f".{file_format}")]
+    filenames.sort()
 
     _, dim = read_first_file_shape(
         embeddings_path, file_format=file_format, embedding_column_name=embedding_column_name
@@ -89,7 +93,7 @@ def read_total_nb_vectors_and_dim(
                 shape = np.load(f).shape
                 return shape[0]
         elif file_format == "parquet":
-            with fs.open(filename) as file:
+            with fs.open(file_path) as file:
                 parquet_file = pq.ParquetFile(file, memory_map=True)
                 return parquet_file.metadata.num_rows
         else:
@@ -98,7 +102,7 @@ def read_total_nb_vectors_and_dim(
     count = 0
     i = 0
     with ThreadPool(50) as p:
-        for c in p.imap_unordered(lambda f: get_number_of_lines(f, fs), files):
+        for c in p.imap_unordered(lambda f: get_number_of_lines(f, fs), filenames):
             count += c
             i += 1
 
