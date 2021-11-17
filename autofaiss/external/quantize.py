@@ -159,7 +159,8 @@ class Quantizer:
                 fs, _ = fsspec.core.url_to_fs(output_path)
                 fs.makedirs(output_path, exist_ok=True)
                 index_name = f"{index_key}-{index_param}.index"
-                faiss.write_index(index, f"{output_path}/{index_name}")
+                index_path = f"{output_path}/{index_name}"
+                faiss.write_index(index, index_path)
 
             metric_infos: Dict[str, Union[str, float, int]] = {}
 
@@ -173,7 +174,7 @@ class Quantizer:
             print("Recap:")
             pp(metric_infos)
 
-        return "Done"
+        return index_path
 
     def tuning(
         self,
