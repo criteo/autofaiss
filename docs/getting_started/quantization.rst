@@ -29,32 +29,23 @@ The ``autofaiss quantize`` command takes the following parameters:
 |                            |          | e.g. `hdfs://root/...`     |
 |                            |          | or `s3://...`              |
 +----------------------------+----------+----------------------------+
-| --file_format              | required | File format of the files   |
+| --output_path              | required | Destination path of the    |
+|                            |          | faiss index on local       |
+|                            |          | machine.                   |
++----------------------------+----------+----------------------------+
+| --file_format              | "npy"    | File format of the files   |
 |                            |          | in embeddings_path         |
 |                            |          | Can be either `npy`        |
 |                            |          | for numpy matrix files     |
 |                            |          | or `parquet` for           |
 |                            |          | parquet serialized tables  |
-|                            |          | default: `npy`             |
 +----------------------------+----------+----------------------------+
-| --embedding_column_name    | required | Only necessary when        |
+| --embedding_column_name    | "embeddings" | Only necessary when        |
 |                            |          | when file_format=`parquet` |
 |                            |          | In this case this is the   |
 |                            |          | name of the column         |
 |                            |          | containing the embeddings  |
 |                            |          | (one vector per row)       |
-|                            |          | default: `embeddings`      |
-+----------------------------+----------+----------------------------+
-| --embeddings_path          | required | Source path of the         |
-|                            |          | directory containing your  |
-|                            |          | embedding files. If        |
-|                            |          | there are several files,   |
-|                            |          | they are read in the       |
-|                            |          | lexicographical order.     |
-+----------------------------+----------+----------------------------+
-| --output_path              | required | Destination path of the    |
-|                            |          | faiss index on local       |
-|                            |          | machine.                   |
 +----------------------------+----------+----------------------------+
 | --metric_type              | "ip"     | (Optional) Similarity      |
 |                            |          | function used for query:   |
