@@ -4,9 +4,13 @@ import re
 from typing import Optional, Tuple, Union
 
 import faiss
+
+from autofaiss.datasets.readers.embeddings_iterators import (
+    read_first_file_shape,
+    read_embeddings,
+    read_total_nb_vectors_and_dim,
+)
 from autofaiss.external.metadata import IndexMetadata
-from autofaiss.datasets.readers.local_iterators import read_embeddings_local, read_shapes_local
-from autofaiss.datasets.readers.remote_iterators import read_embeddings_remote, read_filenames
 from autofaiss.external.optimize import (
     check_if_index_needs_training,
     compute_memory_necessary_for_training,
@@ -112,31 +116,7 @@ def get_nb_vectors_approx_and_dim_from_hdfs(parquet_embeddings_path: str) -> Tup
     """legacy function to give the dimensions of a parquet file
     Still useful for tests"""
 
-    # Get information for one partition
-    avg_batch_length, vec_dim = next(read_embeddings_remote(parquet_embeddings_path, verbose=False)).shape
-
-    # Count the number of files
-    nb_files = len(read_filenames(parquet_embeddings_path))
-
-    nb_vectors_approx = nb_files * avg_batch_length
-
-    return nb_vectors_approx, vec_dim
-
-
-def get_nb_vectors_and_dim(embeddings_path: str) -> Tuple[int, int]:
-    """
-    Function that gives the total shape of the embeddings array
-    """
-
-    tot_vec = 0
-    vec_dim = -1
-
-    for shape in read_shapes_local(embeddings_path):
-        batch_length, dim = shape
-        tot_vec += batch_length
-        vec_dim = dim
-
-    return tot_vec, vec_dim
+    return read_total_nb_vectors_and_dim(parquet_embeddings_path, file_format="parquet")
 
 
 def build_index(
@@ -145,6 +125,8 @@ def build_index(
     metric_type: Union[str, int],
     nb_vectors: int,
     current_memory_available: str,
+    file_format: str = "npy",
+    embedding_column_name: str = "embeddings",
     use_gpu: bool = False,
 ):
     """
@@ -158,7 +140,9 @@ def build_index(
         metric_type = to_faiss_metric_type(metric_type)
 
         # Get information for one partition
-        _, vec_dim = next(read_shapes(embeddings_path))
+        _, vec_dim = read_first_file_shape(
+            embeddings_path, file_format=file_format, embedding_column_name=embedding_column_name
+        )
 
         # Instanciate the index
         index = index_factory(vec_dim, index_key, metric_type)
@@ -189,7 +173,15 @@ def build_index(
             )
 
             # Extract training vectors
-            train_vectors = next(read_embeddings(embeddings_path, batch_size=train_size, verbose=True))
+            train_vectors = next(
+                read_embeddings(
+                    embeddings_path,
+                    file_format=file_format,
+                    embedding_column_name=embedding_column_name,
+                    batch_size=train_size,
+                    verbose=True,
+                )
+            )
 
         # Instanciate the index and train it
         # pylint: disable=no-member
@@ -225,7 +217,13 @@ def build_index(
         print(
             f"Using a batch size of {batch_size} (memory overhead {cast_bytes_to_memory_string(batch_size*vec_dim*4)})"
         )
-        for vec_batch in read_embeddings(embeddings_path, batch_size=batch_size, verbose=True):
+        for vec_batch in read_embeddings(
+            embeddings_path,
+            file_format=file_format,
+            embedding_column_name=embedding_column_name,
+            batch_size=batch_size,
+            verbose=True,
+        ):
             index.add(vec_batch)
 
     # Give standard values for index hyperparameters if possible.

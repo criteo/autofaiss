@@ -10,6 +10,7 @@ from tqdm import trange
 from autofaiss.datasets.readers.embeddings_iterators import read_embeddings
 from autofaiss.indices.faiss_index_wrapper import FaissIndexWrapper
 
+
 class MemEfficientFlatIndex(FaissIndexWrapper):
     """
     Faiss-like Flat index that can support any size of vectors
