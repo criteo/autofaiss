@@ -3,8 +3,9 @@
 import logging
 import os
 from pprint import pprint as pp
-from typing import Dict, Optional, Union
+from typing import Dict, Optional, Union, Any, Tuple
 import multiprocessing
+import tempfile
 
 import faiss
 
@@ -22,13 +23,14 @@ from autofaiss.external.scores import compute_fast_metrics, compute_medium_metri
 from autofaiss.indices.index_utils import set_search_hyperparameters, load_index_from_hdfs, save_index_on_hdfs
 from autofaiss.utils.decorators import Timeit
 from autofaiss.utils.cast import cast_memory_to_bytes, cast_bytes_to_memory_string
+import numpy as np
 
 
 def quantize(
-    embeddings_path: str,
-    output_path: str,
+    embeddings_path: Union[str, np.ndarray],
+    output_path: Optional[str] = None,
     file_format: str = "npy",
-    embedding_column_name: str = "embeddings",
+    embedding_column_name: str = "embedding",
     index_key: Optional[str] = None,
     index_param: Optional[str] = None,
     max_index_query_time_ms: float = 10.0,
@@ -37,19 +39,23 @@ def quantize(
     use_gpu: bool = False,
     metric_type: str = "ip",
     nb_cores: Optional[int] = None,
-) -> str:
+) -> Tuple[Optional[Any], Optional[str]]:
     """
     Reads embeddings and creates a quantized index from them.
     The index is stored on the current machine at the given ouput path.
 
     Parameters
     ----------
-    embeddings_path : str
+    embeddings_path : Union[str, np.ndarray]
         Local path containing all preprocessed vectors and cached files.
         Files will be added if empty.
-    output_path: str
+    output_path: Optional(str)
         Destination path of the quantized model on local machine.
-    index_key: Optinal(str)
+    file_format: Optional(str)
+        npy or parquet ; default npy
+    embedding_column_name: Optional(str)
+        embeddings column name for parquet ; default embedding
+    index_key: Optional(str)
         Optional string to give to the index factory in order to create the index.
         If None, an index is chosen based on an heuristic.
     index_param: Optional(str)
@@ -81,12 +87,20 @@ def quantize(
             "You do not have enough memory to build this index"
             "please increase current_memory_available or decrease max_index_memory_usage"
         )
-        return "Not enough memory"
+        return None, None
 
     if nb_cores is None:
         nb_cores = multiprocessing.cpu_count()
     print(f"Using {nb_cores} omp threads (processes), consider increasing --nb_cores if you have more")
     faiss.omp_set_num_threads(nb_cores)
+
+    if output_path is None:
+        index_path = None
+
+    if isinstance(embeddings_path, np.ndarray):
+        tmp_dir_embeddings = tempfile.TemporaryDirectory()
+        np.save(tmp_dir_embeddings.name + "/emb.npy", embeddings_path)
+        embeddings_path = tmp_dir_embeddings.name
 
     with Timeit("Launching the whole pipeline"):
 
@@ -119,13 +133,13 @@ def quantize(
                     "Consider increasing the options current_memory_available or decreasing max_index_memory_usage"
                 )
                 print(r)
-                return r
+                return None, None
 
         if index_key is None:
             with Timeit("Selecting most promising index types given data characteristics", indent=1):
                 best_index_keys = get_optimal_index_keys_v2(nb_vectors, vec_dim, max_index_memory_usage)
                 if not best_index_keys:
-                    return "Constraint on memory too high, no index can be that small"
+                    return None, None
                 index_key = best_index_keys[0]
 
         with Timeit("Creating the index", indent=1):
@@ -148,12 +162,13 @@ def quantize(
         set_search_hyperparameters(index, index_param, use_gpu)
         print(f"The best hyperparameters are: {index_param}")
 
-        with Timeit("Saving the index on local disk", indent=1):
-            fs, _ = fsspec.core.url_to_fs(output_path)
-            fs.makedirs(output_path, exist_ok=True)
-            index_name = f"{index_key}-{index_param}.index"
-            index_path = f"{output_path}/{index_name}"
-            faiss.write_index(index, index_path)
+        if output_path is not None:
+            with Timeit("Saving the index on local disk", indent=1):
+                fs, _ = fsspec.core.url_to_fs(output_path)
+                fs.makedirs(output_path, exist_ok=True)
+                index_name = f"{index_key}-{index_param}.index"
+                index_path = f"{output_path}/{index_name}"
+                faiss.write_index(index, index_path)
 
         metric_infos: Dict[str, Union[str, float, int]] = {}
 
@@ -167,7 +182,7 @@ def quantize(
         print("Recap:")
         pp(metric_infos)
 
-    return index_path
+    return index, index_path
 
 
 def tuning(

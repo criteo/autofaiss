@@ -21,7 +21,7 @@ def test_quantize(tmpdir):
 
     output_numpy_index = tmpdir.mkdir("autofaiss_quantize_numpy")
 
-    output_numpy_index_file = quantize(
+    _, output_numpy_index_file = quantize(
         embeddings_path=tmp_dir,
         file_format="npy",
         output_path=str(output_numpy_index),
@@ -38,7 +38,7 @@ def test_quantize(tmpdir):
 
     output_parquet_index = tmpdir.mkdir("autofaiss_quantize_parquet")
 
-    output_parquet_index_file = quantize(
+    _, output_parquet_index_file = quantize(
         embeddings_path=tmp_dir,
         file_format="parquet",
         embedding_column_name="embedding",

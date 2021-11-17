@@ -62,7 +62,26 @@ print(list(zip(distances[0], indices[0])))
 
 ## Using from python
 
-If you want to use autofaiss directly from python, check the [API documentation](https://criteo.github.io/autofaiss/API/api.html)
+If you want to use autofaiss directly from python, check the [API documentation](https://criteo.github.io/autofaiss/API/api.html) and the [examples](examples)
+
+In particular you can use autofaiss with on memory or on disk embeddings collections:
+
+### Using in memory numpy arrays
+
+If you have a few embeddings, you can use autofaiss with in memory numpy arrays:
+
+```python
+from autofaiss import quantize
+import numpy as np
+embeddings = np.ones((100, 512), "float32")
+index, _ = quantize(embeddings)
+_, I = index.search(embeddings, 1)
+print(I)
+```
+
+### Using numpy arrays saved as .npy files
+
+If you have many embeddings file, it is preferred to save them on disk as .npy files then use autofaiss like this:
 
 ```python
 from autofaiss import quantize
