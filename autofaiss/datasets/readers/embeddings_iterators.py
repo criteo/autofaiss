@@ -1,6 +1,7 @@
 """ Functions that read efficiently files stored on disk """
 import logging
 import os
+from multiprocessing.pool import ThreadPool
 from typing import Iterator, Optional, Tuple
 
 import numpy as np
@@ -55,6 +56,53 @@ def read_first_file_shape(
     else:
         raise ValueError("Unknown file format")
     return shape
+
+
+def read_total_nb_vectors_and_dim(
+    embeddings_path: str, file_format: str = "npy", embedding_column_name: str = "embeddings"
+) -> Tuple[int, int]:
+    """
+        Get the count and dim of embeddings.
+        Parameters
+        ----------
+        embeddings_path : str
+            Path of the embedding in numpy or parquet format.
+        file_format : str (default "npy")
+
+        Returns
+        -------
+        (count, dim) : (int, int)
+            count: total number of vectors in the dataset.
+            dim: embedding dimension
+        """
+    fs, path_in_fs = fsspec.core.url_to_fs(embeddings_path)
+    files = [filename for filename in fs.ls(path_in_fs) if filename.endswith(f".{file_format}")]
+
+    _, dim = read_first_file_shape(
+        embeddings_path, file_format=file_format, embedding_column_name=embedding_column_name
+    )
+
+    def get_number_of_lines(filename, fs):
+        file_path = os.path.join(embeddings_path, filename)
+        if file_format == "npy":
+            with fs.open(file_path, "rb") as f:
+                shape = np.load(f).shape
+                return shape[0]
+        elif file_format == "parquet":
+            with fs.open(filename) as file:
+                parquet_file = pq.ParquetFile(file, memory_map=True)
+                return parquet_file.metadata.num_rows
+        else:
+            raise ValueError("Unknown file format")
+
+    count = 0
+    i = 0
+    with ThreadPool(50) as p:
+        for c in p.imap_unordered(lambda f: get_number_of_lines(f, fs), files):
+            count += c
+            i += 1
+
+    return count, dim
 
 
 def convert_parquet_to_numpy(
