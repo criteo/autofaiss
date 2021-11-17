@@ -105,29 +105,6 @@ def read_total_nb_vectors_and_dim(
     return count, dim
 
 
-def convert_parquet_to_numpy(
-    parquet_file: str,
-    embeddings_path: str,
-    embedding_column_name: str,
-    keys_path: Optional[str] = None,
-    key_column_name: Optional[str] = None,
-) -> None:
-    """ Convert one embedding parquet file to an embedding numpy file """
-
-    emb = None
-    if not os.path.exists(embeddings_path):
-        emb = pq.read_table(parquet_file).to_pandas()
-        embeddings_raw = emb[embedding_column_name].to_numpy()
-        embeddings = np.stack(embeddings_raw).astype("float32")
-        np.save(embeddings_path, embeddings)
-
-    if keys_path is not None and not os.path.exists(keys_path):
-        if emb is None:
-            emb = pq.read_table(parquet_file).to_pandas()
-        key_raw = emb[key_column_name].to_numpy()
-        np.save(keys_path, key_raw)
-
-
 def read_embeddings(
     embeddings_path: str,
     batch_size: Optional[int] = None,

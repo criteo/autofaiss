@@ -65,32 +65,6 @@ def estimate_memory_required_for_index_creation(
     return (int(index_overhead + max(index_memory + needed_for_adding, memory_for_training))), index_key
 
 
-def get_estimated_download_time_infos(
-    embeddings_hdfs_path: str, bandwidth_gbytes_per_sec: float = 1.0, indent: int = 0
-) -> Tuple[str, Tuple[int, int]]:
-    """
-    Gives a general approximation of the download time (and preprocessing time) of embeddings
-    """
-    nb_vectors_approx, vec_dim = get_nb_vectors_approx_and_dim_from_hdfs(embeddings_hdfs_path)
-
-    size = 4 * nb_vectors_approx * vec_dim
-
-    download = 1.1 * size / (bandwidth_gbytes_per_sec * 1024 ** 3)  # seconds
-    preprocess = 1.6 * download  # seconds
-
-    infos = (
-        f"-> Download: {to_readable_time(download, rounding=True)}\n"
-        f"-> Preprocess: {to_readable_time(preprocess, rounding=True)}\n"
-        f"Total: {to_readable_time(download + preprocess, rounding=True)}"
-        " (< 1 minute if files are already cached)"
-    )
-
-    tab = "\t" * indent
-    infos = tab + infos.replace("\n", "\n" + tab)
-
-    return infos, (nb_vectors_approx, vec_dim)
-
-
 def get_estimated_construction_time_infos(nb_vectors: int, vec_dim: int, indent: int = 0) -> str:
     """
     Gives a general approximation of the construction time of the index
