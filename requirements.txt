@@ -5,3 +5,4 @@ numpy==1.18.2
 pandas==1.1.4
 pyarrow>=0.14
 tqdm==4.46.0
+fsspec==2021.11.0
