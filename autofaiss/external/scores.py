@@ -5,8 +5,7 @@ from typing import Dict, Union, Optional
 import numpy as np
 import faiss
 
-from autofaiss.datasets.readers.local_iterators import read_embeddings_local
-from autofaiss.datasets.readers.remote_iterators import read_embeddings_remote
+from autofaiss.readers.embeddings_iterators import read_embeddings
 from autofaiss.indices.index_utils import get_index_size, search_speed_test
 from autofaiss.indices.memory_efficient_flat_index import MemEfficientFlatIndex
 from autofaiss.metrics.recalls import one_recall_at_r, r_recall_at_r
@@ -18,6 +17,8 @@ from autofaiss.utils.decorators import Timeit
 def compute_fast_metrics(
     embeddings_path: Union[np.ndarray, str],
     index: faiss.Index,
+    file_format: str = "npy",
+    embedding_column_name: str = "embeddings",
     omp_threads: Optional[int] = None,
     query_max: Optional[int] = 1000,
 ) -> Dict[str, Union[str, int, float]]:
@@ -29,10 +30,11 @@ def compute_fast_metrics(
 
     if isinstance(embeddings_path, str):
         # pylint: disable=bare-except
-        try:
-            query_embeddings = next(read_embeddings_local(embeddings_path, verbose=False))
-        except:
-            query_embeddings = next(read_embeddings_remote(embeddings_path, verbose=False))
+        query_embeddings = next(
+            read_embeddings(
+                embeddings_path, file_format=file_format, embedding_column_name=embedding_column_name, verbose=False
+            )
+        )
     else:
         query_embeddings = embeddings_path
 
@@ -72,18 +74,11 @@ def compute_medium_metrics(
 
     if isinstance(embeddings_path, str):
         # pylint: disable=bare-except
-        try:
-            embedding_block = next(read_embeddings_local(embeddings_path, verbose=False))
-        except:
-            embedding_block = next(read_embeddings_remote(embeddings_path, verbose=False))
+        embedding_block = next(read_embeddings(embeddings_path, verbose=False))
 
         if embedding_block.shape[0] < nb_test_points:
-            stacks = int(nb_test_points // embedding_block.shape[0]) + 1
             # pylint: disable=bare-except
-            try:
-                embedding_block = next(read_embeddings_local(embeddings_path, batch_size=nb_test_points, verbose=False))
-            except:
-                embedding_block = next(read_embeddings_remote(embeddings_path, stack_input=stacks, verbose=False))
+            embedding_block = next(read_embeddings(embeddings_path, batch_size=nb_test_points, verbose=False))
 
         query_embeddings = embedding_block[:nb_test_points]
     else:

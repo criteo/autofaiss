@@ -23,10 +23,29 @@ The ``autofaiss quantize`` command takes the following parameters:
 |                            |          | there are several files,   |
 |                            |          | they are read in the       |
 |                            |          | lexicographical order.     |
+|                            |          | This can be a local path   |
+|                            |          | or a path in another       |
+|                            |          | Filesystem                 |
+|                            |          | e.g. `hdfs://root/...`     |
+|                            |          | or `s3://...`              |
 +----------------------------+----------+----------------------------+
 | --output_path              | required | Destination path of the    |
 |                            |          | faiss index on local       |
 |                            |          | machine.                   |
++----------------------------+----------+----------------------------+
+| --file_format              | "npy"    | File format of the files   |
+|                            |          | in embeddings_path         |
+|                            |          | Can be either `npy`        |
+|                            |          | for numpy matrix files     |
+|                            |          | or `parquet` for           |
+|                            |          | parquet serialized tables  |
++----------------------------+----------+----------------------------+
+| --embedding_column_name    | "embeddings" | Only necessary when        |
+|                            |          | when file_format=`parquet` |
+|                            |          | In this case this is the   |
+|                            |          | name of the column         |
+|                            |          | containing the embeddings  |
+|                            |          | (one vector per row)       |
 +----------------------------+----------+----------------------------+
 | --metric_type              | "ip"     | (Optional) Similarity      |
 |                            |          | function used for query:   |

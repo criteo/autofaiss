@@ -9,11 +9,13 @@ import multiprocessing
 import faiss
 
 import fire
+import fsspec
+
+from autofaiss.readers.embeddings_iterators import read_total_nb_vectors_and_dim
 from autofaiss.external.build import (
     build_index,
     estimate_memory_required_for_index_creation,
     get_estimated_construction_time_infos,
-    get_nb_vectors_and_dim,
 )
 from autofaiss.external.optimize import get_optimal_hyperparameters, get_optimal_index_keys_v2
 from autofaiss.external.scores import compute_fast_metrics, compute_medium_metrics
@@ -32,6 +34,8 @@ class Quantizer:
         self,
         embeddings_path: str,
         output_path: str,
+        file_format: str = "npy",
+        embedding_column_name: str = "embeddings",
         index_key: Optional[str] = None,
         index_param: Optional[str] = None,
         max_index_query_time_ms: float = 10.0,
@@ -93,7 +97,9 @@ class Quantizer:
 
         with Timeit("Launching the whole pipeline"):
 
-            nb_vectors, vec_dim = get_nb_vectors_and_dim(embeddings_path)
+            nb_vectors, vec_dim = read_total_nb_vectors_and_dim(
+                embeddings_path, file_format=file_format, embedding_column_name=embedding_column_name
+            )
             print(f"There are {nb_vectors} embeddings of dim {vec_dim}")
 
             with Timeit("Compute estimated construction time of the index", indent=1):
@@ -131,7 +137,14 @@ class Quantizer:
 
             with Timeit("Creating the index", indent=1):
                 index = build_index(
-                    embeddings_path, index_key, metric_type, nb_vectors, current_memory_available, use_gpu
+                    embeddings_path,
+                    index_key,
+                    metric_type,
+                    nb_vectors,
+                    current_memory_available,
+                    use_gpu=use_gpu,
+                    file_format=file_format,
+                    embedding_column_name=embedding_column_name,
                 )
 
             if index_param is None:
@@ -142,23 +155,26 @@ class Quantizer:
             set_search_hyperparameters(index, index_param, use_gpu)
             print(f"The best hyperparameters are: {index_param}")
 
-            # Save the index
-            index_name = f"{index_key}-{index_param}.index"
-
             with Timeit("Saving the index on local disk", indent=1):
-                os.makedirs(output_path, exist_ok=True)
+                fs, _ = fsspec.core.url_to_fs(output_path)
+                fs.makedirs(output_path, exist_ok=True)
                 index_name = f"{index_key}-{index_param}.index"
-                faiss.write_index(index, f"{output_path}/{index_name}")
+                index_path = f"{output_path}/{index_name}"
+                faiss.write_index(index, index_path)
 
             metric_infos: Dict[str, Union[str, float, int]] = {}
 
             with Timeit("Compute fast metrics", indent=1):
-                metric_infos.update(compute_fast_metrics(embeddings_path, index))
+                metric_infos.update(
+                    compute_fast_metrics(
+                        embeddings_path, index, file_format=file_format, embedding_column_name=embedding_column_name
+                    )
+                )
 
             print("Recap:")
             pp(metric_infos)
 
-        return "Done"
+        return index_path
 
     def tuning(
         self,

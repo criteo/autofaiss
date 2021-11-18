@@ -1,6 +1,6 @@
 # pylint: disable=unused-import,missing-docstring
 
-import autofaiss.datasets
+import autofaiss.readers
 import autofaiss.external
 import autofaiss.indices
 import autofaiss.metrics
