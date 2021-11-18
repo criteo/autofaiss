@@ -89,8 +89,7 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">faiss</span>
 
-<span class="kn">from</span> <span class="nn">autofaiss.datasets.readers.local_iterators</span> <span class="kn">import</span> <span class="n">read_embeddings_local</span>
-<span class="kn">from</span> <span class="nn">autofaiss.datasets.readers.remote_iterators</span> <span class="kn">import</span> <span class="n">read_embeddings_remote</span>
+<span class="kn">from</span> <span class="nn">autofaiss.readers.embeddings_iterators</span> <span class="kn">import</span> <span class="n">read_embeddings</span>
 <span class="kn">from</span> <span class="nn">autofaiss.indices.index_utils</span> <span class="kn">import</span> <span class="n">get_index_size</span><span class="p">,</span> <span class="n">search_speed_test</span>
 <span class="kn">from</span> <span class="nn">autofaiss.indices.memory_efficient_flat_index</span> <span class="kn">import</span> <span class="n">MemEfficientFlatIndex</span>
 <span class="kn">from</span> <span class="nn">autofaiss.metrics.recalls</span> <span class="kn">import</span> <span class="n">one_recall_at_r</span><span class="p">,</span> <span class="n">r_recall_at_r</span>
@@ -102,6 +101,8 @@
 <div class="viewcode-block" id="compute_fast_metrics"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.scores.compute_fast_metrics">[docs]</a><span class="k">def</span> <span class="nf">compute_fast_metrics</span><span class="p">(</span>
     <span class="n">embeddings_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span>
     <span class="n">index</span><span class="p">:</span> <span class="n">faiss</span><span class="o">.</span><span class="n">Index</span><span class="p">,</span>
+    <span class="n">file_format</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;npy&quot;</span><span class="p">,</span>
+    <span class="n">embedding_column_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;embeddings&quot;</span><span class="p">,</span>
     <span class="n">omp_threads</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">query_max</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]:</span>
@@ -113,10 +114,11 @@
 
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">embeddings_path</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
         <span class="c1"># pylint: disable=bare-except</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">query_embeddings</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">read_embeddings_local</span><span class="p">(</span><span class="n">embeddings_path</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
-        <span class="k">except</span><span class="p">:</span>
-            <span class="n">query_embeddings</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">read_embeddings_remote</span><span class="p">(</span><span class="n">embeddings_path</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+        <span class="n">query_embeddings</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span>
+            <span class="n">read_embeddings</span><span class="p">(</span>
+                <span class="n">embeddings_path</span><span class="p">,</span> <span class="n">file_format</span><span class="o">=</span><span class="n">file_format</span><span class="p">,</span> <span class="n">embedding_column_name</span><span class="o">=</span><span class="n">embedding_column_name</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">query_embeddings</span> <span class="o">=</span> <span class="n">embeddings_path</span>
 
@@ -156,18 +158,11 @@
 
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">embeddings_path</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
         <span class="c1"># pylint: disable=bare-except</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">embedding_block</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">read_embeddings_local</span><span class="p">(</span><span class="n">embeddings_path</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
-        <span class="k">except</span><span class="p">:</span>
-            <span class="n">embedding_block</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">read_embeddings_remote</span><span class="p">(</span><span class="n">embeddings_path</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+        <span class="n">embedding_block</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">read_embeddings</span><span class="p">(</span><span class="n">embeddings_path</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
 
         <span class="k">if</span> <span class="n">embedding_block</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">nb_test_points</span><span class="p">:</span>
-            <span class="n">stacks</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">nb_test_points</span> <span class="o">//</span> <span class="n">embedding_block</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="mi">1</span>
             <span class="c1"># pylint: disable=bare-except</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="n">embedding_block</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">read_embeddings_local</span><span class="p">(</span><span class="n">embeddings_path</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">nb_test_points</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
-            <span class="k">except</span><span class="p">:</span>
-                <span class="n">embedding_block</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">read_embeddings_remote</span><span class="p">(</span><span class="n">embeddings_path</span><span class="p">,</span> <span class="n">stack_input</span><span class="o">=</span><span class="n">stacks</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+            <span class="n">embedding_block</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">read_embeddings</span><span class="p">(</span><span class="n">embeddings_path</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">nb_test_points</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
 
         <span class="n">query_embeddings</span> <span class="o">=</span> <span class="n">embedding_block</span><span class="p">[:</span><span class="n">nb_test_points</span><span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>

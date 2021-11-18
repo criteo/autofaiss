@@ -20,7 +20,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="autofaiss.indices package" href="autofaiss.indices.html" />
-    <link rel="prev" title="autofaiss.datasets.readers package" href="autofaiss.datasets.readers.html" /> 
+    <link rel="prev" title="autofaiss package" href="autofaiss.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -55,10 +55,10 @@
 <li class="toctree-l1 current"><a class="reference internal" href="modules.html">autofaiss</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="autofaiss.html">autofaiss package</a><ul class="current">
 <li class="toctree-l3 current"><a class="reference internal" href="autofaiss.html#subpackages">Subpackages</a><ul class="current">
-<li class="toctree-l4"><a class="reference internal" href="autofaiss.datasets.html">autofaiss.datasets package</a></li>
 <li class="toctree-l4 current"><a class="current reference internal" href="#">autofaiss.external package</a></li>
 <li class="toctree-l4"><a class="reference internal" href="autofaiss.indices.html">autofaiss.indices package</a></li>
 <li class="toctree-l4"><a class="reference internal" href="autofaiss.metrics.html">autofaiss.metrics package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autofaiss.readers.html">autofaiss.readers package</a></li>
 <li class="toctree-l4"><a class="reference internal" href="autofaiss.utils.html">autofaiss.utils package</a></li>
 </ul>
 </li>
@@ -136,7 +136,7 @@
 <p>gather functions necessary to build an index</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="autofaiss.external.build.build_index">
-<span class="sig-prename descclassname"><span class="pre">autofaiss.external.build.</span></span><span class="sig-name descname"><span class="pre">build_index</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">embeddings_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_vectors</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current_memory_available</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_gpu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/external/build.html#build_index"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.external.build.build_index" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">autofaiss.external.build.</span></span><span class="sig-name descname"><span class="pre">build_index</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">embeddings_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_vectors</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current_memory_available</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'npy'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embedding_column_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'embeddings'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_gpu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/external/build.html#build_index"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.external.build.build_index" title="Permalink to this definition"></a></dt>
 <dd><p>Function that returns an index on the numpy arrays stored on disk in the embeddings_path path.</p>
 </dd></dl>
 
@@ -147,7 +147,7 @@
 The value returned is in Bytes</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.9)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</p>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.10)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -158,41 +158,7 @@ The value returned is in Bytes</p>
 <dd><p>Gives a general approximation of the construction time of the index</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="autofaiss.external.build.get_estimated_download_time_infos">
-<span class="sig-prename descclassname"><span class="pre">autofaiss.external.build.</span></span><span class="sig-name descname"><span class="pre">get_estimated_download_time_infos</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">embeddings_hdfs_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bandwidth_gbytes_per_sec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/external/build.html#get_estimated_download_time_infos"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.external.build.get_estimated_download_time_infos" title="Permalink to this definition"></a></dt>
-<dd><p>Gives a general approximation of the download time (and preprocessing time) of embeddings</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.9)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.9)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>]]</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="autofaiss.external.build.get_nb_vectors_and_dim">
-<span class="sig-prename descclassname"><span class="pre">autofaiss.external.build.</span></span><span class="sig-name descname"><span class="pre">get_nb_vectors_and_dim</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">embeddings_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/external/build.html#get_nb_vectors_and_dim"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.external.build.get_nb_vectors_and_dim" title="Permalink to this definition"></a></dt>
-<dd><p>Function that gives the total shape of the embeddings array</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.9)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>]</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="autofaiss.external.build.get_nb_vectors_approx_and_dim_from_hdfs">
-<span class="sig-prename descclassname"><span class="pre">autofaiss.external.build.</span></span><span class="sig-name descname"><span class="pre">get_nb_vectors_approx_and_dim_from_hdfs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parquet_embeddings_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/external/build.html#get_nb_vectors_approx_and_dim_from_hdfs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.external.build.get_nb_vectors_approx_and_dim_from_hdfs" title="Permalink to this definition"></a></dt>
-<dd><p>legacy function to give the dimensions of a parquet file
-Still useful for tests</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.9)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>]</p>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -203,90 +169,66 @@ Still useful for tests</p>
 <p>File that contains the descriptions of the different indices features.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="autofaiss.external.descriptions.IndexBlock">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">autofaiss.external.descriptions.</span></span><span class="sig-name descname"><span class="pre">IndexBlock</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/external/descriptions.html#IndexBlock"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.external.descriptions.IndexBlock" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.Enum" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></a></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autofaiss.external.descriptions.</span></span><span class="sig-name descname"><span class="pre">IndexBlock</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/external/descriptions.html#IndexBlock"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.external.descriptions.IndexBlock" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.Enum" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></a></p>
 <p>An enumeration.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="autofaiss.external.descriptions.IndexBlock.FLAT">
-<span class="sig-name descname"><span class="pre">FLAT</span></span><em class="property"> <span class="pre">=</span> <span class="pre">0</span></em><a class="headerlink" href="#autofaiss.external.descriptions.IndexBlock.FLAT" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">FLAT</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#autofaiss.external.descriptions.IndexBlock.FLAT" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="autofaiss.external.descriptions.IndexBlock.HNSW">
-<span class="sig-name descname"><span class="pre">HNSW</span></span><em class="property"> <span class="pre">=</span> <span class="pre">3</span></em><a class="headerlink" href="#autofaiss.external.descriptions.IndexBlock.HNSW" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">HNSW</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3</span></em><a class="headerlink" href="#autofaiss.external.descriptions.IndexBlock.HNSW" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="autofaiss.external.descriptions.IndexBlock.IVF">
-<span class="sig-name descname"><span class="pre">IVF</span></span><em class="property"> <span class="pre">=</span> <span class="pre">1</span></em><a class="headerlink" href="#autofaiss.external.descriptions.IndexBlock.IVF" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">IVF</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#autofaiss.external.descriptions.IndexBlock.IVF" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="autofaiss.external.descriptions.IndexBlock.IVF_HNSW">
-<span class="sig-name descname"><span class="pre">IVF_HNSW</span></span><em class="property"> <span class="pre">=</span> <span class="pre">2</span></em><a class="headerlink" href="#autofaiss.external.descriptions.IndexBlock.IVF_HNSW" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">IVF_HNSW</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></em><a class="headerlink" href="#autofaiss.external.descriptions.IndexBlock.IVF_HNSW" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="autofaiss.external.descriptions.IndexBlock.OPQ">
-<span class="sig-name descname"><span class="pre">OPQ</span></span><em class="property"> <span class="pre">=</span> <span class="pre">5</span></em><a class="headerlink" href="#autofaiss.external.descriptions.IndexBlock.OPQ" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">OPQ</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">5</span></em><a class="headerlink" href="#autofaiss.external.descriptions.IndexBlock.OPQ" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="autofaiss.external.descriptions.IndexBlock.PAD">
-<span class="sig-name descname"><span class="pre">PAD</span></span><em class="property"> <span class="pre">=</span> <span class="pre">6</span></em><a class="headerlink" href="#autofaiss.external.descriptions.IndexBlock.PAD" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">PAD</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">6</span></em><a class="headerlink" href="#autofaiss.external.descriptions.IndexBlock.PAD" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="autofaiss.external.descriptions.IndexBlock.PQ">
-<span class="sig-name descname"><span class="pre">PQ</span></span><em class="property"> <span class="pre">=</span> <span class="pre">4</span></em><a class="headerlink" href="#autofaiss.external.descriptions.IndexBlock.PQ" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">PQ</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">4</span></em><a class="headerlink" href="#autofaiss.external.descriptions.IndexBlock.PQ" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="autofaiss.external.descriptions.TunableParam">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">autofaiss.external.descriptions.</span></span><span class="sig-name descname"><span class="pre">TunableParam</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/external/descriptions.html#TunableParam"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.external.descriptions.TunableParam" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.Enum" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></a></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autofaiss.external.descriptions.</span></span><span class="sig-name descname"><span class="pre">TunableParam</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/external/descriptions.html#TunableParam"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.external.descriptions.TunableParam" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.Enum" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></a></p>
 <p>An enumeration.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="autofaiss.external.descriptions.TunableParam.EFSEARCH">
-<span class="sig-name descname"><span class="pre">EFSEARCH</span></span><em class="property"> <span class="pre">=</span> <span class="pre">0</span></em><a class="headerlink" href="#autofaiss.external.descriptions.TunableParam.EFSEARCH" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">EFSEARCH</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#autofaiss.external.descriptions.TunableParam.EFSEARCH" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="autofaiss.external.descriptions.TunableParam.HT">
-<span class="sig-name descname"><span class="pre">HT</span></span><em class="property"> <span class="pre">=</span> <span class="pre">2</span></em><a class="headerlink" href="#autofaiss.external.descriptions.TunableParam.HT" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">HT</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></em><a class="headerlink" href="#autofaiss.external.descriptions.TunableParam.HT" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="autofaiss.external.descriptions.TunableParam.NPROBE">
-<span class="sig-name descname"><span class="pre">NPROBE</span></span><em class="property"> <span class="pre">=</span> <span class="pre">1</span></em><a class="headerlink" href="#autofaiss.external.descriptions.TunableParam.NPROBE" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">NPROBE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#autofaiss.external.descriptions.TunableParam.NPROBE" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
-</dd></dl>
-
-</section>
-<section id="module-autofaiss.external.download">
-<span id="autofaiss-external-download-module"></span><h2>autofaiss.external.download module<a class="headerlink" href="#module-autofaiss.external.download" title="Permalink to this headline"></a></h2>
-<p>Function that downloads a parquet file containing embeddings on the
-current machine in the right format (several .npy files)</p>
-<dl class="py function">
-<dt class="sig sig-object py" id="autofaiss.external.download.download_from_hdfs">
-<span class="sig-prename descclassname"><span class="pre">autofaiss.external.download.</span></span><span class="sig-name descname"><span class="pre">download_from_hdfs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">embeddings_hdfs_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">local_save_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_cores</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delete_tmp_files</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bandwidth_gbytes_per_sec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embedding_column_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'embedding'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keys_folder</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key_column_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/external/download.html#download_from_hdfs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.external.download.download_from_hdfs" title="Permalink to this definition"></a></dt>
-<dd><p>Download a file containing embeddings in parquet format on hdfs and
-convert it to several .npy files
-Optionally save keys in another folder (useful to keep track of what is each embedding)</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="autofaiss.external.download.main">
-<span class="sig-prename descclassname"><span class="pre">autofaiss.external.download.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/external/download.html#main"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.external.download.main" title="Permalink to this definition"></a></dt>
-<dd><p>Main entry point</p>
 </dd></dl>
 
 </section>
@@ -295,8 +237,8 @@ Optionally save keys in another folder (useful to keep track of what is each emb
 <p>Index metadata for Faiss indices.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="autofaiss.external.metadata.IndexMetadata">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">autofaiss.external.metadata.</span></span><span class="sig-name descname"><span class="pre">IndexMetadata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_vectors</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim_vector</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/external/metadata.html#IndexMetadata"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.external.metadata.IndexMetadata" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autofaiss.external.metadata.</span></span><span class="sig-name descname"><span class="pre">IndexMetadata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_vectors</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim_vector</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/external/metadata.html#IndexMetadata"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.external.metadata.IndexMetadata" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Class to compute index metadata given the index_key, the number of vectors and their dimension.</p>
 <p>Note: We don’t create classes for each index type in order to keep the code simple.</p>
 <dl class="py method">
@@ -305,7 +247,7 @@ Optionally save keys in another folder (useful to keep track of what is each emb
 <dd><p>Compute the estimated size of the index in bytes.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></p>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -316,7 +258,7 @@ Optionally save keys in another folder (useful to keep track of what is each emb
 <dd><p>Gives a generic description of the index.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></p>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -336,37 +278,37 @@ Optionally save keys in another folder (useful to keep track of what is each emb
 
 <dl class="py class">
 <dt class="sig sig-object py" id="autofaiss.external.metadata.IndexType">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">autofaiss.external.metadata.</span></span><span class="sig-name descname"><span class="pre">IndexType</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/external/metadata.html#IndexType"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.external.metadata.IndexType" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.Enum" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></a></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autofaiss.external.metadata.</span></span><span class="sig-name descname"><span class="pre">IndexType</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/external/metadata.html#IndexType"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.external.metadata.IndexType" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.Enum" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></a></p>
 <p>An enumeration.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="autofaiss.external.metadata.IndexType.FLAT">
-<span class="sig-name descname"><span class="pre">FLAT</span></span><em class="property"> <span class="pre">=</span> <span class="pre">0</span></em><a class="headerlink" href="#autofaiss.external.metadata.IndexType.FLAT" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">FLAT</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#autofaiss.external.metadata.IndexType.FLAT" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="autofaiss.external.metadata.IndexType.HNSW">
-<span class="sig-name descname"><span class="pre">HNSW</span></span><em class="property"> <span class="pre">=</span> <span class="pre">1</span></em><a class="headerlink" href="#autofaiss.external.metadata.IndexType.HNSW" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">HNSW</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#autofaiss.external.metadata.IndexType.HNSW" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="autofaiss.external.metadata.IndexType.NOT_SUPPORTED">
-<span class="sig-name descname"><span class="pre">NOT_SUPPORTED</span></span><em class="property"> <span class="pre">=</span> <span class="pre">5</span></em><a class="headerlink" href="#autofaiss.external.metadata.IndexType.NOT_SUPPORTED" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">NOT_SUPPORTED</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">5</span></em><a class="headerlink" href="#autofaiss.external.metadata.IndexType.NOT_SUPPORTED" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="autofaiss.external.metadata.IndexType.OPQ_IVF_HNSW_PQ">
-<span class="sig-name descname"><span class="pre">OPQ_IVF_HNSW_PQ</span></span><em class="property"> <span class="pre">=</span> <span class="pre">3</span></em><a class="headerlink" href="#autofaiss.external.metadata.IndexType.OPQ_IVF_HNSW_PQ" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">OPQ_IVF_HNSW_PQ</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3</span></em><a class="headerlink" href="#autofaiss.external.metadata.IndexType.OPQ_IVF_HNSW_PQ" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="autofaiss.external.metadata.IndexType.OPQ_IVF_PQ">
-<span class="sig-name descname"><span class="pre">OPQ_IVF_PQ</span></span><em class="property"> <span class="pre">=</span> <span class="pre">2</span></em><a class="headerlink" href="#autofaiss.external.metadata.IndexType.OPQ_IVF_PQ" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">OPQ_IVF_PQ</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></em><a class="headerlink" href="#autofaiss.external.metadata.IndexType.OPQ_IVF_PQ" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="autofaiss.external.metadata.IndexType.PAD_IVF_HNSW_PQ">
-<span class="sig-name descname"><span class="pre">PAD_IVF_HNSW_PQ</span></span><em class="property"> <span class="pre">=</span> <span class="pre">4</span></em><a class="headerlink" href="#autofaiss.external.metadata.IndexType.PAD_IVF_HNSW_PQ" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">PAD_IVF_HNSW_PQ</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">4</span></em><a class="headerlink" href="#autofaiss.external.metadata.IndexType.PAD_IVF_HNSW_PQ" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -393,7 +335,7 @@ Optionally save keys in another folder (useful to keep track of what is each emb
 <dd><p>compute optimal batch size to use the RAM at its full potential for adding vectors</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></p>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -404,7 +346,7 @@ Optionally save keys in another folder (useful to keep track of what is each emb
 <dd><p>Find the optimal hyperparameters to maximize the recall given a query speed in milliseconds/query</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></p>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -425,7 +367,7 @@ The first value is the most recommended one.
 see: <a class="reference external" href="https://github.com/facebookresearch/faiss/wiki/Guidelines-to-choose-an-index">https://github.com/facebookresearch/faiss/wiki/Guidelines-to-choose-an-index</a></p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>]</p>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -455,7 +397,7 @@ The list can be empty if the given constraints are too strong.</p>
 </dl>
 <dl class="field-list simple">
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</p>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -467,7 +409,7 @@ The list can be empty if the given constraints are too strong.</p>
 train the index, based on faiss heuristics for k-means clustering.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></p>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -484,30 +426,30 @@ train the index, based on faiss heuristics for k-means clustering.</p>
 <p>main file to create an index from the the begining</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="autofaiss.external.quantize.Quantizer">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">autofaiss.external.quantize.</span></span><span class="sig-name descname"><span class="pre">Quantizer</span></span><a class="reference internal" href="../_modules/autofaiss/external/quantize.html#Quantizer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.external.quantize.Quantizer" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autofaiss.external.quantize.</span></span><span class="sig-name descname"><span class="pre">Quantizer</span></span><a class="reference internal" href="../_modules/autofaiss/external/quantize.html#Quantizer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.external.quantize.Quantizer" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>class defining the quantization pipeline</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="autofaiss.external.quantize.Quantizer.quantize">
-<span class="sig-name descname"><span class="pre">quantize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">embeddings_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_param</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_index_query_time_ms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_index_memory_usage</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'16G'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current_memory_available</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'32G'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_gpu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ip'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_cores</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/external/quantize.html#Quantizer.quantize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.external.quantize.Quantizer.quantize" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">quantize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">embeddings_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'npy'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embedding_column_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'embeddings'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_param</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_index_query_time_ms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_index_memory_usage</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'16G'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current_memory_available</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'32G'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_gpu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ip'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_cores</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/external/quantize.html#Quantizer.quantize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.external.quantize.Quantizer.quantize" title="Permalink to this definition"></a></dt>
 <dd><p>Reads embeddings and creates a quantized index from them.
 The index is stored on the current machine at the given ouput path.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>embeddings_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Local path containing all preprocessed vectors and cached files.
+<li><p><strong>embeddings_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – Local path containing all preprocessed vectors and cached files.
 Files will be added if empty.</p></li>
-<li><p><strong>output_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Destination path of the quantized model on local machine.</p></li>
-<li><p><strong>index_key</strong> (<em>Optinal</em><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>)</em>) – Optional string to give to the index factory in order to create the index.
+<li><p><strong>output_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – Destination path of the quantized model on local machine.</p></li>
+<li><p><strong>index_key</strong> (<em>Optinal</em><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>)</em>) – Optional string to give to the index factory in order to create the index.
 If None, an index is chosen based on an heuristic.</p></li>
-<li><p><strong>index_param</strong> (<em>Optional</em><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>)</em>) – Optional string with hyperparameters to set to the index.
+<li><p><strong>index_param</strong> (<em>Optional</em><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>)</em>) – Optional string with hyperparameters to set to the index.
 If None, the hyper-parameters are chosen based on an heuristic.</p></li>
-<li><p><strong>max_index_query_time_ms</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – Bound on the query time for KNN search, this bound is approximative</p></li>
-<li><p><strong>max_index_memory_usage</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Maximum size allowed for the index, this bound is strict</p></li>
-<li><p><strong>current_memory_available</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Memory available on the machine creating the index, having more memory is a boost
+<li><p><strong>max_index_query_time_ms</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a>) – Bound on the query time for KNN search, this bound is approximative</p></li>
+<li><p><strong>max_index_memory_usage</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – Maximum size allowed for the index, this bound is strict</p></li>
+<li><p><strong>current_memory_available</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – Memory available on the machine creating the index, having more memory is a boost
 because it reduces the swipe between RAM and disk.</p></li>
-<li><p><strong>use_gpu</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – Experimental, gpu training is faster, not tested so far</p></li>
-<li><p><strong>metric_type</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – <dl class="simple">
+<li><p><strong>use_gpu</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a>) – Experimental, gpu training is faster, not tested so far</p></li>
+<li><p><strong>metric_type</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – <dl class="simple">
 <dt>Similarity function used for query:</dt><dd><ul>
 <li><p>”ip” for inner product</p></li>
 <li><p>”l2” for euclidian distance</p></li>
@@ -515,11 +457,11 @@ because it reduces the swipe between RAM and disk.</p></li>
 </dd>
 </dl>
 </p></li>
-<li><p><strong>nb_cores</strong> (<em>Optional</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a><em>]</em>) – Number of cores to use. Will try to guess the right number if not provided</p></li>
+<li><p><strong>nb_cores</strong> (<em>Optional</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a><em>]</em>) – Number of cores to use. Will try to guess the right number if not provided</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -531,16 +473,16 @@ because it reduces the swipe between RAM and disk.</p></li>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>index_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Path to .index file on local disk if is_local_index_path is True,
+<li><p><strong>index_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – Path to .index file on local disk if is_local_index_path is True,
 otherwise path on hdfs.</p></li>
-<li><p><strong>embeddings_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Local path containing all preprocessed vectors and cached files.</p></li>
-<li><p><strong>is_local_index_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – True if the dest_path and index_path are local path, False if there are hdfs paths.</p></li>
-<li><p><strong>current_memory_available</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Memory available on the current machine, having more memory is a boost
+<li><p><strong>embeddings_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – Local path containing all preprocessed vectors and cached files.</p></li>
+<li><p><strong>is_local_index_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a>) – True if the dest_path and index_path are local path, False if there are hdfs paths.</p></li>
+<li><p><strong>current_memory_available</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – Memory available on the current machine, having more memory is a boost
 because it reduces the swipe between RAM and disk.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -554,23 +496,23 @@ otherwise perform a greedy heusistic to make the best out or the max_index_query
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>index_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Path to .index file on local disk if is_local_index_path is True,
+<li><p><strong>index_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – Path to .index file on local disk if is_local_index_path is True,
 otherwise path on hdfs.</p></li>
-<li><p><strong>index_key</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – String to give to the index factory in order to create the index.</p></li>
-<li><p><strong>index_param</strong> (<em>Optional</em><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>)</em>) – Optional string with hyperparameters to set to the index.
+<li><p><strong>index_key</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – String to give to the index factory in order to create the index.</p></li>
+<li><p><strong>index_param</strong> (<em>Optional</em><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>)</em>) – Optional string with hyperparameters to set to the index.
 If None, the hyper-parameters are chosen based on an heuristic.</p></li>
-<li><p><strong>dest_path</strong> (<em>Optional</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>]</em>) – Path to the newly created .index file. On local disk if is_local_index_path is True,
+<li><p><strong>dest_path</strong> (<em>Optional</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>]</em>) – Path to the newly created .index file. On local disk if is_local_index_path is True,
 otherwise on hdfs. If None id given, index_path is the destination path.</p></li>
-<li><p><strong>is_local_index_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – True if the dest_path and index_path are local path, False if there are hdfs paths.</p></li>
-<li><p><strong>max_index_query_time_ms</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – Query speed constraint for the index to create.</p></li>
-<li><p><strong>use_gpu</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – Experimental, gpu training is faster, not tested so far.</p></li>
+<li><p><strong>is_local_index_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a>) – True if the dest_path and index_path are local path, False if there are hdfs paths.</p></li>
+<li><p><strong>max_index_query_time_ms</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a>) – Query speed constraint for the index to create.</p></li>
+<li><p><strong>use_gpu</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a>) – Experimental, gpu training is faster, not tested so far.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p><strong>infos</strong> – Message describing the index created.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a></p>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -589,11 +531,11 @@ otherwise on hdfs. If None id given, index_path is the destination path.</p></li
 <p>Functions to compute metrics on an index</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="autofaiss.external.scores.compute_fast_metrics">
-<span class="sig-prename descclassname"><span class="pre">autofaiss.external.scores.</span></span><span class="sig-name descname"><span class="pre">compute_fast_metrics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">embeddings_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">omp_threads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">query_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/external/scores.html#compute_fast_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.external.scores.compute_fast_metrics" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">autofaiss.external.scores.</span></span><span class="sig-name descname"><span class="pre">compute_fast_metrics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">embeddings_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'npy'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embedding_column_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'embeddings'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">omp_threads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">query_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/external/scores.html#compute_fast_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.external.scores.compute_fast_metrics" title="Permalink to this definition"></a></dt>
 <dd><p>compute query speed, size and reconstruction of an index</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Union" title="(in Python v3.9)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]]</p>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Union" title="(in Python v3.10)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -604,7 +546,7 @@ otherwise on hdfs. If None id given, index_path is the destination path.</p></li
 <dd><p>Compute recall&#64;R and intersection recall&#64;R of an index</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]</p>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -625,7 +567,7 @@ otherwise on hdfs. If None id given, index_path is the destination path.</p></li
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="autofaiss.datasets.readers.html" class="btn btn-neutral float-left" title="autofaiss.datasets.readers package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="autofaiss.html" class="btn btn-neutral float-left" title="autofaiss package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="autofaiss.indices.html" class="btn btn-neutral float-right" title="autofaiss.indices package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

@@ -93,11 +93,13 @@
 <span class="kn">import</span> <span class="nn">faiss</span>
 
 <span class="kn">import</span> <span class="nn">fire</span>
+<span class="kn">import</span> <span class="nn">fsspec</span>
+
+<span class="kn">from</span> <span class="nn">autofaiss.readers.embeddings_iterators</span> <span class="kn">import</span> <span class="n">read_total_nb_vectors_and_dim</span>
 <span class="kn">from</span> <span class="nn">autofaiss.external.build</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">build_index</span><span class="p">,</span>
     <span class="n">estimate_memory_required_for_index_creation</span><span class="p">,</span>
     <span class="n">get_estimated_construction_time_infos</span><span class="p">,</span>
-    <span class="n">get_nb_vectors_and_dim</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span> <span class="nn">autofaiss.external.optimize</span> <span class="kn">import</span> <span class="n">get_optimal_hyperparameters</span><span class="p">,</span> <span class="n">get_optimal_index_keys_v2</span>
 <span class="kn">from</span> <span class="nn">autofaiss.external.scores</span> <span class="kn">import</span> <span class="n">compute_fast_metrics</span><span class="p">,</span> <span class="n">compute_medium_metrics</span>
@@ -116,6 +118,8 @@
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">embeddings_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">output_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">file_format</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;npy&quot;</span><span class="p">,</span>
+        <span class="n">embedding_column_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;embeddings&quot;</span><span class="p">,</span>
         <span class="n">index_key</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">index_param</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">max_index_query_time_ms</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">10.0</span><span class="p">,</span>
@@ -177,7 +181,9 @@
 
         <span class="k">with</span> <span class="n">Timeit</span><span class="p">(</span><span class="s2">&quot;Launching the whole pipeline&quot;</span><span class="p">):</span>
 
-            <span class="n">nb_vectors</span><span class="p">,</span> <span class="n">vec_dim</span> <span class="o">=</span> <span class="n">get_nb_vectors_and_dim</span><span class="p">(</span><span class="n">embeddings_path</span><span class="p">)</span>
+            <span class="n">nb_vectors</span><span class="p">,</span> <span class="n">vec_dim</span> <span class="o">=</span> <span class="n">read_total_nb_vectors_and_dim</span><span class="p">(</span>
+                <span class="n">embeddings_path</span><span class="p">,</span> <span class="n">file_format</span><span class="o">=</span><span class="n">file_format</span><span class="p">,</span> <span class="n">embedding_column_name</span><span class="o">=</span><span class="n">embedding_column_name</span>
+            <span class="p">)</span>
             <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;There are </span><span class="si">{</span><span class="n">nb_vectors</span><span class="si">}</span><span class="s2"> embeddings of dim </span><span class="si">{</span><span class="n">vec_dim</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
             <span class="k">with</span> <span class="n">Timeit</span><span class="p">(</span><span class="s2">&quot;Compute estimated construction time of the index&quot;</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
@@ -215,7 +221,14 @@
 
             <span class="k">with</span> <span class="n">Timeit</span><span class="p">(</span><span class="s2">&quot;Creating the index&quot;</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
                 <span class="n">index</span> <span class="o">=</span> <span class="n">build_index</span><span class="p">(</span>
-                    <span class="n">embeddings_path</span><span class="p">,</span> <span class="n">index_key</span><span class="p">,</span> <span class="n">metric_type</span><span class="p">,</span> <span class="n">nb_vectors</span><span class="p">,</span> <span class="n">current_memory_available</span><span class="p">,</span> <span class="n">use_gpu</span>
+                    <span class="n">embeddings_path</span><span class="p">,</span>
+                    <span class="n">index_key</span><span class="p">,</span>
+                    <span class="n">metric_type</span><span class="p">,</span>
+                    <span class="n">nb_vectors</span><span class="p">,</span>
+                    <span class="n">current_memory_available</span><span class="p">,</span>
+                    <span class="n">use_gpu</span><span class="o">=</span><span class="n">use_gpu</span><span class="p">,</span>
+                    <span class="n">file_format</span><span class="o">=</span><span class="n">file_format</span><span class="p">,</span>
+                    <span class="n">embedding_column_name</span><span class="o">=</span><span class="n">embedding_column_name</span><span class="p">,</span>
                 <span class="p">)</span>
 
             <span class="k">if</span> <span class="n">index_param</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -226,23 +239,26 @@
             <span class="n">set_search_hyperparameters</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">index_param</span><span class="p">,</span> <span class="n">use_gpu</span><span class="p">)</span>
             <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The best hyperparameters are: </span><span class="si">{</span><span class="n">index_param</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
-            <span class="c1"># Save the index</span>
-            <span class="n">index_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">index_key</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">index_param</span><span class="si">}</span><span class="s2">.index&quot;</span>
-
             <span class="k">with</span> <span class="n">Timeit</span><span class="p">(</span><span class="s2">&quot;Saving the index on local disk&quot;</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
-                <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">output_path</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">fs</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">fsspec</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">url_to_fs</span><span class="p">(</span><span class="n">output_path</span><span class="p">)</span>
+                <span class="n">fs</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">output_path</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
                 <span class="n">index_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">index_key</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">index_param</span><span class="si">}</span><span class="s2">.index&quot;</span>
-                <span class="n">faiss</span><span class="o">.</span><span class="n">write_index</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">output_path</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">index_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">index_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">output_path</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">index_name</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="n">faiss</span><span class="o">.</span><span class="n">write_index</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">index_path</span><span class="p">)</span>
 
             <span class="n">metric_infos</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
 
             <span class="k">with</span> <span class="n">Timeit</span><span class="p">(</span><span class="s2">&quot;Compute fast metrics&quot;</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
-                <span class="n">metric_infos</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">compute_fast_metrics</span><span class="p">(</span><span class="n">embeddings_path</span><span class="p">,</span> <span class="n">index</span><span class="p">))</span>
+                <span class="n">metric_infos</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+                    <span class="n">compute_fast_metrics</span><span class="p">(</span>
+                        <span class="n">embeddings_path</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">file_format</span><span class="o">=</span><span class="n">file_format</span><span class="p">,</span> <span class="n">embedding_column_name</span><span class="o">=</span><span class="n">embedding_column_name</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
 
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Recap:&quot;</span><span class="p">)</span>
             <span class="n">pp</span><span class="p">(</span><span class="n">metric_infos</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="s2">&quot;Done&quot;</span></div>
+        <span class="k">return</span> <span class="n">index_path</span></div>
 
 <div class="viewcode-block" id="Quantizer.tuning"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.quantize.Quantizer.tuning">[docs]</a>    <span class="k">def</span> <span class="nf">tuning</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>

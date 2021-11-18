@@ -1,0 +1,21 @@
+autofaiss.readers package
+=========================
+
+Submodules
+----------
+
+autofaiss.readers.embeddings\_iterators module
+----------------------------------------------
+
+.. automodule:: autofaiss.readers.embeddings_iterators
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: autofaiss.readers
+   :members:
+   :undoc-members:
+   :show-inheritance:

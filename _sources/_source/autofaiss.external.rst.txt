@@ -20,14 +20,6 @@ autofaiss.external.descriptions module
    :undoc-members:
    :show-inheritance:
 
-autofaiss.external.download module
-----------------------------------
-
-.. automodule:: autofaiss.external.download
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 autofaiss.external.metadata module
 ----------------------------------
 

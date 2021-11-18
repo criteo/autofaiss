@@ -88,9 +88,9 @@
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
 
 <span class="kn">import</span> <span class="nn">faiss</span>
+
+<span class="kn">from</span> <span class="nn">autofaiss.readers.embeddings_iterators</span> <span class="kn">import</span> <span class="n">read_first_file_shape</span><span class="p">,</span> <span class="n">read_embeddings</span>
 <span class="kn">from</span> <span class="nn">autofaiss.external.metadata</span> <span class="kn">import</span> <span class="n">IndexMetadata</span>
-<span class="kn">from</span> <span class="nn">autofaiss.datasets.readers.local_iterators</span> <span class="kn">import</span> <span class="n">read_embeddings_local</span><span class="p">,</span> <span class="n">read_shapes_local</span>
-<span class="kn">from</span> <span class="nn">autofaiss.datasets.readers.remote_iterators</span> <span class="kn">import</span> <span class="n">read_embeddings_remote</span><span class="p">,</span> <span class="n">read_filenames</span>
 <span class="kn">from</span> <span class="nn">autofaiss.external.optimize</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">check_if_index_needs_training</span><span class="p">,</span>
     <span class="n">compute_memory_necessary_for_training</span><span class="p">,</span>
@@ -145,32 +145,6 @@
     <span class="k">return</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">index_overhead</span> <span class="o">+</span> <span class="nb">max</span><span class="p">(</span><span class="n">index_memory</span> <span class="o">+</span> <span class="n">needed_for_adding</span><span class="p">,</span> <span class="n">memory_for_training</span><span class="p">))),</span> <span class="n">index_key</span></div>
 
 
-<div class="viewcode-block" id="get_estimated_download_time_infos"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.build.get_estimated_download_time_infos">[docs]</a><span class="k">def</span> <span class="nf">get_estimated_download_time_infos</span><span class="p">(</span>
-    <span class="n">embeddings_hdfs_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">bandwidth_gbytes_per_sec</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">indent</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Gives a general approximation of the download time (and preprocessing time) of embeddings</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">nb_vectors_approx</span><span class="p">,</span> <span class="n">vec_dim</span> <span class="o">=</span> <span class="n">get_nb_vectors_approx_and_dim_from_hdfs</span><span class="p">(</span><span class="n">embeddings_hdfs_path</span><span class="p">)</span>
-
-    <span class="n">size</span> <span class="o">=</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">nb_vectors_approx</span> <span class="o">*</span> <span class="n">vec_dim</span>
-
-    <span class="n">download</span> <span class="o">=</span> <span class="mf">1.1</span> <span class="o">*</span> <span class="n">size</span> <span class="o">/</span> <span class="p">(</span><span class="n">bandwidth_gbytes_per_sec</span> <span class="o">*</span> <span class="mi">1024</span> <span class="o">**</span> <span class="mi">3</span><span class="p">)</span>  <span class="c1"># seconds</span>
-    <span class="n">preprocess</span> <span class="o">=</span> <span class="mf">1.6</span> <span class="o">*</span> <span class="n">download</span>  <span class="c1"># seconds</span>
-
-    <span class="n">infos</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="sa">f</span><span class="s2">&quot;-&gt; Download: </span><span class="si">{</span><span class="n">to_readable_time</span><span class="p">(</span><span class="n">download</span><span class="p">,</span> <span class="n">rounding</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
-        <span class="sa">f</span><span class="s2">&quot;-&gt; Preprocess: </span><span class="si">{</span><span class="n">to_readable_time</span><span class="p">(</span><span class="n">preprocess</span><span class="p">,</span> <span class="n">rounding</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
-        <span class="sa">f</span><span class="s2">&quot;Total: </span><span class="si">{</span><span class="n">to_readable_time</span><span class="p">(</span><span class="n">download</span> <span class="o">+</span> <span class="n">preprocess</span><span class="p">,</span> <span class="n">rounding</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
-        <span class="s2">&quot; (&lt; 1 minute if files are already cached)&quot;</span>
-    <span class="p">)</span>
-
-    <span class="n">tab</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span> <span class="o">*</span> <span class="n">indent</span>
-    <span class="n">infos</span> <span class="o">=</span> <span class="n">tab</span> <span class="o">+</span> <span class="n">infos</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">tab</span><span class="p">)</span>
-
-    <span class="k">return</span> <span class="n">infos</span><span class="p">,</span> <span class="p">(</span><span class="n">nb_vectors_approx</span><span class="p">,</span> <span class="n">vec_dim</span><span class="p">)</span></div>
-
-
 <div class="viewcode-block" id="get_estimated_construction_time_infos"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.build.get_estimated_construction_time_infos">[docs]</a><span class="k">def</span> <span class="nf">get_estimated_construction_time_infos</span><span class="p">(</span><span class="n">nb_vectors</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">vec_dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">indent</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Gives a general approximation of the construction time of the index</span>
@@ -192,43 +166,14 @@
     <span class="k">return</span> <span class="n">infos</span></div>
 
 
-<div class="viewcode-block" id="get_nb_vectors_approx_and_dim_from_hdfs"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.build.get_nb_vectors_approx_and_dim_from_hdfs">[docs]</a><span class="k">def</span> <span class="nf">get_nb_vectors_approx_and_dim_from_hdfs</span><span class="p">(</span><span class="n">parquet_embeddings_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot;legacy function to give the dimensions of a parquet file</span>
-<span class="sd">    Still useful for tests&quot;&quot;&quot;</span>
-
-    <span class="c1"># Get information for one partition</span>
-    <span class="n">avg_batch_length</span><span class="p">,</span> <span class="n">vec_dim</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">read_embeddings_remote</span><span class="p">(</span><span class="n">parquet_embeddings_path</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span><span class="o">.</span><span class="n">shape</span>
-
-    <span class="c1"># Count the number of files</span>
-    <span class="n">nb_files</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">read_filenames</span><span class="p">(</span><span class="n">parquet_embeddings_path</span><span class="p">))</span>
-
-    <span class="n">nb_vectors_approx</span> <span class="o">=</span> <span class="n">nb_files</span> <span class="o">*</span> <span class="n">avg_batch_length</span>
-
-    <span class="k">return</span> <span class="n">nb_vectors_approx</span><span class="p">,</span> <span class="n">vec_dim</span></div>
-
-
-<div class="viewcode-block" id="get_nb_vectors_and_dim"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.build.get_nb_vectors_and_dim">[docs]</a><span class="k">def</span> <span class="nf">get_nb_vectors_and_dim</span><span class="p">(</span><span class="n">embeddings_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Function that gives the total shape of the embeddings array</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="n">tot_vec</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="n">vec_dim</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
-
-    <span class="k">for</span> <span class="n">shape</span> <span class="ow">in</span> <span class="n">read_shapes_local</span><span class="p">(</span><span class="n">embeddings_path</span><span class="p">):</span>
-        <span class="n">batch_length</span><span class="p">,</span> <span class="n">dim</span> <span class="o">=</span> <span class="n">shape</span>
-        <span class="n">tot_vec</span> <span class="o">+=</span> <span class="n">batch_length</span>
-        <span class="n">vec_dim</span> <span class="o">=</span> <span class="n">dim</span>
-
-    <span class="k">return</span> <span class="n">tot_vec</span><span class="p">,</span> <span class="n">vec_dim</span></div>
-
-
 <div class="viewcode-block" id="build_index"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.build.build_index">[docs]</a><span class="k">def</span> <span class="nf">build_index</span><span class="p">(</span>
     <span class="n">embeddings_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">index_key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">metric_type</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
     <span class="n">nb_vectors</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="n">current_memory_available</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">file_format</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;npy&quot;</span><span class="p">,</span>
+    <span class="n">embedding_column_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;embeddings&quot;</span><span class="p">,</span>
     <span class="n">use_gpu</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
 <span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -242,7 +187,9 @@
         <span class="n">metric_type</span> <span class="o">=</span> <span class="n">to_faiss_metric_type</span><span class="p">(</span><span class="n">metric_type</span><span class="p">)</span>
 
         <span class="c1"># Get information for one partition</span>
-        <span class="n">_</span><span class="p">,</span> <span class="n">vec_dim</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">read_shapes_local</span><span class="p">(</span><span class="n">embeddings_path</span><span class="p">))</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">vec_dim</span> <span class="o">=</span> <span class="n">read_first_file_shape</span><span class="p">(</span>
+            <span class="n">embeddings_path</span><span class="p">,</span> <span class="n">file_format</span><span class="o">=</span><span class="n">file_format</span><span class="p">,</span> <span class="n">embedding_column_name</span><span class="o">=</span><span class="n">embedding_column_name</span>
+        <span class="p">)</span>
 
         <span class="c1"># Instanciate the index</span>
         <span class="n">index</span> <span class="o">=</span> <span class="n">index_factory</span><span class="p">(</span><span class="n">vec_dim</span><span class="p">,</span> <span class="n">index_key</span><span class="p">,</span> <span class="n">metric_type</span><span class="p">)</span>
@@ -273,7 +220,15 @@
             <span class="p">)</span>
 
             <span class="c1"># Extract training vectors</span>
-            <span class="n">train_vectors</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">read_embeddings_local</span><span class="p">(</span><span class="n">embeddings_path</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">train_size</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+            <span class="n">train_vectors</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span>
+                <span class="n">read_embeddings</span><span class="p">(</span>
+                    <span class="n">embeddings_path</span><span class="p">,</span>
+                    <span class="n">file_format</span><span class="o">=</span><span class="n">file_format</span><span class="p">,</span>
+                    <span class="n">embedding_column_name</span><span class="o">=</span><span class="n">embedding_column_name</span><span class="p">,</span>
+                    <span class="n">batch_size</span><span class="o">=</span><span class="n">train_size</span><span class="p">,</span>
+                    <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
 
         <span class="c1"># Instanciate the index and train it</span>
         <span class="c1"># pylint: disable=no-member</span>
@@ -309,7 +264,13 @@
         <span class="nb">print</span><span class="p">(</span>
             <span class="sa">f</span><span class="s2">&quot;Using a batch size of </span><span class="si">{</span><span class="n">batch_size</span><span class="si">}</span><span class="s2"> (memory overhead </span><span class="si">{</span><span class="n">cast_bytes_to_memory_string</span><span class="p">(</span><span class="n">batch_size</span><span class="o">*</span><span class="n">vec_dim</span><span class="o">*</span><span class="mi">4</span><span class="p">)</span><span class="si">}</span><span class="s2">)&quot;</span>
         <span class="p">)</span>
-        <span class="k">for</span> <span class="n">vec_batch</span> <span class="ow">in</span> <span class="n">read_embeddings_local</span><span class="p">(</span><span class="n">embeddings_path</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">vec_batch</span> <span class="ow">in</span> <span class="n">read_embeddings</span><span class="p">(</span>
+            <span class="n">embeddings_path</span><span class="p">,</span>
+            <span class="n">file_format</span><span class="o">=</span><span class="n">file_format</span><span class="p">,</span>
+            <span class="n">embedding_column_name</span><span class="o">=</span><span class="n">embedding_column_name</span><span class="p">,</span>
+            <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span>
+            <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">):</span>
             <span class="n">index</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">vec_batch</span><span class="p">)</span>
 
     <span class="c1"># Give standard values for index hyperparameters if possible.</span>

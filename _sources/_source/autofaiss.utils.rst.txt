@@ -36,14 +36,6 @@ autofaiss.utils.decorators module
    :undoc-members:
    :show-inheritance:
 
-autofaiss.utils.hdfs\_utils module
-----------------------------------
-
-.. automodule:: autofaiss.utils.hdfs_utils
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 autofaiss.utils.os\_tools module
 --------------------------------
 

@@ -55,10 +55,10 @@
 <li class="toctree-l1 current"><a class="reference internal" href="modules.html">autofaiss</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="autofaiss.html">autofaiss package</a><ul class="current">
 <li class="toctree-l3 current"><a class="reference internal" href="autofaiss.html#subpackages">Subpackages</a><ul class="current">
-<li class="toctree-l4"><a class="reference internal" href="autofaiss.datasets.html">autofaiss.datasets package</a></li>
 <li class="toctree-l4"><a class="reference internal" href="autofaiss.external.html">autofaiss.external package</a></li>
 <li class="toctree-l4 current"><a class="current reference internal" href="#">autofaiss.indices package</a></li>
 <li class="toctree-l4"><a class="reference internal" href="autofaiss.metrics.html">autofaiss.metrics package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autofaiss.readers.html">autofaiss.readers package</a></li>
 <li class="toctree-l4"><a class="reference internal" href="autofaiss.utils.html">autofaiss.utils package</a></li>
 </ul>
 </li>
@@ -136,14 +136,14 @@
 <p>This file contains a wrapper class to create Faiss-like indices</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="autofaiss.indices.faiss_index_wrapper.FaissIndexWrapper">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">autofaiss.indices.faiss_index_wrapper.</span></span><span class="sig-name descname"><span class="pre">FaissIndexWrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">d</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric_type</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/faiss_index_wrapper.html#FaissIndexWrapper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.faiss_index_wrapper.FaissIndexWrapper" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/abc.html#abc.ABC" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></a></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autofaiss.indices.faiss_index_wrapper.</span></span><span class="sig-name descname"><span class="pre">FaissIndexWrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">d</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric_type</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/faiss_index_wrapper.html#FaissIndexWrapper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.faiss_index_wrapper.FaissIndexWrapper" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/abc.html#abc.ABC" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></a></p>
 <p>This abstract class is describing a Faiss-like index
 It is useful to use this wrapper to use benchmarking functions written for
 faiss in this library</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="autofaiss.indices.faiss_index_wrapper.FaissIndexWrapper.add">
-<em class="property"><span class="pre">abstract</span> </em><span class="sig-name descname"><span class="pre">add</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/faiss_index_wrapper.html#FaissIndexWrapper.add"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.faiss_index_wrapper.FaissIndexWrapper.add" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">add</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/faiss_index_wrapper.html#FaissIndexWrapper.add"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.faiss_index_wrapper.FaissIndexWrapper.add" title="Permalink to this definition"></a></dt>
 <dd><p>Function that adds vectors to the index</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -154,13 +154,13 @@ faiss in this library</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="autofaiss.indices.faiss_index_wrapper.FaissIndexWrapper.search">
-<em class="property"><span class="pre">abstract</span> </em><span class="sig-name descname"><span class="pre">search</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/faiss_index_wrapper.html#FaissIndexWrapper.search"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.faiss_index_wrapper.FaissIndexWrapper.search" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">search</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/faiss_index_wrapper.html#FaissIndexWrapper.search"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.faiss_index_wrapper.FaissIndexWrapper.search" title="Permalink to this definition"></a></dt>
 <dd><p>Function that search the k nearest neighbours of a batch of vectors</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>x</strong> (<em>2D numpy.array of floats</em>) – Batch of vectors of shape (batch_size, vector_dim)</p></li>
-<li><p><strong>k</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – Number of neighbours to retrieve for every vector</p></li>
+<li><p><strong>k</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – Number of neighbours to retrieve for every vector</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -198,7 +198,7 @@ faiss.index_factory with inner product metrics.</p>
 <dd><p>format the speed (ms/query) into a nice string</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></p>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -209,7 +209,7 @@ faiss.index_factory with inner product metrics.</p>
 <dd><p>Returns the size in RAM of a given index</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></p>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -237,7 +237,7 @@ faiss.index_factory with inner product metrics.</p>
 <dd><p>function to save a faiss index on hdfs</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></p>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -248,7 +248,7 @@ faiss.index_factory with inner product metrics.</p>
 <dd><p>return the average and 99p search speed</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]</p>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -259,7 +259,7 @@ faiss.index_factory with inner product metrics.</p>
 <dd><p>set hyperparameters to an index</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></p>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -270,7 +270,7 @@ faiss.index_factory with inner product metrics.</p>
 <dd><p>Evaluate the average speed in milliseconds of the index without using batch</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></p>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -281,7 +281,7 @@ faiss.index_factory with inner product metrics.</p>
 <p>This file contain a class describing a memory efficient flat index</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="autofaiss.indices.memory_efficient_flat_index.MemEfficientFlatIndex">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">autofaiss.indices.memory_efficient_flat_index.</span></span><span class="sig-name descname"><span class="pre">MemEfficientFlatIndex</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">d</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric_type</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/memory_efficient_flat_index.html#MemEfficientFlatIndex"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.memory_efficient_flat_index.MemEfficientFlatIndex" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autofaiss.indices.memory_efficient_flat_index.</span></span><span class="sig-name descname"><span class="pre">MemEfficientFlatIndex</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">d</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric_type</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/memory_efficient_flat_index.html#MemEfficientFlatIndex"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.memory_efficient_flat_index.MemEfficientFlatIndex" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#autofaiss.indices.faiss_index_wrapper.FaissIndexWrapper" title="autofaiss.indices.faiss_index_wrapper.FaissIndexWrapper"><code class="xref py py-class docutils literal notranslate"><span class="pre">autofaiss.indices.faiss_index_wrapper.FaissIndexWrapper</span></code></a></p>
 <p>Faiss-like Flat index that can support any size of vectors
 without memory issues.
@@ -307,7 +307,7 @@ flat index or rely fully on numpy.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>filename</strong> (<em>string</em>) – path of the 2D numpy array of shape (nb_items, vector_dim)
 on the disk</p></li>
-<li><p><strong>nb_items</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – number of vectors in the 2D array (the dim is already known)</p></li>
+<li><p><strong>nb_items</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – number of vectors in the 2D array (the dim is already known)</p></li>
 </ul>
 </dd>
 </dl>
@@ -332,8 +332,8 @@ on the disk</p></li>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>x</strong> (<em>2D numpy.array of floats</em>) – Batch of vectors of shape (batch_size, vector_dim)</p></li>
-<li><p><strong>k</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – Number of neighbours to retrieve for every vector</p></li>
-<li><p><strong>batch_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – Size of the batch of vectors that are explored.
+<li><p><strong>k</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – Number of neighbours to retrieve for every vector</p></li>
+<li><p><strong>batch_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – Size of the batch of vectors that are explored.
 A bigger value is prefered to avoid multiple loadings
 of the vectors from the disk.</p></li>
 </ul>
@@ -368,8 +368,8 @@ that optimizes speed over precision.</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>xq</strong> (<em>2D numpy.array of floats</em>) – Batch of vectors of shape (batch_size, vector_dim)</p></li>
-<li><p><strong>k</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – Number of neighbours to retrieve for every vector</p></li>
-<li><p><strong>batch_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – Size of the batch of vectors that are explored.
+<li><p><strong>k</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – Number of neighbours to retrieve for every vector</p></li>
+<li><p><strong>batch_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – Size of the batch of vectors that are explored.
 A bigger value is prefered to avoid multiple loadings
 of the vectors from the disk.</p></li>
 </ul>
@@ -398,7 +398,7 @@ Contains the vectors’ labels of the k nearest neighbours.</p></li>
 <dd><p>Do a knn search and return a list of the closest items and the associated distance</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Iterable" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Iterable</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.9)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.9)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>], <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]]</p>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Iterable" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Iterable</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.10)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.10)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>], <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]]</p>
 </dd>
 </dl>
 </dd></dl>

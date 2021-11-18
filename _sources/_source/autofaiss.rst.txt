@@ -7,10 +7,10 @@ Subpackages
 .. toctree::
    :maxdepth: 4
 
-   autofaiss.datasets
    autofaiss.external
    autofaiss.indices
    autofaiss.metrics
+   autofaiss.readers
    autofaiss.utils
 
 Submodules
