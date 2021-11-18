@@ -8,6 +8,8 @@
 
 It selects the best indexing parameters to achieve the highest recalls given memory and query speed constraints.
 
+## Doc and posts and notebooks
+
 Using [faiss](https://github.com/facebookresearch/faiss) efficient indices, binary search, and heuristics, Autofaiss makes it possible to *automatically* build in 3 hours a large (200 million vectors, 1TB) KNN index in a low amount of memory (15 GB) with latency in milliseconds (10ms).
 
 Get started by running this [colab notebook](https://colab.research.google.com/github/criteo/autofaiss/blob/master/docs/notebooks/autofaiss_getting_started.ipynb), then check the [full documentation](https://criteo.github.io/autofaiss).  
@@ -17,7 +19,7 @@ Then you can check our [multimodal search example](https://colab.research.google
 
 Read the [medium post](https://medium.com/criteo-engineering/introducing-autofaiss-an-automatic-k-nearest-neighbor-indexing-library-at-scale-c90842005a11) to learn more about it!
 
-## How to use autofaiss?
+## Installation
 
 To install run `pip install autofaiss`
 
@@ -29,6 +31,36 @@ pip install -U pip
 pip install autofaiss
 ```
 
+## Using autofaiss in python
+
+If you want to use autofaiss directly from python, check the [API documentation](https://criteo.github.io/autofaiss/API/api.html) and the [examples](examples)
+
+In particular you can use autofaiss with on memory or on disk embeddings collections:
+
+### Using in memory numpy arrays
+
+If you have a few embeddings, you can use autofaiss with in memory numpy arrays:
+
+```python
+from autofaiss import quantize
+import numpy as np
+embeddings = np.ones((100, 512), "float32")
+index, _ = quantize(embeddings)
+_, I = index.search(embeddings, 1)
+print(I)
+```
+
+### Using numpy arrays saved as .npy files
+
+If you have many embeddings file, it is preferred to save them on disk as .npy files then use autofaiss like this:
+
+```python
+from autofaiss import quantize
+quantize(embeddings_path="embeddings", output_path="my_index_folder", max_index_memory_usage="4G", current_memory_available="4G")
+```
+
+
+## Using the command line
 
 Create embeddings
 ``` python
@@ -58,34 +90,6 @@ k = 5
 distances, indices = my_index.search(query_vector, k)
 
 print(list(zip(distances[0], indices[0])))
-```
-
-## Using from python
-
-If you want to use autofaiss directly from python, check the [API documentation](https://criteo.github.io/autofaiss/API/api.html) and the [examples](examples)
-
-In particular you can use autofaiss with on memory or on disk embeddings collections:
-
-### Using in memory numpy arrays
-
-If you have a few embeddings, you can use autofaiss with in memory numpy arrays:
-
-```python
-from autofaiss import quantize
-import numpy as np
-embeddings = np.ones((100, 512), "float32")
-index, _ = quantize(embeddings)
-_, I = index.search(embeddings, 1)
-print(I)
-```
-
-### Using numpy arrays saved as .npy files
-
-If you have many embeddings file, it is preferred to save them on disk as .npy files then use autofaiss like this:
-
-```python
-from autofaiss import quantize
-quantize(embeddings_path="embeddings", output_path="my_index_folder", max_index_memory_usage="4G", current_memory_available="4G")
 ```
 
 ## How are indices selected ?
