@@ -30,7 +30,7 @@ def compute_fast_metrics(
 
     if isinstance(embeddings_path, str):
         # pylint: disable=bare-except
-        query_embeddings = next(
+        query_embeddings, _ = next(
             read_embeddings(
                 embeddings_path, file_format=file_format, embedding_column_name=embedding_column_name, verbose=False
             )

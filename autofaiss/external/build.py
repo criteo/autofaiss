@@ -136,7 +136,7 @@ def create_index(
             )
 
             # Extract training vectors
-            train_vectors = next(
+            train_vectors, _ = next(
                 read_embeddings(
                     embeddings_path,
                     file_format=file_format,
@@ -180,7 +180,7 @@ def create_index(
         print(
             f"Using a batch size of {batch_size} (memory overhead {cast_bytes_to_memory_string(batch_size*vec_dim*4)})"
         )
-        for vec_batch in read_embeddings(
+        for vec_batch, ids_batch in read_embeddings(
             embeddings_path,
             file_format=file_format,
             embedding_column_name=embedding_column_name,

@@ -3,11 +3,7 @@ import os
 import random
 import shutil
 
-from autofaiss.readers.embeddings_iterators import (
-    read_first_file_shape,
-    read_embeddings,
-    read_total_nb_vectors_and_dim,
-)
+from autofaiss.readers.embeddings_iterators import read_first_file_shape, read_embeddings, read_total_nb_vectors_and_dim
 import numpy as np
 import pandas as pd
 import py
@@ -74,8 +70,8 @@ def test_read_embeddings(tmpdir):
     batch_size = random.randint(min_size, max_size)
     it = read_embeddings(tmp_dir, file_format="npy", batch_size=batch_size)
     all_batches = list(it)
-    all_shapes = [x.shape for x in all_batches]
-    actual_array = np.vstack(all_batches)
+    all_shapes = [x[0].shape for x in all_batches]
+    actual_array = np.vstack([x[0] for x in all_batches])
 
     assert all(s[0] == batch_size and s[1] == 512 for s in all_shapes[:-1])
     assert all_shapes[-1][0] <= batch_size and all_shapes[-1][1] == 512
@@ -88,12 +84,39 @@ def test_read_embeddings(tmpdir):
     batch_size = random.randint(min_size, max_size)
     it = read_embeddings(tmp_dir, file_format="parquet", batch_size=batch_size, embedding_column_name="embedding")
     all_batches = list(it)
-    all_shapes = [x.shape for x in all_batches]
-    actual_array = np.vstack(all_batches)
+    all_shapes = [x[0].shape for x in all_batches]
+    actual_array = np.vstack([x[0] for x in all_batches])
 
     assert all(s[0] == batch_size and s[1] == 512 for s in all_shapes[:-1])
     assert all_shapes[-1][0] <= batch_size and all_shapes[-1][1] == 512
     np.testing.assert_almost_equal(actual_array, expected_array)
+
+
+def test_read_embeddings_with_ids(tmpdir):
+    min_size = 2
+    max_size = 2048
+    dim = 512
+    nb_files = 5
+
+    tmp_dir, sizes, dim, expected_df = build_test_collection_parquet(
+        tmpdir, min_size=min_size, max_size=max_size, dim=dim, nb_files=nb_files
+    )
+    expected_array = np.vstack(expected_df["embedding"])
+    batch_size = random.randint(min_size, max_size)
+    it = read_embeddings(
+        tmp_dir, file_format="parquet", batch_size=batch_size, embedding_column_name="embedding", id_columns=["id"]
+    )
+    all_batches = list(it)
+    all_shapes = [x[0].shape for x in all_batches]
+    actual_array = np.vstack([x[0] for x in all_batches])
+    actual_ids = pd.concat([x[1] for x in all_batches])
+
+    expected_df["i"] = np.arange(start=0, stop=len(expected_df))
+
+    assert all(s[0] == batch_size and s[1] == 512 for s in all_shapes[:-1])
+    assert all_shapes[-1][0] <= batch_size and all_shapes[-1][1] == 512
+    np.testing.assert_almost_equal(actual_array, expected_array)
+    pd.testing.assert_frame_equal(actual_ids.reset_index(drop=True), expected_df[["id", "i"]].reset_index(drop=True))
 
 
 def test_read_total_nb_vectors(tmpdir):

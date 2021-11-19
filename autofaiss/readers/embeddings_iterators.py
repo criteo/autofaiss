@@ -2,9 +2,11 @@
 import logging
 import os
 from multiprocessing.pool import ThreadPool
-from typing import Iterator, Optional, Tuple
+from typing import Iterator, Optional, Tuple, List, Union
 
+import pandas as pd
 import numpy as np
+import pyarrow
 from tqdm import tqdm as tq
 import fsspec
 import pyarrow.parquet as pq
@@ -15,10 +17,17 @@ from abc import ABC
 LOGGER = logging.getLogger(__name__)
 
 
+class AbstractArray:
+    num_rows: int
+
+    def get_rows(self, start: int, end: int) -> Tuple[np.ndarray, Optional[pd.DataFrame]]:
+        pass
+
+
 class AbstractMatrixReader(ABC):
     """Read a file and provide its shape, row count and ndarray. Behaves as a context manager"""
 
-    def __init__(self, fs, file_path):
+    def __init__(self, fs: fsspec.AbstractFileSystem, file_path: str):
         self.f = fs.open(file_path, "rb")
 
     def __enter__(self):
@@ -27,15 +36,27 @@ class AbstractMatrixReader(ABC):
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.f.close()
 
+    def get_row_count(self) -> int:
+        pass
+
+    def get_shape(self) -> Tuple[int, int]:
+        pass
+
+    def get_lazy_array(self) -> AbstractArray:
+        pass
+
+    def get_eager_array(self) -> AbstractArray:
+        pass
+
 
 class NumpyEagerNdArray:
-    def __init__(self, f):
+    def __init__(self, f: Union[str, fsspec.core.OpenFile]):
         self.n = np.load(f)
         self.shape = self.n.shape
         self.num_rows = self.shape[0]
 
-    def get_rows(self, start, end):
-        return self.n[start:end, :]
+    def get_rows(self, start: int, end: int) -> Tuple[np.ndarray, Optional[pd.DataFrame]]:
+        return self.n[start:end, :], None
 
 
 def read_numpy_header(f):
@@ -50,94 +71,102 @@ def read_numpy_header(f):
 class NumpyLazyNdArray:
     """Reads a numpy file lazily"""
 
-    def __init__(self, f):
+    def __init__(self, f: fsspec.spec.AbstractBufferedFile):
         self.f = f
         (self.shape, self.dtype, self.header_offset) = read_numpy_header(f)
         self.byteperitem = np.dtype(self.dtype).itemsize * self.shape[1]
         self.num_rows = self.shape[0]
 
-    def get_rows(self, start, end):
+    def get_rows(self, start: int, end: int) -> Tuple[np.ndarray, Optional[pd.DataFrame]]:
         length = end - start
         self.f.seek(self.header_offset + start * self.byteperitem)
-        return np.frombuffer(self.f.read(length * self.byteperitem), dtype=self.dtype).reshape((length, self.shape[1]))
+        return (
+            np.frombuffer(self.f.read(length * self.byteperitem), dtype=self.dtype).reshape((length, self.shape[1])),
+            None,
+        )
 
 
 class NumpyMatrixReader(AbstractMatrixReader):
     """Read a numpy file and provide its shape, row count and ndarray. Behaves as a context manager"""
 
-    def __init__(self, fs, file_path, *_):
+    def __init__(self, fs: fsspec.AbstractFileSystem, file_path: str, *_):
         super().__init__(fs, file_path)
 
-    def get_shape(self):
+    def get_shape(self) -> Tuple[int, int]:
         shape, _, _ = read_numpy_header(self.f)
         return shape
 
-    def get_row_count(self):
+    def get_row_count(self) -> int:
         return self.get_shape()[0]
 
-    def get_eager_ndarray(self):
+    def get_eager_array(self) -> NumpyEagerNdArray:
         return NumpyEagerNdArray(self.f)
 
-    def get_lazy_ndarray(self):
+    def get_lazy_array(self) -> NumpyLazyNdArray:
         return NumpyLazyNdArray(self.f)
 
 
 class ParquetEagerNdArray:
-    def __init__(self, f, embedding_column_name):
+    def __init__(self, f, embedding_column_name: str, id_columns: Optional[List[str]] = None):
         emb_table = pq.read_table(f).to_pandas()
         embeddings_raw = emb_table[embedding_column_name].to_numpy()
         self.n = np.stack(embeddings_raw)
-        self.num_rows = self.self.n.shape[0]
+        self.ids = emb_table[id_columns] if id_columns else None
+        self.num_rows = self.n.shape[0]
 
-    def get_rows(self, start, end):
-        return self.n[start:end, :]
+    def get_rows(self, start, end) -> Tuple[np.ndarray, Optional[pd.DataFrame]]:
+        return self.n[start:end, :], self.ids.iloc[start:end] if self.ids else None
 
 
 class ParquetLazyNdArray:
-    def __init__(self, f, embedding_column_name):
+    def __init__(self, f, embedding_column_name: str, id_columns: Optional[List[str]] = None):
         self.table = pq.read_table(f)
         self.num_rows = self.table.num_rows
         self.embedding_column_name = embedding_column_name
+        self.id_columns = id_columns
 
-    def get_rows(self, start, end):
-        embeddings_raw = self.table.slice(start, end - start)[self.embedding_column_name].to_numpy()
-        return np.stack(embeddings_raw)
+    def get_rows(self, start, end) -> Tuple[np.ndarray, Optional[pd.DataFrame]]:
+        table_slice = self.table.slice(start, end - start)
+        embeddings_raw = table_slice[self.embedding_column_name].to_numpy()
+        ids = table_slice.select(self.id_columns).to_pandas() if self.id_columns else None
+        return np.stack(embeddings_raw), ids
 
 
 class ParquetMatrixReader(AbstractMatrixReader):
     """Read a parquet file and provide its shape, row count and ndarray. Behaves as a context manager"""
 
-    def __init__(self, fs, file_path, embedding_column_name):
+    def __init__(self, fs, file_path, embedding_column_name, id_columns=None):
         super().__init__(fs, file_path)
         self.embedding_column_name = embedding_column_name
+        self.id_columns = id_columns
 
-    def get_shape(self):
+    def get_shape(self) -> Tuple[int, int]:
         parquet_file = pq.ParquetFile(self.f, memory_map=True)
         num_rows = parquet_file.metadata.num_rows
-        batches = parquet_file.iter_batches(batch_size=1, columns=(self.embedding_column_name,))
+        batches = parquet_file.iter_batches(batch_size=1, columns=[self.embedding_column_name])
         dimension = next(batches).to_pandas()[self.embedding_column_name].to_numpy()[0].shape[0]
         return (num_rows, dimension)
 
-    def get_row_count(self):
+    def get_row_count(self) -> int:
         parquet_file = pq.ParquetFile(self.f, memory_map=True)
         return parquet_file.metadata.num_rows
 
-    def get_eager_ndarray(self):
-        return ParquetEagerNdArray(self.f, self.embedding_column_name)
+    def get_eager_array(self) -> ParquetEagerNdArray:
+        return ParquetEagerNdArray(self.f, self.embedding_column_name, self.id_columns)
 
-    def get_lazy_ndarray(self):
-        return ParquetLazyNdArray(self.f, self.embedding_column_name)
+    def get_lazy_array(self) -> ParquetLazyNdArray:
+        return ParquetLazyNdArray(self.f, self.embedding_column_name, self.id_columns)
 
 
 matrix_readers_registry = {"parquet": ParquetMatrixReader, "npy": NumpyMatrixReader}
 
 
-def get_matrix_reader(file_format, fs, file_path, *args):
+def get_matrix_reader(file_format: str, fs: fsspec.AbstractFileSystem, file_path: str, *args) -> AbstractMatrixReader:
     cls = matrix_readers_registry[file_format]
     return cls(fs, file_path, *args)
 
 
-def get_file_list(path, file_format):
+def get_file_list(path: str, file_format: str) -> Tuple[fsspec.AbstractFileSystem, List[str]]:
     fs, path_in_fs = fsspec.core.url_to_fs(path)
     filenames = fs.walk(path_in_fs).__next__()[2]
     filenames = [filename for filename in filenames if filename.endswith(f".{file_format}")]
@@ -201,10 +230,11 @@ def read_total_nb_vectors_and_dim(
 def read_embeddings(
     embeddings_path: str,
     batch_size: Optional[int] = None,
-    verbose=True,
-    file_format="npy",
-    embedding_column_name="embeddings",
-) -> Iterator[np.ndarray]:
+    verbose: bool = True,
+    file_format: str = "npy",
+    embedding_column_name: str = "embeddings",
+    id_columns: Optional[List[str]] = None,
+) -> Iterator[Tuple[np.ndarray, Optional[pd.DataFrame]]]:
     """
     Iterate over embeddings arrays.
     It is possible to iterate over batchs of files and yield stacked embeddings arrays.
@@ -230,11 +260,16 @@ def read_embeddings(
         Print detailed informations if set to True
     embedding_column_name: str
         If file_format="parquet" - the name of the column containing the embeddings
+    id_columns: List[str] (default None)
+        List of columns containing the ids of the vectors,
+        these will be mapped to integer ids between 0 and total_nb_embeddings
 
     Returns
     -------
-    embeddings_iterator : Iterator[np.ndarray]
-        An iterator over batches of stacked embedding arrays.
+    embeddings_iterator : Iterator[Tuple[np.ndarray, Optional[pd.DataFrame]]]
+        An iterator over batches of stacked embedding arrays
+        and (optionally) a DataFrame containing the mapping between id columns
+        and an index in [0, total_nb_embeddings-1] store in a column "i"
     """
     try:
         first_vector_count, dim = read_first_file_shape(
@@ -248,19 +283,21 @@ def read_embeddings(
 
     fs, filenames = get_file_list(embeddings_path, file_format)
     embeddings_batch = None
+    ids_batch = None
     nb_emb_in_batch = 0
 
     iterator = filenames
     if verbose:
         iterator = tq(list(iterator))
 
+    total_embeddings_processed = 0
     for filename in iterator:
         file_path = os.path.join(embeddings_path, filename)
         with get_matrix_reader(
-            file_format, fs, os.path.join(embeddings_path, file_path), embedding_column_name
+            file_format, fs, os.path.join(embeddings_path, file_path), embedding_column_name, id_columns
         ) as matrix_reader:
-            emb = matrix_reader.get_lazy_ndarray()
-            vec_size = emb.num_rows
+            array = matrix_reader.get_lazy_array()
+            vec_size = array.num_rows
             current_emb_index = 0
             while True:
                 left_in_emb = vec_size - current_emb_index
@@ -269,17 +306,39 @@ def read_embeddings(
                 additional = max(left_in_emb - adding, 0)
                 if embeddings_batch is None:
                     embeddings_batch = np.empty((batch_size, dim), "float32")
-                embeddings_batch[nb_emb_in_batch : (nb_emb_in_batch + adding), :] = emb.get_rows(
-                    current_emb_index, (current_emb_index + adding)
-                )
+                current_embeddings, ids_df = array.get_rows(current_emb_index, (current_emb_index + adding))
+                embeddings_batch[nb_emb_in_batch : (nb_emb_in_batch + adding), :] = current_embeddings
+
+                if ids_df is not None:
+                    if ids_batch is None:
+                        ids_batch = np.empty((batch_size, len(id_columns)), dtype="object")
+                    ids_batch[nb_emb_in_batch : (nb_emb_in_batch + adding), :] = ids_df.to_numpy()
+
                 nb_emb_in_batch += adding
                 current_emb_index += adding
                 if nb_emb_in_batch == batch_size:
-                    yield embeddings_batch
+                    if id_columns is not None:
+                        ids_batch_df = pd.DataFrame(ids_batch, columns=id_columns).infer_objects()
+                        ids_batch_df["i"] = np.arange(
+                            start=total_embeddings_processed, stop=total_embeddings_processed + nb_emb_in_batch
+                        )
+                    else:
+                        ids_batch_df = None
+
+                    yield embeddings_batch, ids_batch_df
+                    total_embeddings_processed += nb_emb_in_batch
                     nb_emb_in_batch = 0
                     embeddings_batch = None
                 if additional == 0:
                     break
 
     if nb_emb_in_batch > 0 and embeddings_batch is not None:
-        yield embeddings_batch[:nb_emb_in_batch]
+        if id_columns is not None:
+            ids_batch_df = pd.DataFrame(ids_batch[:nb_emb_in_batch, :], columns=id_columns).infer_objects()
+            ids_batch_df["i"] = np.arange(
+                start=total_embeddings_processed, stop=total_embeddings_processed + nb_emb_in_batch
+            )
+        else:
+            ids_batch_df = None
+        total_embeddings_processed += nb_emb_in_batch
+        yield embeddings_batch[:nb_emb_in_batch], ids_batch_df
