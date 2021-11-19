@@ -24,7 +24,7 @@ if __name__ == "__main__":
         "pyarrow>=0.14",
         "tqdm>=4.46.0",
         "faiss-cpu>=1.7.0",
-        "fsspec==2021.11.0"
+        "fsspec==2021.11.0",
     ]
 
     _TEST_REQUIRE = ["pytest"]
