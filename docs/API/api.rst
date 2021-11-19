@@ -11,6 +11,6 @@ Quantizer module contains the exported functions
 .. autosummary::
    :toctree: _autosummary
 
-   Quantizer.quantize
-   Quantizer.score_index
-   Quantizer.tuning
+   build_index
+   score_index
+   tune_index

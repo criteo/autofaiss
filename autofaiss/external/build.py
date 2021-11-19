@@ -82,7 +82,7 @@ def get_estimated_construction_time_infos(nb_vectors: int, vec_dim: int, indent:
     return infos
 
 
-def build_index(
+def create_index(
     embeddings_path: str,
     index_key: str,
     metric_type: Union[str, int],

@@ -42,10 +42,10 @@ In particular you can use autofaiss with on memory or on disk embeddings collect
 If you have a few embeddings, you can use autofaiss with in memory numpy arrays:
 
 ```python
-from autofaiss import quantize
+from autofaiss import build_index
 import numpy as np
 embeddings = np.ones((100, 512), "float32")
-index, _ = quantize(embeddings)
+index, index_infos = build_index(embeddings, save_to_disk=False)
 _, I = index.search(embeddings, 1)
 print(I)
 ```
@@ -55,8 +55,8 @@ print(I)
 If you have many embeddings file, it is preferred to save them on disk as .npy files then use autofaiss like this:
 
 ```python
-from autofaiss import quantize
-quantize(embeddings_path="embeddings", output_path="my_index_folder", max_index_memory_usage="4G", current_memory_available="4G")
+from autofaiss import build_index
+build_index(embeddings_path="embeddings", index_path="my_index_folder/knn.index", index_infos_path="my_index_folder/index_infos.json", max_index_memory_usage="4G", current_memory_available="4G")
 ```
 
 
@@ -74,7 +74,7 @@ os.mkdir("my_index_folder")
 
 Generate a Knn index
 ``` bash
-autofaiss quantize --embeddings_path="embeddings" --output_path="my_index_folder" --metric_type="ip"
+autofaiss build_index --embeddings_path="embeddings" --index_path="my_index_folder/knn.index" --index_infos_path="my_index_folder/index_infos.json" --metric_type="ip"
 ```
 
 Try the index
@@ -97,10 +97,11 @@ print(list(zip(distances[0], indices[0])))
 To understand better why indices are selected and what are their characteristics, check the [index selection demo](https://colab.research.google.com/github/criteo/autofaiss/blob/master/docs/notebooks/autofaiss_index_selection_demo.ipynb)
 
 ## Command quick overview
-Quick description of the `autofaiss quantize` command:
+Quick description of the `autofaiss build_index` command:
 
 *embeddings_path*           -> Source path of the embeddings in numpy.  
-*output_path*               -> Destination path of the created index.
+*index_path*               -> Destination path of the created index.
+*index_infos_path*         -> Destination path of the index infos.
 *metric_type*               -> Similarity distance for the queries.  
 
 *index_key*                 -> (optional) Describe the index to build.  
@@ -110,12 +111,13 @@ Quick description of the `autofaiss quantize` command:
 
 ## Command details
 
-The `autofaiss quantize` command takes the following parameters:
+The `autofaiss build_index` command takes the following parameters:
 
 | Flag available             |  Default | Description                                                                                                                                                                                                                                               |
 |----------------------------|:--------:|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | --embeddings_path          | required | directory containing your .npy embedding files. If there are several files, they are read in the lexicographical order. This can be a local path or a path in another Filesystem e.g. `hdfs://root/...` or `s3://...`                                                                                                        |
-| --output_path              | required | Destination path of the faiss index on local machine.                                                                                                                                                                                                     |
+| --index_path              | required | Destination path of the faiss index on local machine.                                                                                                                                                                                                     |
+| --index_infos_path              | required | Destination path of the faiss index infos on local machine.                                                                                                                                                                                                     |
 | --file_format              | "npy"    | File format of the files in embeddings_path Can be either `npy` for numpy matrix files or `parquet` for parquet serialized tables |
 | --embedding_column_name    | "embeddings" | Only necessary when when file_format=`parquet` In this case this is the name of the column containing the embeddings (one vector per row) |
 | --metric_type              |   "ip"   | (Optional) Similarity function used for query: ("ip" for inner product, "l2" for euclidian distance)                                                                                                                                                                                                            |

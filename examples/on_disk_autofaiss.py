@@ -1,8 +1,9 @@
-from autofaiss import quantize
+from autofaiss import build_index
 
-quantize(
+build_index(
     embeddings_path="embeddings",
-    output_path="my_index_folder",
+    index_path="knn.index",
+    index_infos_path="infos.json",
     max_index_memory_usage="4G",
     current_memory_available="4G",
 )

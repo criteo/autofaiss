@@ -8,13 +8,13 @@ import multiprocessing
 import tempfile
 
 import faiss
+import json
 
 import fire
-import fsspec
 
 from autofaiss.readers.embeddings_iterators import read_total_nb_vectors_and_dim
 from autofaiss.external.build import (
-    build_index,
+    create_index,
     estimate_memory_required_for_index_creation,
     get_estimated_construction_time_infos,
 )
@@ -26,9 +26,11 @@ from autofaiss.utils.cast import cast_memory_to_bytes, cast_bytes_to_memory_stri
 import numpy as np
 
 
-def quantize(
+def build_index(
     embeddings_path: Union[str, np.ndarray],
-    output_path: Optional[str] = None,
+    index_path: str = "knn.index",
+    index_infos_path: str = "index_infos.json",
+    save_on_disk: bool = True,
     file_format: str = "npy",
     embedding_column_name: str = "embedding",
     index_key: Optional[str] = None,
@@ -39,7 +41,7 @@ def quantize(
     use_gpu: bool = False,
     metric_type: str = "ip",
     nb_cores: Optional[int] = None,
-) -> Tuple[Optional[Any], Optional[str]]:
+) -> Tuple[Optional[Any], Optional[Dict[str, Union[str, float, int]]]]:
     """
     Reads embeddings and creates a quantized index from them.
     The index is stored on the current machine at the given ouput path.
@@ -49,8 +51,12 @@ def quantize(
     embeddings_path : Union[str, np.ndarray]
         Local path containing all preprocessed vectors and cached files.
         Files will be added if empty.
-    output_path: Optional(str)
-        Destination path of the quantized model on local machine.
+    index_path: Optional(str)
+        Destination path of the quantized model.
+    index_infos_path: Optional(str)
+        Destination path of the metadata file.
+    save_on_disk: bool
+        Whether to save the index on disk, default to True.
     file_format: Optional(str)
         npy or parquet ; default npy
     embedding_column_name: Optional(str)
@@ -93,9 +99,6 @@ def quantize(
         nb_cores = multiprocessing.cpu_count()
     print(f"Using {nb_cores} omp threads (processes), consider increasing --nb_cores if you have more")
     faiss.omp_set_num_threads(nb_cores)
-
-    if output_path is None:
-        index_path = None
 
     if isinstance(embeddings_path, np.ndarray):
         tmp_dir_embeddings = tempfile.TemporaryDirectory()
@@ -143,7 +146,7 @@ def quantize(
                 index_key = best_index_keys[0]
 
         with Timeit("Creating the index", indent=1):
-            index = build_index(
+            index = create_index(
                 embeddings_path,
                 index_key,
                 metric_type,
@@ -162,15 +165,9 @@ def quantize(
         set_search_hyperparameters(index, index_param, use_gpu)
         print(f"The best hyperparameters are: {index_param}")
 
-        if output_path is not None:
-            with Timeit("Saving the index on local disk", indent=1):
-                fs, _ = fsspec.core.url_to_fs(output_path)
-                fs.makedirs(output_path, exist_ok=True)
-                index_name = f"{index_key}-{index_param}.index"
-                index_path = f"{output_path}/{index_name}"
-                faiss.write_index(index, index_path)
-
         metric_infos: Dict[str, Union[str, float, int]] = {}
+        metric_infos["index_key"] = index_key
+        metric_infos["index_param"] = index_param
 
         with Timeit("Compute fast metrics", indent=1):
             metric_infos.update(
@@ -179,13 +176,18 @@ def quantize(
                 )
             )
 
+        if save_on_disk:
+            with Timeit("Saving the index on local disk", indent=1):
+                faiss.write_index(index, index_path)
+                json.dump(metric_infos, open(index_infos_path, "w"))
+
         print("Recap:")
         pp(metric_infos)
 
-    return index, index_path
+    return index, metric_infos
 
 
-def tuning(
+def tune_index(
     index_path: str,
     index_key: str,
     index_param: Optional[str] = None,
@@ -312,7 +314,7 @@ def main():
     """Main entry point"""
     logging.basicConfig(level=logging.INFO)
 
-    fire.Fire({"quantize": quantize, "tuning": tuning, "score_index": score_index})
+    fire.Fire({"build_index": build_index, "tune_index": tune_index, "score_index": score_index})
 
 
 if __name__ == "__main__":

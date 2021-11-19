@@ -49,13 +49,13 @@ def read_first_file_shape(
 
     first_file = filenames[0]
     first_file_path = os.path.join(embeddings_path, first_file)
-    LOGGER.info(f"First file in path {embeddings_path} = {first_file_path}")
+    LOGGER.debug(f"First file in path {embeddings_path} = {first_file_path}")
     if file_format == "npy":
-        LOGGER.info(f"Opening numpy file {first_file_path}")
+        LOGGER.debug(f"Opening numpy file {first_file_path}")
         with fs.open(first_file_path, "rb") as f:
             shape = get_shape_numpy(f)
     elif file_format == "parquet":
-        LOGGER.info(f"Opening parquet file {first_file_path} and getting column {embedding_column_name}")
+        LOGGER.debug(f"Opening parquet file {first_file_path} and getting column {embedding_column_name}")
         with fs.open(first_file_path, "rb") as f:
             emb = pq.read_table(f).to_pandas()
             embeddings_raw = emb[embedding_column_name].to_numpy()
