@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>autofaiss.external.quantize.Quantizer.tuning &mdash; autofaiss 1.0.0 documentation</title>
+  <title>autofaiss.external.quantize.score_index &mdash; autofaiss 1.0.0 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -19,8 +19,8 @@
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="autofaiss" href="../../_source/modules.html" />
-    <link rel="prev" title="autofaiss.external.quantize.Quantizer.score_index" href="autofaiss.external.quantize.Quantizer.score_index.html" /> 
+    <link rel="next" title="autofaiss.external.quantize.tune_index" href="autofaiss.external.quantize.tune_index.html" />
+    <link rel="prev" title="autofaiss.external.quantize.build_index" href="autofaiss.external.quantize.build_index.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -53,9 +53,9 @@
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="../api.html">Python documentation</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="../api.html#quantize">Quantize</a><ul class="current">
-<li class="toctree-l3"><a class="reference internal" href="autofaiss.external.quantize.Quantizer.quantize.html">autofaiss.external.quantize.Quantizer.quantize</a></li>
-<li class="toctree-l3"><a class="reference internal" href="autofaiss.external.quantize.Quantizer.score_index.html">autofaiss.external.quantize.Quantizer.score_index</a></li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">autofaiss.external.quantize.Quantizer.tuning</a></li>
+<li class="toctree-l3"><a class="reference internal" href="autofaiss.external.quantize.build_index.html">autofaiss.external.quantize.build_index</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">autofaiss.external.quantize.score_index</a></li>
+<li class="toctree-l3"><a class="reference internal" href="autofaiss.external.quantize.tune_index.html">autofaiss.external.quantize.tune_index</a></li>
 </ul>
 </li>
 </ul>
@@ -83,9 +83,9 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
           <li><a href="../api.html">Python documentation</a> &raquo;</li>
-      <li>autofaiss.external.quantize.Quantizer.tuning</li>
+      <li>autofaiss.external.quantize.score_index</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../../_sources/API/_autosummary/autofaiss.external.quantize.Quantizer.tuning.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../../_sources/API/_autosummary/autofaiss.external.quantize.score_index.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -117,34 +117,25 @@
     text-align: unset;
 }
 </style>
-<section id="autofaiss-external-quantize-quantizer-tuning">
-<h1>autofaiss.external.quantize.Quantizer.tuning<a class="headerlink" href="#autofaiss-external-quantize-quantizer-tuning" title="Permalink to this headline"></a></h1>
-<dl class="py method">
-<dt class="sig sig-object py" id="autofaiss.external.quantize.Quantizer.tuning">
-<span class="sig-prename descclassname"><span class="pre">Quantizer.</span></span><span class="sig-name descname"><span class="pre">tuning</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_param</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dest_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_local_index_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_index_query_time_ms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_gpu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/autofaiss/external/quantize.html#Quantizer.tuning"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.external.quantize.Quantizer.tuning" title="Permalink to this definition"></a></dt>
-<dd><p>Set hyperparameters to the given index.</p>
-<p>If an index_param is given, set this hyperparameters to the index,
-otherwise perform a greedy heusistic to make the best out or the max_index_query_time_ms constraint</p>
+<section id="autofaiss-external-quantize-score-index">
+<h1>autofaiss.external.quantize.score_index<a class="headerlink" href="#autofaiss-external-quantize-score-index" title="Permalink to this headline"></a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="autofaiss.external.quantize.score_index">
+<span class="sig-prename descclassname"><span class="pre">autofaiss.external.quantize.</span></span><span class="sig-name descname"><span class="pre">score_index</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embeddings_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_local_index_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current_memory_available</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'32G'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/autofaiss/external/quantize.html#score_index"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.external.quantize.score_index" title="Permalink to this definition"></a></dt>
+<dd><p>Compute metrics on a given index, use cached ground truth for fast scoring the next times.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>index_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – Path to .index file on local disk if is_local_index_path is True,
 otherwise path on hdfs.</p></li>
-<li><p><strong>index_key</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – String to give to the index factory in order to create the index.</p></li>
-<li><p><strong>index_param</strong> (<em>Optional</em><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>)</em>) – Optional string with hyperparameters to set to the index.
-If None, the hyper-parameters are chosen based on an heuristic.</p></li>
-<li><p><strong>dest_path</strong> (<em>Optional</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>]</em>) – Path to the newly created .index file. On local disk if is_local_index_path is True,
-otherwise on hdfs. If None id given, index_path is the destination path.</p></li>
+<li><p><strong>embeddings_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – Local path containing all preprocessed vectors and cached files.</p></li>
 <li><p><strong>is_local_index_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a>) – True if the dest_path and index_path are local path, False if there are hdfs paths.</p></li>
-<li><p><strong>max_index_query_time_ms</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a>) – Query speed constraint for the index to create.</p></li>
-<li><p><strong>use_gpu</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a>) – Experimental, gpu training is faster, not tested so far.</p></li>
+<li><p><strong>current_memory_available</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – Memory available on the current machine, having more memory is a boost
+because it reduces the swipe between RAM and disk.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><strong>infos</strong> – Message describing the index created.</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></p>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -155,8 +146,8 @@ otherwise on hdfs. If None id given, index_path is the destination path.</p></li
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="autofaiss.external.quantize.Quantizer.score_index.html" class="btn btn-neutral float-left" title="autofaiss.external.quantize.Quantizer.score_index" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="../../_source/modules.html" class="btn btn-neutral float-right" title="autofaiss" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="autofaiss.external.quantize.build_index.html" class="btn btn-neutral float-left" title="autofaiss.external.quantize.build_index" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="autofaiss.external.quantize.tune_index.html" class="btn btn-neutral float-right" title="autofaiss.external.quantize.tune_index" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

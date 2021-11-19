@@ -448,8 +448,9 @@ div.rendered_html tbody tr:hover {
 !pip install autofaiss &amp;&gt; /dev/null
 
 # Build a KNN index
-!autofaiss quantize --embeddings_path={embeddings_dir} \
-                    --output_path=&quot;my_index_folder&quot; \
+!autofaiss build_index --embeddings_path={embeddings_dir} \
+                    --index_path=&quot;knn.index&quot; \
+                    --index_infos_path=&quot;infos.json&quot; \
                     --metric_type={metric_type} \
                     --max_index_query_time_ms=5 \
                     --max_index_memory_usage={max_index_memory_usage}
@@ -515,7 +516,7 @@ Done
 <span class="kn">import</span> <span class="nn">glob</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
-<span class="n">my_index</span> <span class="o">=</span> <span class="n">faiss</span><span class="o">.</span><span class="n">read_index</span><span class="p">(</span><span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">&quot;my_index_folder/*.index&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+<span class="n">my_index</span> <span class="o">=</span> <span class="n">faiss</span><span class="o">.</span><span class="n">read_index</span><span class="p">(</span><span class="s2">&quot;knn.index&quot;</span><span class="p">)</span>
 
 <span class="n">query_vector</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">100</span><span class="p">))</span>
 <span class="n">k</span> <span class="o">=</span> <span class="mi">5</span>
@@ -548,12 +549,11 @@ Top 5 elements in the dataset for max inner product search:
 </pre></div>
 </div>
 <div class="input_area highlight-python notranslate"><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">autofaiss.external.quantize</span> <span class="kn">import</span> <span class="n">Quantizer</span>
+<span></span><span class="kn">from</span> <span class="nn">autofaiss</span> <span class="kn">import</span> <span class="n">build_index</span>
 
-<span class="n">quantizer</span> <span class="o">=</span> <span class="n">Quantizer</span><span class="p">()</span>
-
-<span class="n">quantizer</span><span class="o">.</span><span class="n">quantize</span><span class="p">(</span><span class="n">embeddings_path</span><span class="o">=</span><span class="s2">&quot;embeddings_folder&quot;</span><span class="p">,</span>
-                   <span class="n">output_path</span><span class="o">=</span><span class="s2">&quot;my_index_folder&quot;</span><span class="p">,</span>
+<span class="n">build_index</span><span class="p">(</span><span class="n">embeddings_path</span><span class="o">=</span><span class="s2">&quot;embeddings_folder&quot;</span><span class="p">,</span>
+                   <span class="n">index_path</span><span class="o">=</span><span class="s2">&quot;knn.index&quot;</span><span class="p">,</span>
+                   <span class="n">index_infos_path</span><span class="o">=</span><span class="s2">&quot;infos.json&quot;</span><span class="p">,</span>
                    <span class="n">max_index_query_time_ms</span> <span class="o">=</span> <span class="n">max_index_query_time_ms</span><span class="p">,</span>
                    <span class="n">max_index_memory_usage</span> <span class="o">=</span> <span class="n">max_index_memory_usage</span><span class="p">,</span>
                    <span class="n">metric_type</span><span class="o">=</span><span class="n">metric_type</span><span class="p">)</span>

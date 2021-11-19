@@ -19,7 +19,7 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="autofaiss.external.quantize.Quantizer.quantize" href="_autosummary/autofaiss.external.quantize.Quantizer.quantize.html" />
+    <link rel="next" title="autofaiss.external.quantize.build_index" href="_autosummary/autofaiss.external.quantize.build_index.html" />
     <link rel="prev" title="Creating an index" href="../getting_started/quantization.html" /> 
 </head>
 
@@ -53,9 +53,9 @@
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Python documentation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#quantize">Quantize</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="_autosummary/autofaiss.external.quantize.Quantizer.quantize.html">autofaiss.external.quantize.Quantizer.quantize</a></li>
-<li class="toctree-l3"><a class="reference internal" href="_autosummary/autofaiss.external.quantize.Quantizer.score_index.html">autofaiss.external.quantize.Quantizer.score_index</a></li>
-<li class="toctree-l3"><a class="reference internal" href="_autosummary/autofaiss.external.quantize.Quantizer.tuning.html">autofaiss.external.quantize.Quantizer.tuning</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/autofaiss.external.quantize.build_index.html">autofaiss.external.quantize.build_index</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/autofaiss.external.quantize.score_index.html">autofaiss.external.quantize.score_index</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/autofaiss.external.quantize.tune_index.html">autofaiss.external.quantize.tune_index</a></li>
 </ul>
 </li>
 </ul>
@@ -127,13 +127,13 @@
 <col style="width: 90%" />
 </colgroup>
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="../_source/autofaiss.external.html#autofaiss.external.quantize.Quantizer.quantize" title="autofaiss.external.quantize.Quantizer.quantize"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Quantizer.quantize</span></code></a>(embeddings_path, output_path)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="../_source/autofaiss.external.html#autofaiss.external.quantize.build_index" title="autofaiss.external.quantize.build_index"><code class="xref py py-obj docutils literal notranslate"><span class="pre">build_index</span></code></a>(embeddings_path[, index_path, ...])</p></td>
 <td><p>Reads embeddings and creates a quantized index from them.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../_source/autofaiss.external.html#autofaiss.external.quantize.Quantizer.score_index" title="autofaiss.external.quantize.Quantizer.score_index"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Quantizer.score_index</span></code></a>(index_path, ...[, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="../_source/autofaiss.external.html#autofaiss.external.quantize.score_index" title="autofaiss.external.quantize.score_index"><code class="xref py py-obj docutils literal notranslate"><span class="pre">score_index</span></code></a>(index_path, embeddings_path[, ...])</p></td>
 <td><p>Compute metrics on a given index, use cached ground truth for fast scoring the next times.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../_source/autofaiss.external.html#autofaiss.external.quantize.Quantizer.tuning" title="autofaiss.external.quantize.Quantizer.tuning"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Quantizer.tuning</span></code></a>(index_path, index_key[, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="../_source/autofaiss.external.html#autofaiss.external.quantize.tune_index" title="autofaiss.external.quantize.tune_index"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tune_index</span></code></a>(index_path, index_key[, ...])</p></td>
 <td><p>Set hyperparameters to the given index.</p></td>
 </tr>
 </tbody>
@@ -146,7 +146,7 @@
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="../getting_started/quantization.html" class="btn btn-neutral float-left" title="Creating an index" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="_autosummary/autofaiss.external.quantize.Quantizer.quantize.html" class="btn btn-neutral float-right" title="autofaiss.external.quantize.Quantizer.quantize" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="_autosummary/autofaiss.external.quantize.build_index.html" class="btn btn-neutral float-right" title="autofaiss.external.quantize.build_index" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

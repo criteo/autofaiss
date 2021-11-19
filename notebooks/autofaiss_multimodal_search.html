@@ -929,8 +929,9 @@ image_list = df[&quot;image_path&quot;].tolist()
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span># Build a KNN index
-!autofaiss quantize --embeddings_path=&quot;embedding_folder/img_emb&quot; \
-                    --output_path=&quot;my_index_folder&quot; \
+!autofaiss build_index --embeddings_path=&quot;embedding_folder/img_emb&quot; \
+                    --index_path=&quot;knn.index&quot; \
+                    --index_infos_path=&quot;infos.json&quot; \
                     --metric_type=&quot;ip&quot; \
                     --max_index_query_time_ms=5 \
                     --max_index_memory_usage=&quot;1GB&quot;
@@ -1011,7 +1012,7 @@ Done
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span>import faiss
 import numpy as np
-ind = faiss.read_index(&quot;my_index_folder/HNSW15-efSearch=16383.index&quot;)
+ind = faiss.read_index(&quot;knn.index&quot;)
 </pre></div>
 </div>
 </div>
