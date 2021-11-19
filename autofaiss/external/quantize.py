@@ -3,6 +3,10 @@
 import logging
 from pprint import pprint as pp
 from typing import Dict, Optional, Union, Any, Tuple
+import os
+import uuid
+from pprint import pprint as pp
+from typing import Dict, Optional, Union, List
 import multiprocessing
 import tempfile
 import fsspec
@@ -11,6 +15,8 @@ import faiss
 import json
 
 import fire
+import fsspec
+import pandas as pd
 
 from autofaiss.readers.embeddings_iterators import read_total_nb_vectors_and_dim
 from autofaiss.external.build import (
@@ -25,14 +31,18 @@ from autofaiss.utils.decorators import Timeit
 from autofaiss.utils.cast import cast_memory_to_bytes, cast_bytes_to_memory_string
 import numpy as np
 
+LOGGER = logging.getLogger(__name__)
+
 
 def build_index(
     embeddings_path: Union[str, np.ndarray],
     index_path: str = "knn.index",
     index_infos_path: str = "index_infos.json",
+    ids_path: Optional[str] = None,
     save_on_disk: bool = True,
     file_format: str = "npy",
     embedding_column_name: str = "embedding",
+    id_columns: Optional[List[str]] = None,
     index_key: Optional[str] = None,
     index_param: Optional[str] = None,
     max_index_query_time_ms: float = 10.0,
@@ -145,6 +155,23 @@ def build_index(
                     return None, None
                 index_key = best_index_keys[0]
 
+        if id_columns is not None:
+            print(f"Id columns provided {id_columns} - will be reading the corresponding columns")
+            if ids_path is not None:
+                print(f"\tWill be writing the Ids DataFrame in parquet format to {ids_path}")
+                fs, _ = fsspec.core.url_to_fs(ids_path)
+                fs.mkdirs(ids_path, exist_ok=True)
+            else:
+                print(f"\tAs ids_path=None - the Ids DataFrame will not be written and will be ignored subsequently")
+                print("\tPlease provide a value ids_path for the Ids to be written")
+
+        def write_ids_df_to_parquet(ids: pd.DataFrame):
+            filename = f"{uuid.uuid1()}.parquet"
+            output_file = os.path.join(ids_path, filename)
+            with fsspec.open(output_file, "wb") as f:
+                LOGGER.debug(f"Writing id DataFrame to file {output_file}")
+                ids.to_parquet(f)
+
         with Timeit("Creating the index", indent=1):
             index = create_index(
                 embeddings_path,
@@ -155,6 +182,8 @@ def build_index(
                 use_gpu=use_gpu,
                 file_format=file_format,
                 embedding_column_name=embedding_column_name,
+                id_columns=id_columns,
+                embedding_ids_df_handler=write_ids_df_to_parquet if ids_path and id_columns else None,
             )
 
         if index_param is None:
