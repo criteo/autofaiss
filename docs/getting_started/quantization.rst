@@ -6,13 +6,13 @@ The use-case
 ------------
 
 You have limited RAM constraint but need to do similarity search on a lot of vectors?
-Great! You are in the right place :) This lib automatically builds a quantized index that maximizes the
+Great! You are in the right place :) This lib automatically builds an optimal index that maximizes the
 recall scores given a memory and query speed constraint.
 
-The quantize command
+The build_index command
 --------------------
 
-The ``autofaiss quantize`` command takes the following parameters:
+The ``autofaiss build_index`` command takes the following parameters:
 
 +----------------------------+----------+----------------------------+
 | Flag available             | Default  | Description                |
@@ -29,9 +29,15 @@ The ``autofaiss quantize`` command takes the following parameters:
 |                            |          | e.g. `hdfs://root/...`     |
 |                            |          | or `s3://...`              |
 +----------------------------+----------+----------------------------+
-| --output_path              | required | Destination path of the    |
+| --index_path               | "knn.index" | Destination path of the    |
 |                            |          | faiss index on local       |
 |                            |          | machine.                   |
++----------------------------+----------+----------------------------+
+| --index_infos_path         | "index_infos.json" | Destination path of the    |
+|                            |          | faiss index infos on local |
+|                            |          | machine.                   |
++----------------------------+----------+----------------------------+
+| --save_to_disk             | True | Whether to save to disk    |
 +----------------------------+----------+----------------------------+
 | --file_format              | "npy"    | File format of the files   |
 |                            |          | in embeddings_path         |
@@ -118,10 +124,10 @@ The use-case
 You have already created a Faiss index but you would like to have a better recall/query-time ratio?
 This command creates a new index with different hyperparameters to be closer to your requirements.
 
-The tuning command
+The tune_index command
 ------------------
 
-The tuning command set the hyperparameters for the given index.
+The tune_index command set the hyperparameters for the given index.
 
 If an index_param is given, set this hyperparameters to the index,
 otherwise perform a greedy heusistic to make the best out or the max_index_query_time_ms constraint
