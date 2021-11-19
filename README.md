@@ -45,7 +45,7 @@ If you have a few embeddings, you can use autofaiss with in memory numpy arrays:
 from autofaiss import build_index
 import numpy as np
 embeddings = np.ones((100, 512), "float32")
-index, index_infos = build_index(embeddings, save_to_disk=False)
+index, index_infos = build_index(embeddings, save_on_disk=False)
 _, I = index.search(embeddings, 1)
 print(I)
 ```
@@ -102,6 +102,7 @@ Quick description of the `autofaiss build_index` command:
 *embeddings_path*           -> Source path of the embeddings in numpy.  
 *index_path*               -> Destination path of the created index.
 *index_infos_path*         -> Destination path of the index infos.
+*save_on_disk*              -> Save the index on the disk.
 *metric_type*               -> Similarity distance for the queries.  
 
 *index_key*                 -> (optional) Describe the index to build.  
@@ -118,6 +119,7 @@ The `autofaiss build_index` command takes the following parameters:
 | --embeddings_path          | required | directory containing your .npy embedding files. If there are several files, they are read in the lexicographical order. This can be a local path or a path in another Filesystem e.g. `hdfs://root/...` or `s3://...`                                                                                                        |
 | --index_path              | required | Destination path of the faiss index on local machine.                                                                                                                                                                                                     |
 | --index_infos_path              | required | Destination path of the faiss index infos on local machine.                                                                                                                                                                                                     |
+| --save_on_disk              | required | Save the index on the disk.                                                                                                                                                                                                     |
 | --file_format              | "npy"    | File format of the files in embeddings_path Can be either `npy` for numpy matrix files or `parquet` for parquet serialized tables |
 | --embedding_column_name    | "embeddings" | Only necessary when when file_format=`parquet` In this case this is the name of the column containing the embeddings (one vector per row) |
 | --metric_type              |   "ip"   | (Optional) Similarity function used for query: ("ip" for inner product, "l2" for euclidian distance)                                                                                                                                                                                                            |

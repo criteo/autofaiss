@@ -37,7 +37,7 @@ The ``autofaiss build_index`` command takes the following parameters:
 |                            |          | faiss index infos on local |
 |                            |          | machine.                   |
 +----------------------------+----------+----------------------------+
-| --save_to_disk             | True | Whether to save to disk    |
+| --save_on_disk             | True | Whether to save to disk    |
 +----------------------------+----------+----------------------------+
 | --file_format              | "npy"    | File format of the files   |
 |                            |          | in embeddings_path         |
