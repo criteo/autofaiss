@@ -15,7 +15,7 @@ black: ## [Local development] Auto-format python code using black
 	python -m black -l 120 .
 
 test: ## [Local development] Run unit tests, doctest and notebooks
-	python -m pytest -v --cov=autofaiss --cov-report term-missing --cov-fail-under .0001 tests/unit
+	python -m pytest -x -v --cov=autofaiss --cov-report term-missing --cov-fail-under .0001 tests/unit
 	# python -m pytest --doctest-modules -v autofaiss
 
 venv-lint-test: ## [Continuous integration]
