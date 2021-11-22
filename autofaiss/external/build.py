@@ -1,5 +1,4 @@
 """ gather functions necessary to build an index """
-import logging
 import re
 from typing import Optional, Tuple, Union, Callable, Any, List
 

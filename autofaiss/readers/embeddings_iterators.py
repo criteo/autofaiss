@@ -3,15 +3,14 @@ import logging
 import os
 from multiprocessing.pool import ThreadPool
 from typing import Iterator, Optional, Tuple, List, Union
+import re
+from abc import ABC
 
 import pandas as pd
 import numpy as np
-import pyarrow
 from tqdm import tqdm as tq
 import fsspec
 import pyarrow.parquet as pq
-import re
-from abc import ABC
 
 
 LOGGER = logging.getLogger(__name__)
@@ -49,7 +48,7 @@ class AbstractMatrixReader(ABC):
         pass
 
 
-class NumpyEagerNdArray:
+class NumpyEagerNdArray(AbstractArray):
     def __init__(self, f: Union[str, fsspec.core.OpenFile]):
         self.n = np.load(f)
         self.shape = self.n.shape
@@ -68,7 +67,7 @@ def read_numpy_header(f):
     return (shape, dtype, f.tell())
 
 
-class NumpyLazyNdArray:
+class NumpyLazyNdArray(AbstractArray):
     """Reads a numpy file lazily"""
 
     def __init__(self, f: fsspec.spec.AbstractBufferedFile):
@@ -106,7 +105,7 @@ class NumpyMatrixReader(AbstractMatrixReader):
         return NumpyLazyNdArray(self.f)
 
 
-class ParquetEagerNdArray:
+class ParquetEagerNdArray(AbstractArray):
     def __init__(self, f, embedding_column_name: str, id_columns: Optional[List[str]] = None):
         emb_table = pq.read_table(f).to_pandas()
         embeddings_raw = emb_table[embedding_column_name].to_numpy()
@@ -118,7 +117,9 @@ class ParquetEagerNdArray:
         return self.n[start:end, :], self.ids.iloc[start:end] if self.ids else None
 
 
-class ParquetLazyNdArray:
+class ParquetLazyNdArray(AbstractArray):
+    """Reads a parquet file lazily"""
+
     def __init__(self, f, embedding_column_name: str, id_columns: Optional[List[str]] = None):
         self.table = pq.read_table(f)
         self.num_rows = self.table.num_rows
@@ -309,7 +310,7 @@ def read_embeddings(
                 current_embeddings, ids_df = array.get_rows(current_emb_index, (current_emb_index + adding))
                 embeddings_batch[nb_emb_in_batch : (nb_emb_in_batch + adding), :] = current_embeddings
 
-                if ids_df is not None:
+                if id_columns is not None:
                     if ids_batch is None:
                         ids_batch = np.empty((batch_size, len(id_columns)), dtype="object")
                     ids_batch[nb_emb_in_batch : (nb_emb_in_batch + adding), :] = ids_df.to_numpy()
@@ -334,7 +335,9 @@ def read_embeddings(
 
     if nb_emb_in_batch > 0 and embeddings_batch is not None:
         if id_columns is not None:
-            ids_batch_df = pd.DataFrame(ids_batch[:nb_emb_in_batch, :], columns=id_columns).infer_objects()
+            ids_batch_df = pd.DataFrame(
+                ids_batch[:nb_emb_in_batch, :], columns=id_columns  # type: ignore
+            ).infer_objects()
             ids_batch_df["i"] = np.arange(
                 start=total_embeddings_processed, stop=total_embeddings_processed + nb_emb_in_batch
             )

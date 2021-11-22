@@ -56,7 +56,10 @@ If you have many embeddings file, it is preferred to save them on disk as .npy f
 
 ```python
 from autofaiss import build_index
-build_index(embeddings_path="embeddings", index_path="my_index_folder/knn.index", index_infos_path="my_index_folder/index_infos.json", max_index_memory_usage="4G", current_memory_available="4G")
+
+build_index(embeddings_or_path="embeddings", index_path="my_index_folder/knn.index",
+            index_infos_path="my_index_folder/index_infos.json", max_index_memory_usage="4G",
+            current_memory_available="4G")
 ```
 
 

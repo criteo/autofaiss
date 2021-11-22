@@ -74,11 +74,11 @@ def compute_medium_metrics(
 
     if isinstance(embeddings_path, str):
         # pylint: disable=bare-except
-        embedding_block = next(read_embeddings(embeddings_path, verbose=False))
+        embedding_block, _ = next(read_embeddings(embeddings_path, verbose=False))
 
         if embedding_block.shape[0] < nb_test_points:
             # pylint: disable=bare-except
-            embedding_block = next(read_embeddings(embeddings_path, batch_size=nb_test_points, verbose=False))
+            embedding_block, _ = next(read_embeddings(embeddings_path, batch_size=nb_test_points, verbose=False))
 
         query_embeddings = embedding_block[:nb_test_points]
     else:

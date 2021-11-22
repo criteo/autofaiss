@@ -1,15 +1,12 @@
 """ main file to create an index from the the begining """
 
 import logging
-from pprint import pprint as pp
-from typing import Dict, Optional, Union, Any, Tuple
+from typing import Any, Tuple, Dict, Optional, Union, List
 import os
 import uuid
 from pprint import pprint as pp
-from typing import Dict, Optional, Union, List
 import multiprocessing
 import tempfile
-import fsspec
 
 import faiss
 import json
@@ -35,7 +32,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 def build_index(
-    embeddings_path: Union[str, np.ndarray],
+    embeddings_or_path: Union[str, np.ndarray],
     index_path: str = "knn.index",
     index_infos_path: str = "index_infos.json",
     ids_path: Optional[str] = None,
@@ -58,9 +55,10 @@ def build_index(
 
     Parameters
     ----------
-    embeddings_path : Union[str, np.ndarray]
+    embeddings_or_path : Union[str, np.ndarray]
         Local path containing all preprocessed vectors and cached files.
         Files will be added if empty.
+        Or directly the Numpy array of embeddings
     index_path: Optional(str)
         Destination path of the quantized model.
     index_infos_path: Optional(str)
@@ -110,10 +108,12 @@ def build_index(
     print(f"Using {nb_cores} omp threads (processes), consider increasing --nb_cores if you have more")
     faiss.omp_set_num_threads(nb_cores)
 
-    if isinstance(embeddings_path, np.ndarray):
+    if isinstance(embeddings_or_path, np.ndarray):
         tmp_dir_embeddings = tempfile.TemporaryDirectory()
-        np.save(tmp_dir_embeddings.name + "/emb.npy", embeddings_path)
+        np.save(os.path.join(tmp_dir_embeddings.name, "emb.npy"), embeddings_or_path)
         embeddings_path = tmp_dir_embeddings.name
+    else:
+        embeddings_path = embeddings_or_path
 
     with Timeit("Launching the whole pipeline"):
 
@@ -158,16 +158,16 @@ def build_index(
         if id_columns is not None:
             print(f"Id columns provided {id_columns} - will be reading the corresponding columns")
             if ids_path is not None:
-                print(f"\tWill be writing the Ids DataFrame in parquet format to {ids_path}")
+                print("\tWill be writing the Ids DataFrame in parquet format to {ids_path}")
                 fs, _ = fsspec.core.url_to_fs(ids_path)
                 fs.mkdirs(ids_path, exist_ok=True)
             else:
-                print(f"\tAs ids_path=None - the Ids DataFrame will not be written and will be ignored subsequently")
+                print("\tAs ids_path=None - the Ids DataFrame will not be written and will be ignored subsequently")
                 print("\tPlease provide a value ids_path for the Ids to be written")
 
         def write_ids_df_to_parquet(ids: pd.DataFrame):
             filename = f"{uuid.uuid1()}.parquet"
-            output_file = os.path.join(ids_path, filename)
+            output_file = os.path.join(ids_path, filename)  # type: ignore
             with fsspec.open(output_file, "wb") as f:
                 LOGGER.debug(f"Writing id DataFrame to file {output_file}")
                 ids.to_parquet(f)
@@ -282,7 +282,7 @@ def tune_index(
 
 def score_index(
     index_path: Union[str, Any],
-    embeddings_path: Union[str, np.ndarray],
+    embeddings_or_path: Union[str, np.ndarray],
     save_on_disk: bool = True,
     output_index_info_path: str = "infos.json",
     current_memory_available: str = "32G",
@@ -294,7 +294,7 @@ def score_index(
     ----------
     index_path : Union[str, Any]
         Path to .index file. Or in memory index
-    embeddings_path: Union[str, np.ndarray]
+    embeddings_or_path: Union[str, np.ndarray]
         Path containing all preprocessed vectors and cached files. Can also be an in memory array.
     save_on_disk: bool
         Whether to save on disk
@@ -318,10 +318,12 @@ def score_index(
             fs, path_in_fs = fsspec.core.url_to_fs(f.name)
             index_memory = fs.size(path_in_fs)
 
-    if isinstance(embeddings_path, np.ndarray):
+    if isinstance(embeddings_or_path, np.ndarray):
         tmp_dir_embeddings = tempfile.TemporaryDirectory()
-        np.save(tmp_dir_embeddings.name + "/emb.npy", embeddings_path)
+        np.save(os.path.join(tmp_dir_embeddings.name, "emb.npy"), embeddings_or_path)
         embeddings_path = tmp_dir_embeddings.name
+    else:
+        embeddings_path = embeddings_or_path
 
     infos: Dict[str, Union[str, float, int]] = {}
 
