@@ -36,14 +36,6 @@ autofaiss.utils.decorators module
    :undoc-members:
    :show-inheritance:
 
-autofaiss.utils.os\_tools module
---------------------------------
-
-.. automodule:: autofaiss.utils.os_tools
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 Module contents
 ---------------
 

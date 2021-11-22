@@ -93,7 +93,6 @@
 
 <span class="kn">import</span> <span class="nn">faiss</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">autofaiss.utils.os_tools</span> <span class="kn">import</span> <span class="n">run_command</span>
 
 
 <div class="viewcode-block" id="get_index_size"><a class="viewcode-back" href="../../../_source/autofaiss.indices.html#autofaiss.indices.index_utils.get_index_size">[docs]</a><span class="k">def</span> <span class="nf">get_index_size</span><span class="p">(</span><span class="n">index</span><span class="p">:</span> <span class="n">faiss</span><span class="o">.</span><span class="n">Index</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
@@ -195,51 +194,6 @@
     <span class="c1"># depends on installed faiss version # pylint: disable=no-member</span>
     <span class="n">params</span> <span class="o">=</span> <span class="n">faiss</span><span class="o">.</span><span class="n">ParameterSpace</span><span class="p">()</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">use_gpu</span> <span class="k">else</span> <span class="n">faiss</span><span class="o">.</span><span class="n">GpuParameterSpace</span><span class="p">()</span>
     <span class="n">params</span><span class="o">.</span><span class="n">set_index_parameters</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">param_str</span><span class="p">)</span></div>
-
-
-<div class="viewcode-block" id="save_index_on_hdfs"><a class="viewcode-back" href="../../../_source/autofaiss.indices.html#autofaiss.indices.index_utils.save_index_on_hdfs">[docs]</a><span class="k">def</span> <span class="nf">save_index_on_hdfs</span><span class="p">(</span><span class="n">my_index</span><span class="p">:</span> <span class="n">faiss</span><span class="o">.</span><span class="n">Index</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;function to save a faiss index on hdfs&quot;&quot;&quot;</span>
-
-    <span class="n">index_path</span> <span class="o">=</span> <span class="s2">&quot;/tmp/tmp_index.index&quot;</span>
-
-    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">index_path</span><span class="p">):</span>
-        <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">index_path</span><span class="p">)</span>
-
-    <span class="n">faiss</span><span class="o">.</span><span class="n">write_index</span><span class="p">(</span><span class="n">my_index</span><span class="p">,</span> <span class="n">index_path</span><span class="p">)</span>
-    <span class="n">cmd</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;hdfs dfs -copyFromLocal </span><span class="si">{</span><span class="n">index_path</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">dst_path</span><span class="si">}</span><span class="s2">&quot;</span>
-
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">run_command</span><span class="p">(</span><span class="n">cmd</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Overwriting previous file&quot;</span><span class="p">)</span>
-        <span class="n">cmd</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;hdfs dfs -copyFromLocal -f </span><span class="si">{</span><span class="n">index_path</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">dst_path</span><span class="si">}</span><span class="s2">&quot;</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">run_command</span><span class="p">(</span><span class="n">cmd</span><span class="p">):</span>
-            <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">index_path</span><span class="p">)</span>
-            <span class="k">return</span> <span class="kc">False</span>
-
-    <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">index_path</span><span class="p">)</span>
-
-    <span class="k">return</span> <span class="kc">True</span></div>
-
-
-<div class="viewcode-block" id="load_index_from_hdfs"><a class="viewcode-back" href="../../../_source/autofaiss.indices.html#autofaiss.indices.index_utils.load_index_from_hdfs">[docs]</a><span class="k">def</span> <span class="nf">load_index_from_hdfs</span><span class="p">(</span><span class="n">src_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Load a faiss index stored on the HDFS&quot;&quot;&quot;</span>
-
-    <span class="n">index_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;/tmp/</span><span class="si">{</span><span class="n">src_path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
-
-    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">index_path</span><span class="p">):</span>
-        <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">index_path</span><span class="p">)</span>
-
-    <span class="n">cmd</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;hdfs dfs -copyToLocal </span><span class="si">{</span><span class="n">src_path</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">index_path</span><span class="si">}</span><span class="s2">&quot;</span>
-
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">run_command</span><span class="p">(</span><span class="n">cmd</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;no file at </span><span class="si">{</span><span class="n">src_path</span><span class="si">}</span><span class="s2"> on HDFS&quot;</span><span class="p">)</span>
-
-    <span class="n">index_memory</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">getsize</span><span class="p">(</span><span class="n">index_path</span><span class="p">)</span>
-
-    <span class="n">index</span> <span class="o">=</span> <span class="n">faiss</span><span class="o">.</span><span class="n">read_index</span><span class="p">(</span><span class="n">index_path</span><span class="p">)</span>
-
-    <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">index_path</span><span class="p">)</span>
-
-    <span class="k">return</span> <span class="n">index</span><span class="p">,</span> <span class="n">index_memory</span></div>
 </pre></div>
 
            </div>

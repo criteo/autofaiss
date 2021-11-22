@@ -134,23 +134,28 @@ otherwise perform a greedy heusistic to make the best out or the max_index_query
 
 Parameters
 ----------
-index_path : str
+index_path : Union[str, Any]
     Path to .index file on local disk if is_local_index_path is True,
     otherwise path on hdfs.
+    Can also be an index
 index_key: str
     String to give to the index factory in order to create the index.
 index_param: Optional(str)
     Optional string with hyperparameters to set to the index.
     If None, the hyper-parameters are chosen based on an heuristic.
-dest_path: Optional[str]
-    Path to the newly created .index file. On local disk if is_local_index_path is True,
-    otherwise on hdfs. If None id given, index_path is the destination path.
-is_local_index_path: bool
-    True if the dest_path and index_path are local path, False if there are hdfs paths.
+output_index_path: str
+    Path to the newly created .index file
+save_on_disk: bool
+    Whether to save the index on disk, default to True.
 max_index_query_time_ms: float
     Query speed constraint for the index to create.
 use_gpu: bool
     Experimental, gpu training is faster, not tested so far.
+
+Returns
+-------
+index
+    The faiss index
 
 Time required
 -------------
@@ -189,17 +194,18 @@ Be careful, computing accurate metrics is slow.
 
 Compute metrics on a given index, use cached ground truth for fast scoring the next times.
 
-``autofaiss score_index --embeddings_path="folder/embs" --index_path="some.index" --is_local_index_path True --current_memory_available="4G"``
+``autofaiss score_index --embeddings_path="folder/embs" --index_path="some.index" --output_index_info_path "infos.json" --current_memory_available="4G"``
 
 Parameters
 ----------
-index_path : str
-    Path to .index file on local disk if is_local_index_path is True,
-    otherwise path on hdfs.
+index_path : Union[str, Any]
+    Path to .index file. Or in memory index
 embeddings_path: str
     Local path containing all preprocessed vectors and cached files.
-is_local_index_path: bool
-    True if the dest_path and index_path are local path, False if there are hdfs paths.
+output_index_info_path : str
+    Path to index infos .json
+save_on_disk : bool
+    Whether to save on disk
 current_memory_available: str
     Memory available on the current machine, having more memory is a boost
     because it reduces the swipe between RAM and disk.

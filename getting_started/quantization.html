@@ -55,6 +55,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#id1">The use-case</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#the-tune-index-command">The tune_index command</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#parameters">Parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#returns">Returns</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#id2">Time required</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#what-it-does-behind">What it does behind</a></li>
 </ul>
@@ -167,22 +168,29 @@ otherwise perform a greedy heusistic to make the best out or the max_index_query
 <section id="parameters">
 <h2>Parameters<a class="headerlink" href="#parameters" title="Permalink to this headline"></a></h2>
 <dl class="simple">
-<dt>index_path<span class="classifier">str</span></dt><dd><p>Path to .index file on local disk if is_local_index_path is True,
-otherwise path on hdfs.</p>
+<dt>index_path<span class="classifier">Union[str, Any]</span></dt><dd><p>Path to .index file on local disk if is_local_index_path is True,
+otherwise path on hdfs.
+Can also be an index</p>
 </dd>
 <dt>index_key: str</dt><dd><p>String to give to the index factory in order to create the index.</p>
 </dd>
 <dt>index_param: Optional(str)</dt><dd><p>Optional string with hyperparameters to set to the index.
 If None, the hyper-parameters are chosen based on an heuristic.</p>
 </dd>
-<dt>dest_path: Optional[str]</dt><dd><p>Path to the newly created .index file. On local disk if is_local_index_path is True,
-otherwise on hdfs. If None id given, index_path is the destination path.</p>
+<dt>output_index_path: str</dt><dd><p>Path to the newly created .index file</p>
 </dd>
-<dt>is_local_index_path: bool</dt><dd><p>True if the dest_path and index_path are local path, False if there are hdfs paths.</p>
+<dt>save_on_disk: bool</dt><dd><p>Whether to save the index on disk, default to True.</p>
 </dd>
 <dt>max_index_query_time_ms: float</dt><dd><p>Query speed constraint for the index to create.</p>
 </dd>
 <dt>use_gpu: bool</dt><dd><p>Experimental, gpu training is faster, not tested so far.</p>
+</dd>
+</dl>
+</section>
+<section id="returns">
+<h2>Returns<a class="headerlink" href="#returns" title="Permalink to this headline"></a></h2>
+<dl class="simple">
+<dt>index</dt><dd><p>The faiss index</p>
 </dd>
 </dl>
 </section>
@@ -215,17 +223,18 @@ There is a command for that too, it’s the score command.</p>
 <p>You just need the path to your index and the embeddings for this one.
 Be careful, computing accurate metrics is slow.</p>
 <p>Compute metrics on a given index, use cached ground truth for fast scoring the next times.</p>
-<p><code class="docutils literal notranslate"><span class="pre">autofaiss</span> <span class="pre">score_index</span> <span class="pre">--embeddings_path=&quot;folder/embs&quot;</span> <span class="pre">--index_path=&quot;some.index&quot;</span> <span class="pre">--is_local_index_path</span> <span class="pre">True</span> <span class="pre">--current_memory_available=&quot;4G&quot;</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">autofaiss</span> <span class="pre">score_index</span> <span class="pre">--embeddings_path=&quot;folder/embs&quot;</span> <span class="pre">--index_path=&quot;some.index&quot;</span> <span class="pre">--output_index_info_path</span> <span class="pre">&quot;infos.json&quot;</span> <span class="pre">--current_memory_available=&quot;4G&quot;</span></code></p>
 </section>
 <section id="id4">
 <h2>Parameters<a class="headerlink" href="#id4" title="Permalink to this headline"></a></h2>
 <dl class="simple">
-<dt>index_path<span class="classifier">str</span></dt><dd><p>Path to .index file on local disk if is_local_index_path is True,
-otherwise path on hdfs.</p>
+<dt>index_path<span class="classifier">Union[str, Any]</span></dt><dd><p>Path to .index file. Or in memory index</p>
 </dd>
 <dt>embeddings_path: str</dt><dd><p>Local path containing all preprocessed vectors and cached files.</p>
 </dd>
-<dt>is_local_index_path: bool</dt><dd><p>True if the dest_path and index_path are local path, False if there are hdfs paths.</p>
+<dt>output_index_info_path<span class="classifier">str</span></dt><dd><p>Path to index infos .json</p>
+</dd>
+<dt>save_on_disk<span class="classifier">bool</span></dt><dd><p>Whether to save on disk</p>
 </dd>
 <dt>current_memory_available: str</dt><dd><p>Memory available on the current machine, having more memory is a boost
 because it reduces the swipe between RAM and disk.</p>

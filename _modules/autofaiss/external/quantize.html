@@ -85,11 +85,11 @@
 <span></span><span class="sd">&quot;&quot;&quot; main file to create an index from the the begining &quot;&quot;&quot;</span>
 
 <span class="kn">import</span> <span class="nn">logging</span>
-<span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">from</span> <span class="nn">pprint</span> <span class="kn">import</span> <span class="n">pprint</span> <span class="k">as</span> <span class="n">pp</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Tuple</span>
 <span class="kn">import</span> <span class="nn">multiprocessing</span>
 <span class="kn">import</span> <span class="nn">tempfile</span>
+<span class="kn">import</span> <span class="nn">fsspec</span>
 
 <span class="kn">import</span> <span class="nn">faiss</span>
 <span class="kn">import</span> <span class="nn">json</span>
@@ -104,7 +104,7 @@
 <span class="p">)</span>
 <span class="kn">from</span> <span class="nn">autofaiss.external.optimize</span> <span class="kn">import</span> <span class="n">get_optimal_hyperparameters</span><span class="p">,</span> <span class="n">get_optimal_index_keys_v2</span>
 <span class="kn">from</span> <span class="nn">autofaiss.external.scores</span> <span class="kn">import</span> <span class="n">compute_fast_metrics</span><span class="p">,</span> <span class="n">compute_medium_metrics</span>
-<span class="kn">from</span> <span class="nn">autofaiss.indices.index_utils</span> <span class="kn">import</span> <span class="n">set_search_hyperparameters</span><span class="p">,</span> <span class="n">load_index_from_hdfs</span><span class="p">,</span> <span class="n">save_index_on_hdfs</span>
+<span class="kn">from</span> <span class="nn">autofaiss.indices.index_utils</span> <span class="kn">import</span> <span class="n">set_search_hyperparameters</span>
 <span class="kn">from</span> <span class="nn">autofaiss.utils.decorators</span> <span class="kn">import</span> <span class="n">Timeit</span>
 <span class="kn">from</span> <span class="nn">autofaiss.utils.cast</span> <span class="kn">import</span> <span class="n">cast_memory_to_bytes</span><span class="p">,</span> <span class="n">cast_bytes_to_memory_string</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -262,8 +262,10 @@
 
         <span class="k">if</span> <span class="n">save_on_disk</span><span class="p">:</span>
             <span class="k">with</span> <span class="n">Timeit</span><span class="p">(</span><span class="s2">&quot;Saving the index on local disk&quot;</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
-                <span class="n">faiss</span><span class="o">.</span><span class="n">write_index</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">index_path</span><span class="p">)</span>
-                <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">metric_infos</span><span class="p">,</span> <span class="nb">open</span><span class="p">(</span><span class="n">index_infos_path</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">))</span>
+                <span class="k">with</span> <span class="n">fsspec</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">index_path</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">open</span><span class="p">()</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                    <span class="n">faiss</span><span class="o">.</span><span class="n">write_index</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">faiss</span><span class="o">.</span><span class="n">PyCallbackIOWriter</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">))</span>
+                <span class="k">with</span> <span class="n">fsspec</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">index_infos_path</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">open</span><span class="p">()</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                    <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">metric_infos</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
 
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Recap:&quot;</span><span class="p">)</span>
         <span class="n">pp</span><span class="p">(</span><span class="n">metric_infos</span><span class="p">)</span>
@@ -272,14 +274,14 @@
 
 
 <div class="viewcode-block" id="tune_index"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.quantize.tune_index">[docs]</a><span class="k">def</span> <span class="nf">tune_index</span><span class="p">(</span>
-    <span class="n">index_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">index_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
     <span class="n">index_key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">index_param</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="n">dest_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="n">is_local_index_path</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">output_index_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">save_on_disk</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="n">max_index_query_time_ms</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">10.0</span><span class="p">,</span>
     <span class="n">use_gpu</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">],</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]]]:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Set hyperparameters to the given index.</span>
 
@@ -288,19 +290,18 @@
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    index_path : str</span>
-<span class="sd">        Path to .index file on local disk if is_local_index_path is True,</span>
-<span class="sd">        otherwise path on hdfs.</span>
+<span class="sd">    index_path : Union[str, Any]</span>
+<span class="sd">        Path to .index file</span>
+<span class="sd">        Can also be an index</span>
 <span class="sd">    index_key: str</span>
 <span class="sd">        String to give to the index factory in order to create the index.</span>
 <span class="sd">    index_param: Optional(str)</span>
 <span class="sd">        Optional string with hyperparameters to set to the index.</span>
 <span class="sd">        If None, the hyper-parameters are chosen based on an heuristic.</span>
-<span class="sd">    dest_path: Optional[str]</span>
-<span class="sd">        Path to the newly created .index file. On local disk if is_local_index_path is True,</span>
-<span class="sd">        otherwise on hdfs. If None id given, index_path is the destination path.</span>
-<span class="sd">    is_local_index_path: bool</span>
-<span class="sd">        True if the dest_path and index_path are local path, False if there are hdfs paths.</span>
+<span class="sd">    output_index_path: str</span>
+<span class="sd">        Path to the newly created .index file</span>
+<span class="sd">    save_on_disk: bool</span>
+<span class="sd">        Whether to save the index on disk, default to True.</span>
 <span class="sd">    max_index_query_time_ms: float</span>
 <span class="sd">        Query speed constraint for the index to create.</span>
 <span class="sd">    use_gpu: bool</span>
@@ -308,66 +309,74 @@
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">    infos: str</span>
-<span class="sd">        Message describing the index created.</span>
+<span class="sd">    index</span>
+<span class="sd">        The faiss index</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">if</span> <span class="n">dest_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">dest_path</span> <span class="o">=</span> <span class="n">index_path</span>
-
-    <span class="k">if</span> <span class="n">is_local_index_path</span><span class="p">:</span>
-        <span class="k">with</span> <span class="n">Timeit</span><span class="p">(</span><span class="s2">&quot;Loading index from local disk&quot;</span><span class="p">):</span>
-            <span class="n">index</span> <span class="o">=</span> <span class="n">faiss</span><span class="o">.</span><span class="n">read_index</span><span class="p">(</span><span class="n">index_path</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">index_path</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">with</span> <span class="n">fsspec</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">index_path</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">open</span><span class="p">()</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="n">faiss</span><span class="o">.</span><span class="n">read_index</span><span class="p">(</span><span class="n">faiss</span><span class="o">.</span><span class="n">PyCallbackIOReader</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">))</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">with</span> <span class="n">Timeit</span><span class="p">(</span><span class="s2">&quot;Loading index from HDFS&quot;</span><span class="p">):</span>
-            <span class="n">index</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">load_index_from_hdfs</span><span class="p">(</span><span class="n">index_path</span><span class="p">)</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="n">index_path</span>
 
     <span class="k">if</span> <span class="n">index_param</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-
         <span class="k">with</span> <span class="n">Timeit</span><span class="p">(</span><span class="s2">&quot;Compute best hyperparameters&quot;</span><span class="p">):</span>
             <span class="n">index_param</span> <span class="o">=</span> <span class="n">get_optimal_hyperparameters</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">index_key</span><span class="p">,</span> <span class="n">max_speed</span><span class="o">=</span><span class="n">max_index_query_time_ms</span><span class="p">)</span>
 
     <span class="k">with</span> <span class="n">Timeit</span><span class="p">(</span><span class="s2">&quot;Set search hyperparameters for the index&quot;</span><span class="p">):</span>
         <span class="n">set_search_hyperparameters</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">index_param</span><span class="p">,</span> <span class="n">use_gpu</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="n">is_local_index_path</span><span class="p">:</span>
-        <span class="k">with</span> <span class="n">Timeit</span><span class="p">(</span><span class="s2">&quot;Saving index on local disk&quot;</span><span class="p">):</span>
-            <span class="n">faiss</span><span class="o">.</span><span class="n">write_index</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">dest_path</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">with</span> <span class="n">Timeit</span><span class="p">(</span><span class="s2">&quot;Saving index to HDFS&quot;</span><span class="p">):</span>
-            <span class="n">save_index_on_hdfs</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">dest_path</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">save_on_disk</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">fsspec</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">output_index_path</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">open</span><span class="p">()</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">faiss</span><span class="o">.</span><span class="n">write_index</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">faiss</span><span class="o">.</span><span class="n">PyCallbackIOWriter</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">))</span>
 
-    <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;The optimal hyperparameters are </span><span class="si">{</span><span class="n">index_param</span><span class="si">}</span><span class="s2">, the index with these parameters has been saved.&quot;</span></div>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The optimal hyperparameters are </span><span class="si">{</span><span class="n">index_param</span><span class="si">}</span><span class="s2">, the index with these parameters has been saved.&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">index</span></div>
 
 
 <div class="viewcode-block" id="score_index"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.quantize.score_index">[docs]</a><span class="k">def</span> <span class="nf">score_index</span><span class="p">(</span>
-    <span class="n">index_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">embeddings_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">is_local_index_path</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">current_memory_available</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;32G&quot;</span><span class="p">,</span>
+    <span class="n">index_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+    <span class="n">embeddings_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span>
+    <span class="n">save_on_disk</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">output_index_info_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;infos.json&quot;</span><span class="p">,</span>
+    <span class="n">current_memory_available</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;32G&quot;</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Compute metrics on a given index, use cached ground truth for fast scoring the next times.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    index_path : str</span>
-<span class="sd">        Path to .index file on local disk if is_local_index_path is True,</span>
-<span class="sd">        otherwise path on hdfs.</span>
-<span class="sd">    embeddings_path: str</span>
-<span class="sd">        Local path containing all preprocessed vectors and cached files.</span>
-<span class="sd">    is_local_index_path: bool</span>
-<span class="sd">        True if the dest_path and index_path are local path, False if there are hdfs paths.</span>
+<span class="sd">    index_path : Union[str, Any]</span>
+<span class="sd">        Path to .index file. Or in memory index</span>
+<span class="sd">    embeddings_path: Union[str, np.ndarray]</span>
+<span class="sd">        Path containing all preprocessed vectors and cached files. Can also be an in memory array.</span>
+<span class="sd">    save_on_disk: bool</span>
+<span class="sd">        Whether to save on disk</span>
+<span class="sd">    output_index_info_path : str</span>
+<span class="sd">        Path to index infos .json</span>
 <span class="sd">    current_memory_available: str</span>
 <span class="sd">        Memory available on the current machine, having more memory is a boost</span>
 <span class="sd">        because it reduces the swipe between RAM and disk.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">faiss</span><span class="o">.</span><span class="n">omp_set_num_threads</span><span class="p">(</span><span class="n">multiprocessing</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">())</span>
 
-    <span class="k">if</span> <span class="n">is_local_index_path</span><span class="p">:</span>
-        <span class="k">with</span> <span class="n">Timeit</span><span class="p">(</span><span class="s2">&quot;Loading index from local disk&quot;</span><span class="p">):</span>
-            <span class="n">index_memory</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">getsize</span><span class="p">(</span><span class="n">index_path</span><span class="p">)</span>
-            <span class="n">index</span> <span class="o">=</span> <span class="n">faiss</span><span class="o">.</span><span class="n">read_index</span><span class="p">(</span><span class="n">index_path</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">index_path</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">with</span> <span class="n">fsspec</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">index_path</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">open</span><span class="p">()</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="n">faiss</span><span class="o">.</span><span class="n">read_index</span><span class="p">(</span><span class="n">faiss</span><span class="o">.</span><span class="n">PyCallbackIOReader</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">))</span>
+        <span class="n">fs</span><span class="p">,</span> <span class="n">path_in_fs</span> <span class="o">=</span> <span class="n">fsspec</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">url_to_fs</span><span class="p">(</span><span class="n">index_path</span><span class="p">)</span>
+        <span class="n">index_memory</span> <span class="o">=</span> <span class="n">fs</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">path_in_fs</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">with</span> <span class="n">Timeit</span><span class="p">(</span><span class="s2">&quot;Loading index from HDFS&quot;</span><span class="p">):</span>
-            <span class="n">index</span><span class="p">,</span> <span class="n">index_memory</span> <span class="o">=</span> <span class="n">load_index_from_hdfs</span><span class="p">(</span><span class="n">index_path</span><span class="p">)</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="n">index_path</span>
+        <span class="k">with</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">NamedTemporaryFile</span><span class="p">(</span><span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">faiss</span><span class="o">.</span><span class="n">write_index</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">faiss</span><span class="o">.</span><span class="n">PyCallbackIOWriter</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">))</span>
+            <span class="n">fs</span><span class="p">,</span> <span class="n">path_in_fs</span> <span class="o">=</span> <span class="n">fsspec</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">url_to_fs</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+            <span class="n">index_memory</span> <span class="o">=</span> <span class="n">fs</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">path_in_fs</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">embeddings_path</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+        <span class="n">tmp_dir_embeddings</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">TemporaryDirectory</span><span class="p">()</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">tmp_dir_embeddings</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s2">&quot;/emb.npy&quot;</span><span class="p">,</span> <span class="n">embeddings_path</span><span class="p">)</span>
+        <span class="n">embeddings_path</span> <span class="o">=</span> <span class="n">tmp_dir_embeddings</span><span class="o">.</span><span class="n">name</span>
 
     <span class="n">infos</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
 
@@ -385,13 +394,19 @@
             <span class="sa">f</span><span class="s2">&quot;Not enough memory, at least </span><span class="si">{</span><span class="n">cast_bytes_to_memory_string</span><span class="p">(</span><span class="n">index_memory</span><span class="o">*</span><span class="mf">1.1</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
             <span class="s2">&quot;is needed, please increase current_memory_available&quot;</span>
         <span class="p">)</span>
-        <span class="k">return</span>
+        <span class="k">return</span> <span class="kc">None</span>
 
     <span class="k">with</span> <span class="n">Timeit</span><span class="p">(</span><span class="s2">&quot;Compute medium metrics&quot;</span><span class="p">):</span>
         <span class="n">infos</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">compute_medium_metrics</span><span class="p">(</span><span class="n">embeddings_path</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">memory_left</span><span class="p">))</span>
 
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Performances recap:&quot;</span><span class="p">)</span>
-    <span class="n">pp</span><span class="p">(</span><span class="n">infos</span><span class="p">)</span></div>
+    <span class="n">pp</span><span class="p">(</span><span class="n">infos</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">save_on_disk</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">fsspec</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">output_index_info_path</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">open</span><span class="p">()</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">infos</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">index</span></div>
 
 
 <div class="viewcode-block" id="main"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.quantize.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
