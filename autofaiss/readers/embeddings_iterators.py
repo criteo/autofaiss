@@ -9,14 +9,81 @@ from tqdm import tqdm as tq
 import fsspec
 import pyarrow.parquet as pq
 import re
+from abc import ABC
+
 
 LOGGER = logging.getLogger(__name__)
 
 
-def get_shape_numpy(f):
-    first_line = f.readline()
-    result = re.search(r"'shape': \(([0-9]+), ([0-9]+)\)", str(first_line))
-    return (int(result.group(1)), int(result.group(2)))
+class AbstractMatrixReader(ABC):
+    """Read a file and provide its shape, row count and ndarray. Behaves as a context manager"""
+
+    def __init__(self, fs, file_path):
+        self.f = fs.open(file_path, "rb")
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.f.close()
+
+
+class NumpyMatrixReader(AbstractMatrixReader):
+    """Read a numpy file and provide its shape, row count and ndarray. Behaves as a context manager"""
+
+    def __init__(self, fs, file_path, *_):
+        super().__init__(fs, file_path)
+
+    def get_shape(self):
+        first_line = self.f.readline()
+        result = re.search(r"'shape': \(([0-9]+), ([0-9]+)\)", str(first_line))
+        return (int(result.group(1)), int(result.group(2)))
+
+    def get_row_count(self):
+        return self.get_shape()[0]
+
+    def get_ndarray(self):
+        return np.load(self.f)
+
+
+class ParquetMatrixReader(AbstractMatrixReader):
+    """Read a parquet file and provide its shape, row count and ndarray. Behaves as a context manager"""
+
+    def __init__(self, fs, file_path, embedding_column_name):
+        super().__init__(fs, file_path)
+        self.embedding_column_name = embedding_column_name
+
+    def get_shape(self):
+        parquet_file = pq.ParquetFile(self.f, memory_map=True)
+        num_rows = parquet_file.metadata.num_rows
+        batches = parquet_file.iter_batches(batch_size=1, columns=(self.embedding_column_name,))
+        dimension = next(batches).to_pandas()[self.embedding_column_name].to_numpy()[0].shape[0]
+        return (num_rows, dimension)
+
+    def get_row_count(self):
+        parquet_file = pq.ParquetFile(self.f, memory_map=True)
+        return parquet_file.metadata.num_rows
+
+    def get_ndarray(self):
+        emb_table = pq.read_table(self.f).to_pandas()
+        embeddings_raw = emb_table[self.embedding_column_name].to_numpy()
+        return np.stack(embeddings_raw)
+
+
+matrix_readers_registry = {"parquet": ParquetMatrixReader, "npy": NumpyMatrixReader}
+
+
+def get_matrix_reader(file_format, fs, file_path, *args):
+    cls = matrix_readers_registry[file_format]
+    return cls(fs, file_path, *args)
+
+
+def get_file_list(path, file_format):
+    fs, path_in_fs = fsspec.core.url_to_fs(path)
+    filenames = fs.walk(path_in_fs).__next__()[2]
+    filenames = [filename for filename in filenames if filename.endswith(f".{file_format}")]
+    filenames.sort()
+    return fs, filenames
 
 
 def read_first_file_shape(
@@ -24,46 +91,13 @@ def read_first_file_shape(
 ) -> Tuple[int, int]:
     """
     Read the shape of the first file in the embeddings directory.
-
-    Parameters
-    ----------
-    embeddings_path : str
-        Path of the embeddings directory.
-    file_format : str
-        Format of the embeddings file.
-    embedding_column_name: str
-        If file_format="parquet" - the name of the column containing the embeddings
-
-    Returns
-    -------
-    shape : (int, int)
-        Shape of the first embedding file.
     """
-    fs, path_in_fs = fsspec.core.url_to_fs(embeddings_path)
-    LOGGER.debug(f"Using filesystem {fs} for {embeddings_path}")
-    filenames = fs.walk(path_in_fs).__next__()[2]
-    filenames = [filename for filename in filenames if filename.endswith(f".{file_format}")]
-    filenames.sort()
-    LOGGER.debug(f"Found files in path {embeddings_path}: ")
-    LOGGER.debug("\n".join(f"\t{f}" for f in filenames))
+    fs, filenames = get_file_list(embeddings_path, file_format)
 
     first_file = filenames[0]
     first_file_path = os.path.join(embeddings_path, first_file)
-    LOGGER.debug(f"First file in path {embeddings_path} = {first_file_path}")
-    if file_format == "npy":
-        LOGGER.debug(f"Opening numpy file {first_file_path}")
-        with fs.open(first_file_path, "rb") as f:
-            shape = get_shape_numpy(f)
-    elif file_format == "parquet":
-        LOGGER.debug(f"Opening parquet file {first_file_path} and getting column {embedding_column_name}")
-        with fs.open(first_file_path, "rb") as f:
-            emb = pq.read_table(f).to_pandas()
-            embeddings_raw = emb[embedding_column_name].to_numpy()
-            embeddings = np.stack(embeddings_raw).astype("float32")
-            shape = embeddings.shape
-    else:
-        raise ValueError("Unknown file format")
-    return shape
+    with get_matrix_reader(file_format, fs, first_file_path, embedding_column_name) as matrix_reader:
+        return matrix_reader.get_shape()
 
 
 def read_total_nb_vectors_and_dim(
@@ -83,32 +117,22 @@ def read_total_nb_vectors_and_dim(
             count: total number of vectors in the dataset.
             dim: embedding dimension
         """
-    fs, path_in_fs = fsspec.core.url_to_fs(embeddings_path)
-    filenames = fs.walk(path_in_fs).__next__()[2]
-    filenames = [filename for filename in filenames if filename.endswith(f".{file_format}")]
-    filenames.sort()
+    fs, filenames = get_file_list(embeddings_path, file_format)
 
     _, dim = read_first_file_shape(
         embeddings_path, file_format=file_format, embedding_column_name=embedding_column_name
     )
 
-    def get_number_of_lines(filename, fs):
-        file_path = os.path.join(embeddings_path, filename)
-        if file_format == "npy":
-            with fs.open(file_path, "rb") as f:
-                shape = get_shape_numpy(f)
-                return shape[0]
-        elif file_format == "parquet":
-            with fs.open(file_path) as file:
-                parquet_file = pq.ParquetFile(file, memory_map=True)
-                return parquet_file.metadata.num_rows
-        else:
-            raise ValueError("Unknown file format")
+    def file_to_line_count(f):
+        with get_matrix_reader(
+            file_format, fs, os.path.join(embeddings_path, f), embedding_column_name
+        ) as matrix_reader:
+            return matrix_reader.get_row_count()
 
     count = 0
     i = 0
     with ThreadPool(50) as p:
-        for c in p.imap_unordered(lambda f: get_number_of_lines(f, fs), filenames):
+        for c in p.imap_unordered(file_to_line_count, filenames):
             count += c
             i += 1
 
@@ -163,11 +187,7 @@ def read_embeddings(
     if batch_size is None:
         batch_size = first_vector_count
 
-    fs, path_in_fs = fsspec.core.url_to_fs(embeddings_path)
-
-    filenames = fs.walk(path_in_fs).__next__()[2]
-    filenames = [filename for filename in filenames if filename.endswith(f".{file_format}")]
-    filenames.sort()
+    fs, filenames = get_file_list(embeddings_path, file_format)
     embeddings_batch = None
     nb_emb_in_batch = 0
 
@@ -177,13 +197,10 @@ def read_embeddings(
 
     for filename in iterator:
         file_path = os.path.join(embeddings_path, filename)
-        with fs.open(file_path, "rb") as f:
-            if file_format == "npy":
-                emb = np.load(f)
-            elif file_format == "parquet":
-                emb_table = pq.read_table(f).to_pandas()
-                embeddings_raw = emb_table[embedding_column_name].to_numpy()
-                emb = np.stack(embeddings_raw)
+        with get_matrix_reader(
+            file_format, fs, os.path.join(embeddings_path, file_path), embedding_column_name
+        ) as matrix_reader:
+            emb = matrix_reader.get_ndarray()
             vec_size = emb.shape[0]
             current_emb_index = 0
             while True:
