@@ -9,7 +9,6 @@ import random
 
 import faiss
 import numpy as np
-from autofaiss.utils.os_tools import run_command
 
 
 def get_index_size(index: faiss.Index) -> int:
@@ -111,48 +110,3 @@ def set_search_hyperparameters(index: faiss.Index, param_str: str, use_gpu: bool
     # depends on installed faiss version # pylint: disable=no-member
     params = faiss.ParameterSpace() if not use_gpu else faiss.GpuParameterSpace()
     params.set_index_parameters(index, param_str)
-
-
-def save_index_on_hdfs(my_index: faiss.Index, dst_path: str) -> bool:
-    """function to save a faiss index on hdfs"""
-
-    index_path = "/tmp/tmp_index.index"
-
-    if os.path.exists(index_path):
-        os.remove(index_path)
-
-    faiss.write_index(my_index, index_path)
-    cmd = f"hdfs dfs -copyFromLocal {index_path} {dst_path}"
-
-    if not run_command(cmd):
-        print("Overwriting previous file")
-        cmd = f"hdfs dfs -copyFromLocal -f {index_path} {dst_path}"
-        if not run_command(cmd):
-            os.remove(index_path)
-            return False
-
-    os.remove(index_path)
-
-    return True
-
-
-def load_index_from_hdfs(src_path: str):
-    """Load a faiss index stored on the HDFS"""
-
-    index_path = f"/tmp/{src_path.split('/')[-1]}"
-
-    if os.path.exists(index_path):
-        os.remove(index_path)
-
-    cmd = f"hdfs dfs -copyToLocal {src_path} {index_path}"
-
-    if not run_command(cmd):
-        raise ValueError(f"no file at {src_path} on HDFS")
-
-    index_memory = os.path.getsize(index_path)
-
-    index = faiss.read_index(index_path)
-
-    os.remove(index_path)
-
-    return index, index_memory

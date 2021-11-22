@@ -1,11 +1,11 @@
 """ main file to create an index from the the begining """
 
 import logging
-import os
 from pprint import pprint as pp
 from typing import Dict, Optional, Union, Any, Tuple
 import multiprocessing
 import tempfile
+import fsspec
 
 import faiss
 import json
@@ -20,7 +20,7 @@ from autofaiss.external.build import (
 )
 from autofaiss.external.optimize import get_optimal_hyperparameters, get_optimal_index_keys_v2
 from autofaiss.external.scores import compute_fast_metrics, compute_medium_metrics
-from autofaiss.indices.index_utils import set_search_hyperparameters, load_index_from_hdfs, save_index_on_hdfs
+from autofaiss.indices.index_utils import set_search_hyperparameters
 from autofaiss.utils.decorators import Timeit
 from autofaiss.utils.cast import cast_memory_to_bytes, cast_bytes_to_memory_string
 import numpy as np
@@ -178,8 +178,10 @@ def build_index(
 
         if save_on_disk:
             with Timeit("Saving the index on local disk", indent=1):
-                faiss.write_index(index, index_path)
-                json.dump(metric_infos, open(index_infos_path, "w"))
+                with fsspec.open(index_path, "wb").open() as f:
+                    faiss.write_index(index, faiss.PyCallbackIOWriter(f.write))
+                with fsspec.open(index_infos_path, "w").open() as f:
+                    json.dump(metric_infos, f)
 
         print("Recap:")
         pp(metric_infos)
@@ -188,14 +190,14 @@ def build_index(
 
 
 def tune_index(
-    index_path: str,
+    index_path: Union[str, Any],
     index_key: str,
     index_param: Optional[str] = None,
-    dest_path: Optional[str] = None,
-    is_local_index_path: bool = False,
+    output_index_path: Optional[str] = None,
+    save_on_disk: bool = True,
     max_index_query_time_ms: float = 10.0,
     use_gpu: bool = False,
-) -> str:
+) -> Tuple[Optional[Any], Optional[Dict[str, Union[str, float, int]]]]:
     """
     Set hyperparameters to the given index.
 
@@ -204,19 +206,18 @@ def tune_index(
 
     Parameters
     ----------
-    index_path : str
-        Path to .index file on local disk if is_local_index_path is True,
-        otherwise path on hdfs.
+    index_path : Union[str, Any]
+        Path to .index file
+        Can also be an index
     index_key: str
         String to give to the index factory in order to create the index.
     index_param: Optional(str)
         Optional string with hyperparameters to set to the index.
         If None, the hyper-parameters are chosen based on an heuristic.
-    dest_path: Optional[str]
-        Path to the newly created .index file. On local disk if is_local_index_path is True,
-        otherwise on hdfs. If None id given, index_path is the destination path.
-    is_local_index_path: bool
-        True if the dest_path and index_path are local path, False if there are hdfs paths.
+    output_index_path: str
+        Path to the newly created .index file
+    save_on_disk: bool
+        Whether to save the index on disk, default to True.
     max_index_query_time_ms: float
         Query speed constraint for the index to create.
     use_gpu: bool
@@ -224,66 +225,74 @@ def tune_index(
 
     Returns
     -------
-    infos: str
-        Message describing the index created.
+    index
+        The faiss index
     """
 
-    if dest_path is None:
-        dest_path = index_path
-
-    if is_local_index_path:
-        with Timeit("Loading index from local disk"):
-            index = faiss.read_index(index_path)
+    if isinstance(index_path, str):
+        with fsspec.open(index_path, "r").open() as f:
+            index = faiss.read_index(faiss.PyCallbackIOReader(f.read))
     else:
-        with Timeit("Loading index from HDFS"):
-            index, _ = load_index_from_hdfs(index_path)
+        index = index_path
 
     if index_param is None:
-
         with Timeit("Compute best hyperparameters"):
             index_param = get_optimal_hyperparameters(index, index_key, max_speed=max_index_query_time_ms)
 
     with Timeit("Set search hyperparameters for the index"):
         set_search_hyperparameters(index, index_param, use_gpu)
 
-    if is_local_index_path:
-        with Timeit("Saving index on local disk"):
-            faiss.write_index(index, dest_path)
-    else:
-        with Timeit("Saving index to HDFS"):
-            save_index_on_hdfs(index, dest_path)
+    if save_on_disk:
+        with fsspec.open(output_index_path, "wb").open() as f:
+            faiss.write_index(index, faiss.PyCallbackIOWriter(f.write))
 
-    return f"The optimal hyperparameters are {index_param}, the index with these parameters has been saved."
+    print(f"The optimal hyperparameters are {index_param}, the index with these parameters has been saved.")
+
+    return index
 
 
 def score_index(
-    index_path: str, embeddings_path: str, is_local_index_path: bool = False, current_memory_available: str = "32G",
+    index_path: Union[str, Any],
+    embeddings_path: Union[str, np.ndarray],
+    save_on_disk: bool = True,
+    output_index_info_path: str = "infos.json",
+    current_memory_available: str = "32G",
 ) -> None:
     """
     Compute metrics on a given index, use cached ground truth for fast scoring the next times.
 
     Parameters
     ----------
-    index_path : str
-        Path to .index file on local disk if is_local_index_path is True,
-        otherwise path on hdfs.
-    embeddings_path: str
-        Local path containing all preprocessed vectors and cached files.
-    is_local_index_path: bool
-        True if the dest_path and index_path are local path, False if there are hdfs paths.
+    index_path : Union[str, Any]
+        Path to .index file. Or in memory index
+    embeddings_path: Union[str, np.ndarray]
+        Path containing all preprocessed vectors and cached files. Can also be an in memory array.
+    save_on_disk: bool
+        Whether to save on disk
+    output_index_info_path : str
+        Path to index infos .json
     current_memory_available: str
         Memory available on the current machine, having more memory is a boost
         because it reduces the swipe between RAM and disk.
     """
     faiss.omp_set_num_threads(multiprocessing.cpu_count())
 
-    if is_local_index_path:
-        with Timeit("Loading index from local disk"):
-            index_memory = os.path.getsize(index_path)
-            index = faiss.read_index(index_path)
+    if isinstance(index_path, str):
+        with fsspec.open(index_path, "r").open() as f:
+            index = faiss.read_index(faiss.PyCallbackIOReader(f.read))
+        fs, path_in_fs = fsspec.core.url_to_fs(index_path)
+        index_memory = fs.size(path_in_fs)
     else:
-        with Timeit("Loading index from HDFS"):
-            index, index_memory = load_index_from_hdfs(index_path)
+        index = index_path
+        with tempfile.NamedTemporaryFile("wb") as f:
+            faiss.write_index(index, faiss.PyCallbackIOWriter(f.write))
+            fs, path_in_fs = fsspec.core.url_to_fs(f.name)
+            index_memory = fs.size(path_in_fs)
+
+    if isinstance(embeddings_path, np.ndarray):
+        tmp_dir_embeddings = tempfile.TemporaryDirectory()
+        np.save(tmp_dir_embeddings.name + "/emb.npy", embeddings_path)
+        embeddings_path = tmp_dir_embeddings.name
 
     infos: Dict[str, Union[str, float, int]] = {}
 
@@ -301,13 +310,19 @@ def score_index(
             f"Not enough memory, at least {cast_bytes_to_memory_string(index_memory*1.1)}"
             "is needed, please increase current_memory_available"
         )
-        return
+        return None
 
     with Timeit("Compute medium metrics"):
         infos.update(compute_medium_metrics(embeddings_path, index, memory_left))
 
     print("Performances recap:")
     pp(infos)
+
+    if save_on_disk:
+        with fsspec.open(output_index_info_path, "w").open() as f:
+            json.dump(infos, f)
+
+    return index
 
 
 def main():

@@ -1,0 +1,1 @@
+{"size in bytes": 204845, "avg_search_speed_ms": 0.1533673191734124, "99p_search_speed_ms": 0.247295550070703, "reconstruction error %": 0.0, "nb vectors": 100, "vectors dimension": 512, "compression ratio": 0.9997803217066562, "1-recall@20": 0.0, "1-recall@40": 1.0, "20-recall@20": 0.5, "40-recall@40": 1.0}
