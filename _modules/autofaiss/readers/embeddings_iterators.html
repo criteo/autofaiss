@@ -93,14 +93,81 @@
 <span class="kn">import</span> <span class="nn">fsspec</span>
 <span class="kn">import</span> <span class="nn">pyarrow.parquet</span> <span class="k">as</span> <span class="nn">pq</span>
 <span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABC</span>
+
 
 <span class="n">LOGGER</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="get_shape_numpy"><a class="viewcode-back" href="../../../_source/autofaiss.readers.html#autofaiss.readers.embeddings_iterators.get_shape_numpy">[docs]</a><span class="k">def</span> <span class="nf">get_shape_numpy</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
-    <span class="n">first_line</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
-    <span class="n">result</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;&#39;shape&#39;: \(([0-9]+), ([0-9]+)\)&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">first_line</span><span class="p">))</span>
-    <span class="k">return</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)),</span> <span class="nb">int</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">2</span><span class="p">)))</span></div>
+<div class="viewcode-block" id="AbstractMatrixReader"><a class="viewcode-back" href="../../../_source/autofaiss.readers.html#autofaiss.readers.embeddings_iterators.AbstractMatrixReader">[docs]</a><span class="k">class</span> <span class="nc">AbstractMatrixReader</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Read a file and provide its shape, row count and ndarray. Behaves as a context manager&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fs</span><span class="p">,</span> <span class="n">file_path</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">f</span> <span class="o">=</span> <span class="n">fs</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="k">def</span> <span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_val</span><span class="p">,</span> <span class="n">exc_tb</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="NumpyMatrixReader"><a class="viewcode-back" href="../../../_source/autofaiss.readers.html#autofaiss.readers.embeddings_iterators.NumpyMatrixReader">[docs]</a><span class="k">class</span> <span class="nc">NumpyMatrixReader</span><span class="p">(</span><span class="n">AbstractMatrixReader</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Read a numpy file and provide its shape, row count and ndarray. Behaves as a context manager&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fs</span><span class="p">,</span> <span class="n">file_path</span><span class="p">,</span> <span class="o">*</span><span class="n">_</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">fs</span><span class="p">,</span> <span class="n">file_path</span><span class="p">)</span>
+
+<div class="viewcode-block" id="NumpyMatrixReader.get_shape"><a class="viewcode-back" href="../../../_source/autofaiss.readers.html#autofaiss.readers.embeddings_iterators.NumpyMatrixReader.get_shape">[docs]</a>    <span class="k">def</span> <span class="nf">get_shape</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">first_line</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">f</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;&#39;shape&#39;: \(([0-9]+), ([0-9]+)\)&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">first_line</span><span class="p">))</span>
+        <span class="k">return</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)),</span> <span class="nb">int</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">2</span><span class="p">)))</span></div>
+
+<div class="viewcode-block" id="NumpyMatrixReader.get_row_count"><a class="viewcode-back" href="../../../_source/autofaiss.readers.html#autofaiss.readers.embeddings_iterators.NumpyMatrixReader.get_row_count">[docs]</a>    <span class="k">def</span> <span class="nf">get_row_count</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_shape</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="NumpyMatrixReader.get_ndarray"><a class="viewcode-back" href="../../../_source/autofaiss.readers.html#autofaiss.readers.embeddings_iterators.NumpyMatrixReader.get_ndarray">[docs]</a>    <span class="k">def</span> <span class="nf">get_ndarray</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">f</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="ParquetMatrixReader"><a class="viewcode-back" href="../../../_source/autofaiss.readers.html#autofaiss.readers.embeddings_iterators.ParquetMatrixReader">[docs]</a><span class="k">class</span> <span class="nc">ParquetMatrixReader</span><span class="p">(</span><span class="n">AbstractMatrixReader</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Read a parquet file and provide its shape, row count and ndarray. Behaves as a context manager&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fs</span><span class="p">,</span> <span class="n">file_path</span><span class="p">,</span> <span class="n">embedding_column_name</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">fs</span><span class="p">,</span> <span class="n">file_path</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">embedding_column_name</span> <span class="o">=</span> <span class="n">embedding_column_name</span>
+
+<div class="viewcode-block" id="ParquetMatrixReader.get_shape"><a class="viewcode-back" href="../../../_source/autofaiss.readers.html#autofaiss.readers.embeddings_iterators.ParquetMatrixReader.get_shape">[docs]</a>    <span class="k">def</span> <span class="nf">get_shape</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">parquet_file</span> <span class="o">=</span> <span class="n">pq</span><span class="o">.</span><span class="n">ParquetFile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">f</span><span class="p">,</span> <span class="n">memory_map</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">num_rows</span> <span class="o">=</span> <span class="n">parquet_file</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">num_rows</span>
+        <span class="n">batches</span> <span class="o">=</span> <span class="n">parquet_file</span><span class="o">.</span><span class="n">iter_batches</span><span class="p">(</span><span class="n">batch_size</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">embedding_column_name</span><span class="p">,))</span>
+        <span class="n">dimension</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">batches</span><span class="p">)</span><span class="o">.</span><span class="n">to_pandas</span><span class="p">()[</span><span class="bp">self</span><span class="o">.</span><span class="n">embedding_column_name</span><span class="p">]</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">num_rows</span><span class="p">,</span> <span class="n">dimension</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ParquetMatrixReader.get_row_count"><a class="viewcode-back" href="../../../_source/autofaiss.readers.html#autofaiss.readers.embeddings_iterators.ParquetMatrixReader.get_row_count">[docs]</a>    <span class="k">def</span> <span class="nf">get_row_count</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">parquet_file</span> <span class="o">=</span> <span class="n">pq</span><span class="o">.</span><span class="n">ParquetFile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">f</span><span class="p">,</span> <span class="n">memory_map</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">parquet_file</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">num_rows</span></div>
+
+<div class="viewcode-block" id="ParquetMatrixReader.get_ndarray"><a class="viewcode-back" href="../../../_source/autofaiss.readers.html#autofaiss.readers.embeddings_iterators.ParquetMatrixReader.get_ndarray">[docs]</a>    <span class="k">def</span> <span class="nf">get_ndarray</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">emb_table</span> <span class="o">=</span> <span class="n">pq</span><span class="o">.</span><span class="n">read_table</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">f</span><span class="p">)</span><span class="o">.</span><span class="n">to_pandas</span><span class="p">()</span>
+        <span class="n">embeddings_raw</span> <span class="o">=</span> <span class="n">emb_table</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">embedding_column_name</span><span class="p">]</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">embeddings_raw</span><span class="p">)</span></div></div>
+
+
+<span class="n">matrix_readers_registry</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;parquet&quot;</span><span class="p">:</span> <span class="n">ParquetMatrixReader</span><span class="p">,</span> <span class="s2">&quot;npy&quot;</span><span class="p">:</span> <span class="n">NumpyMatrixReader</span><span class="p">}</span>
+
+
+<div class="viewcode-block" id="get_matrix_reader"><a class="viewcode-back" href="../../../_source/autofaiss.readers.html#autofaiss.readers.embeddings_iterators.get_matrix_reader">[docs]</a><span class="k">def</span> <span class="nf">get_matrix_reader</span><span class="p">(</span><span class="n">file_format</span><span class="p">,</span> <span class="n">fs</span><span class="p">,</span> <span class="n">file_path</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+    <span class="bp">cls</span> <span class="o">=</span> <span class="n">matrix_readers_registry</span><span class="p">[</span><span class="n">file_format</span><span class="p">]</span>
+    <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">fs</span><span class="p">,</span> <span class="n">file_path</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_file_list"><a class="viewcode-back" href="../../../_source/autofaiss.readers.html#autofaiss.readers.embeddings_iterators.get_file_list">[docs]</a><span class="k">def</span> <span class="nf">get_file_list</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">file_format</span><span class="p">):</span>
+    <span class="n">fs</span><span class="p">,</span> <span class="n">path_in_fs</span> <span class="o">=</span> <span class="n">fsspec</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">url_to_fs</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="n">filenames</span> <span class="o">=</span> <span class="n">fs</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="n">path_in_fs</span><span class="p">)</span><span class="o">.</span><span class="fm">__next__</span><span class="p">()[</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">filenames</span> <span class="o">=</span> <span class="p">[</span><span class="n">filename</span> <span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="n">filenames</span> <span class="k">if</span> <span class="n">filename</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;.</span><span class="si">{</span><span class="n">file_format</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)]</span>
+    <span class="n">filenames</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">fs</span><span class="p">,</span> <span class="n">filenames</span></div>
 
 
 <div class="viewcode-block" id="read_first_file_shape"><a class="viewcode-back" href="../../../_source/autofaiss.readers.html#autofaiss.readers.embeddings_iterators.read_first_file_shape">[docs]</a><span class="k">def</span> <span class="nf">read_first_file_shape</span><span class="p">(</span>
@@ -108,46 +175,13 @@
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Read the shape of the first file in the embeddings directory.</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    embeddings_path : str</span>
-<span class="sd">        Path of the embeddings directory.</span>
-<span class="sd">    file_format : str</span>
-<span class="sd">        Format of the embeddings file.</span>
-<span class="sd">    embedding_column_name: str</span>
-<span class="sd">        If file_format=&quot;parquet&quot; - the name of the column containing the embeddings</span>
-
-<span class="sd">    Returns</span>
-<span class="sd">    -------</span>
-<span class="sd">    shape : (int, int)</span>
-<span class="sd">        Shape of the first embedding file.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">fs</span><span class="p">,</span> <span class="n">path_in_fs</span> <span class="o">=</span> <span class="n">fsspec</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">url_to_fs</span><span class="p">(</span><span class="n">embeddings_path</span><span class="p">)</span>
-    <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Using filesystem </span><span class="si">{</span><span class="n">fs</span><span class="si">}</span><span class="s2"> for </span><span class="si">{</span><span class="n">embeddings_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-    <span class="n">filenames</span> <span class="o">=</span> <span class="n">fs</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="n">path_in_fs</span><span class="p">)</span><span class="o">.</span><span class="fm">__next__</span><span class="p">()[</span><span class="mi">2</span><span class="p">]</span>
-    <span class="n">filenames</span> <span class="o">=</span> <span class="p">[</span><span class="n">filename</span> <span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="n">filenames</span> <span class="k">if</span> <span class="n">filename</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;.</span><span class="si">{</span><span class="n">file_format</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)]</span>
-    <span class="n">filenames</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
-    <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Found files in path </span><span class="si">{</span><span class="n">embeddings_path</span><span class="si">}</span><span class="s2">: &quot;</span><span class="p">)</span>
-    <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t</span><span class="si">{</span><span class="n">f</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">filenames</span><span class="p">))</span>
+    <span class="n">fs</span><span class="p">,</span> <span class="n">filenames</span> <span class="o">=</span> <span class="n">get_file_list</span><span class="p">(</span><span class="n">embeddings_path</span><span class="p">,</span> <span class="n">file_format</span><span class="p">)</span>
 
     <span class="n">first_file</span> <span class="o">=</span> <span class="n">filenames</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
     <span class="n">first_file_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">embeddings_path</span><span class="p">,</span> <span class="n">first_file</span><span class="p">)</span>
-    <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;First file in path </span><span class="si">{</span><span class="n">embeddings_path</span><span class="si">}</span><span class="s2"> = </span><span class="si">{</span><span class="n">first_file_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">file_format</span> <span class="o">==</span> <span class="s2">&quot;npy&quot;</span><span class="p">:</span>
-        <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Opening numpy file </span><span class="si">{</span><span class="n">first_file_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="k">with</span> <span class="n">fs</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">first_file_path</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-            <span class="n">shape</span> <span class="o">=</span> <span class="n">get_shape_numpy</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">file_format</span> <span class="o">==</span> <span class="s2">&quot;parquet&quot;</span><span class="p">:</span>
-        <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Opening parquet file </span><span class="si">{</span><span class="n">first_file_path</span><span class="si">}</span><span class="s2"> and getting column </span><span class="si">{</span><span class="n">embedding_column_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="k">with</span> <span class="n">fs</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">first_file_path</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-            <span class="n">emb</span> <span class="o">=</span> <span class="n">pq</span><span class="o">.</span><span class="n">read_table</span><span class="p">(</span><span class="n">f</span><span class="p">)</span><span class="o">.</span><span class="n">to_pandas</span><span class="p">()</span>
-            <span class="n">embeddings_raw</span> <span class="o">=</span> <span class="n">emb</span><span class="p">[</span><span class="n">embedding_column_name</span><span class="p">]</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span>
-            <span class="n">embeddings</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">embeddings_raw</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;float32&quot;</span><span class="p">)</span>
-            <span class="n">shape</span> <span class="o">=</span> <span class="n">embeddings</span><span class="o">.</span><span class="n">shape</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unknown file format&quot;</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">shape</span></div>
+    <span class="k">with</span> <span class="n">get_matrix_reader</span><span class="p">(</span><span class="n">file_format</span><span class="p">,</span> <span class="n">fs</span><span class="p">,</span> <span class="n">first_file_path</span><span class="p">,</span> <span class="n">embedding_column_name</span><span class="p">)</span> <span class="k">as</span> <span class="n">matrix_reader</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">matrix_reader</span><span class="o">.</span><span class="n">get_shape</span><span class="p">()</span></div>
 
 
 <div class="viewcode-block" id="read_total_nb_vectors_and_dim"><a class="viewcode-back" href="../../../_source/autofaiss.readers.html#autofaiss.readers.embeddings_iterators.read_total_nb_vectors_and_dim">[docs]</a><span class="k">def</span> <span class="nf">read_total_nb_vectors_and_dim</span><span class="p">(</span>
@@ -167,32 +201,22 @@
 <span class="sd">            count: total number of vectors in the dataset.</span>
 <span class="sd">            dim: embedding dimension</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-    <span class="n">fs</span><span class="p">,</span> <span class="n">path_in_fs</span> <span class="o">=</span> <span class="n">fsspec</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">url_to_fs</span><span class="p">(</span><span class="n">embeddings_path</span><span class="p">)</span>
-    <span class="n">filenames</span> <span class="o">=</span> <span class="n">fs</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="n">path_in_fs</span><span class="p">)</span><span class="o">.</span><span class="fm">__next__</span><span class="p">()[</span><span class="mi">2</span><span class="p">]</span>
-    <span class="n">filenames</span> <span class="o">=</span> <span class="p">[</span><span class="n">filename</span> <span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="n">filenames</span> <span class="k">if</span> <span class="n">filename</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;.</span><span class="si">{</span><span class="n">file_format</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)]</span>
-    <span class="n">filenames</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+    <span class="n">fs</span><span class="p">,</span> <span class="n">filenames</span> <span class="o">=</span> <span class="n">get_file_list</span><span class="p">(</span><span class="n">embeddings_path</span><span class="p">,</span> <span class="n">file_format</span><span class="p">)</span>
 
     <span class="n">_</span><span class="p">,</span> <span class="n">dim</span> <span class="o">=</span> <span class="n">read_first_file_shape</span><span class="p">(</span>
         <span class="n">embeddings_path</span><span class="p">,</span> <span class="n">file_format</span><span class="o">=</span><span class="n">file_format</span><span class="p">,</span> <span class="n">embedding_column_name</span><span class="o">=</span><span class="n">embedding_column_name</span>
     <span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">get_number_of_lines</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">fs</span><span class="p">):</span>
-        <span class="n">file_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">embeddings_path</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">file_format</span> <span class="o">==</span> <span class="s2">&quot;npy&quot;</span><span class="p">:</span>
-            <span class="k">with</span> <span class="n">fs</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-                <span class="n">shape</span> <span class="o">=</span> <span class="n">get_shape_numpy</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
-                <span class="k">return</span> <span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="k">elif</span> <span class="n">file_format</span> <span class="o">==</span> <span class="s2">&quot;parquet&quot;</span><span class="p">:</span>
-            <span class="k">with</span> <span class="n">fs</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
-                <span class="n">parquet_file</span> <span class="o">=</span> <span class="n">pq</span><span class="o">.</span><span class="n">ParquetFile</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">memory_map</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-                <span class="k">return</span> <span class="n">parquet_file</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">num_rows</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unknown file format&quot;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">file_to_line_count</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
+        <span class="k">with</span> <span class="n">get_matrix_reader</span><span class="p">(</span>
+            <span class="n">file_format</span><span class="p">,</span> <span class="n">fs</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">embeddings_path</span><span class="p">,</span> <span class="n">f</span><span class="p">),</span> <span class="n">embedding_column_name</span>
+        <span class="p">)</span> <span class="k">as</span> <span class="n">matrix_reader</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">matrix_reader</span><span class="o">.</span><span class="n">get_row_count</span><span class="p">()</span>
 
     <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="k">with</span> <span class="n">ThreadPool</span><span class="p">(</span><span class="mi">50</span><span class="p">)</span> <span class="k">as</span> <span class="n">p</span><span class="p">:</span>
-        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">p</span><span class="o">.</span><span class="n">imap_unordered</span><span class="p">(</span><span class="k">lambda</span> <span class="n">f</span><span class="p">:</span> <span class="n">get_number_of_lines</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">fs</span><span class="p">),</span> <span class="n">filenames</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">p</span><span class="o">.</span><span class="n">imap_unordered</span><span class="p">(</span><span class="n">file_to_line_count</span><span class="p">,</span> <span class="n">filenames</span><span class="p">):</span>
             <span class="n">count</span> <span class="o">+=</span> <span class="n">c</span>
             <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
 
@@ -247,11 +271,7 @@
     <span class="k">if</span> <span class="n">batch_size</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">batch_size</span> <span class="o">=</span> <span class="n">first_vector_count</span>
 
-    <span class="n">fs</span><span class="p">,</span> <span class="n">path_in_fs</span> <span class="o">=</span> <span class="n">fsspec</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">url_to_fs</span><span class="p">(</span><span class="n">embeddings_path</span><span class="p">)</span>
-
-    <span class="n">filenames</span> <span class="o">=</span> <span class="n">fs</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="n">path_in_fs</span><span class="p">)</span><span class="o">.</span><span class="fm">__next__</span><span class="p">()[</span><span class="mi">2</span><span class="p">]</span>
-    <span class="n">filenames</span> <span class="o">=</span> <span class="p">[</span><span class="n">filename</span> <span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="n">filenames</span> <span class="k">if</span> <span class="n">filename</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;.</span><span class="si">{</span><span class="n">file_format</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)]</span>
-    <span class="n">filenames</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+    <span class="n">fs</span><span class="p">,</span> <span class="n">filenames</span> <span class="o">=</span> <span class="n">get_file_list</span><span class="p">(</span><span class="n">embeddings_path</span><span class="p">,</span> <span class="n">file_format</span><span class="p">)</span>
     <span class="n">embeddings_batch</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">nb_emb_in_batch</span> <span class="o">=</span> <span class="mi">0</span>
 
@@ -261,13 +281,10 @@
 
     <span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="n">iterator</span><span class="p">:</span>
         <span class="n">file_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">embeddings_path</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
-        <span class="k">with</span> <span class="n">fs</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">file_format</span> <span class="o">==</span> <span class="s2">&quot;npy&quot;</span><span class="p">:</span>
-                <span class="n">emb</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
-            <span class="k">elif</span> <span class="n">file_format</span> <span class="o">==</span> <span class="s2">&quot;parquet&quot;</span><span class="p">:</span>
-                <span class="n">emb_table</span> <span class="o">=</span> <span class="n">pq</span><span class="o">.</span><span class="n">read_table</span><span class="p">(</span><span class="n">f</span><span class="p">)</span><span class="o">.</span><span class="n">to_pandas</span><span class="p">()</span>
-                <span class="n">embeddings_raw</span> <span class="o">=</span> <span class="n">emb_table</span><span class="p">[</span><span class="n">embedding_column_name</span><span class="p">]</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span>
-                <span class="n">emb</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">embeddings_raw</span><span class="p">)</span>
+        <span class="k">with</span> <span class="n">get_matrix_reader</span><span class="p">(</span>
+            <span class="n">file_format</span><span class="p">,</span> <span class="n">fs</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">embeddings_path</span><span class="p">,</span> <span class="n">file_path</span><span class="p">),</span> <span class="n">embedding_column_name</span>
+        <span class="p">)</span> <span class="k">as</span> <span class="n">matrix_reader</span><span class="p">:</span>
+            <span class="n">emb</span> <span class="o">=</span> <span class="n">matrix_reader</span><span class="o">.</span><span class="n">get_ndarray</span><span class="p">()</span>
             <span class="n">vec_size</span> <span class="o">=</span> <span class="n">emb</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
             <span class="n">current_emb_index</span> <span class="o">=</span> <span class="mi">0</span>
             <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
