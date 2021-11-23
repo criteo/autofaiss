@@ -14,91 +14,61 @@ The build_index command
 
 The ``autofaiss build_index`` command takes the following parameters:
 
-+----------------------------+----------+----------------------------+
-| Flag available             | Default  | Description                |
-+============================+==========+============================+
-| --embeddings_path          | required | Source path of the         |
-|                            |          | directory containing your  |
-|                            |          | .npy embedding files. If   |
-|                            |          | there are several files,   |
-|                            |          | they are read in the       |
-|                            |          | lexicographical order.     |
-|                            |          | This can be a local path   |
-|                            |          | or a path in another       |
-|                            |          | Filesystem                 |
-|                            |          | e.g. `hdfs://root/...`     |
-|                            |          | or `s3://...`              |
-+----------------------------+----------+----------------------------+
-| --index_path               | "knn.index" | Destination path of the    |
-|                            |          | faiss index on local       |
-|                            |          | machine.                   |
-+----------------------------+----------+----------------------------+
-| --index_infos_path         | "index_infos.json" | Destination path of the    |
-|                            |          | faiss index infos on local |
-|                            |          | machine.                   |
-+----------------------------+----------+----------------------------+
-| --save_on_disk             | True | Whether to save to disk    |
-+----------------------------+----------+----------------------------+
-| --file_format              | "npy"    | File format of the files   |
-|                            |          | in embeddings_path         |
-|                            |          | Can be either `npy`        |
-|                            |          | for numpy matrix files     |
-|                            |          | or `parquet` for           |
-|                            |          | parquet serialized tables  |
-+----------------------------+----------+----------------------------+
-| --embedding_column_name    | "embeddings" | Only necessary when        |
-|                            |          | when file_format=`parquet` |
-|                            |          | In this case this is the   |
-|                            |          | name of the column         |
-|                            |          | containing the embeddings  |
-|                            |          | (one vector per row)       |
-+----------------------------+----------+----------------------------+
-| --metric_type              | "ip"     | (Optional) Similarity      |
-|                            |          | function used for query:   |
-|                            |          | ("ip" for inner product,   |
-|                            |          | "l2" for euclidian         |
-|                            |          | distance)                  |
-+----------------------------+----------+----------------------------+
-| --max_index_memory_usage   | "32GB"   | (Optional) Maximum size in |
-|                            |          | GB of the created index,   |
-|                            |          | this bound is strict.      |
-+----------------------------+----------+----------------------------+
-| --current_memory_available | "32GB"   | (Optional) Memory          |
-|                            |          | available (in GB) on the   |
-|                            |          | machine creating the       |
-|                            |          | index, having more memory  |
-|                            |          | is a boost because it      |
-|                            |          | reduces the swipe between  |
-|                            |          | RAM and disk.              |
-+----------------------------+----------+----------------------------+
-| --max_index_query_time_ms  | 10       | (Optional) Bound on the    |
-|                            |          | query time for KNN search, |
-|                            |          | this bound is              |
-|                            |          | approximative.             |
-+----------------------------+----------+----------------------------+
-| --index_key                | None     | (Optional) If present, the |
-|                            |          | Faiss index will be build  |
-|                            |          | using this description     |
-|                            |          | string in the              |
-|                            |          | index_factory, more detail |
-|                            |          | in the `Faiss              |
-|                            |          | documentation`_            |
-+----------------------------+----------+----------------------------+
-| --index_param              | None     | (Optional) If present, the |
-|                            |          | Faiss index will be set    |
-|                            |          | using this description     |
-|                            |          | string of hyperparameters, |
-|                            |          | more detail in the `Faiss  |
-|                            |          | docume                     |
-|                            |          | ntation <https://github.co |
-|                            |          | m/facebookresearch/faiss/w |
-|                            |          | iki/Index-IO,-cloning-and- |
-|                            |          | hyper-parameter-tuning>`__ |
-+----------------------------+----------+----------------------------+
-| --use_gpu                  | False    | (Optional) Experimental,   |
-|                            |          | gpu training can be        |
-|                            |          | faster, but this feature   |
-+----------------------------+----------+----------------------------+
+.. list-table:: Parameters
+    :widths: 50 50 100
+    :header-rows: 1
+
+    * - Flag available
+      - Default
+      - Description
+    * - --embeddings_path
+      - required
+      - Source path of the directory containing your .npy embedding files. If there are several files, they are read in the lexicographical order. This can be a local path or a path in another Filesystem e.g. `hdfs://root/...` or `s3://...`
+    * - --index_path
+      - required
+      - Destination path of the faiss index on local machine.
+    * - --index_infos_path
+      - required
+      - Destination path of the faiss index infos on local machine.
+    * - --save_on_disk
+      - required
+      - Save the index on the disk.
+    * - --file_format
+      - "npy"
+      - File format of the files in embeddings_path Can be either `npy` for numpy matrix files or `parquet` for parquet serialized tables
+    * - --embedding_column_name
+      - "embeddings"
+      - Only necessary when file_format=`parquet` In this case this is the name of the column containing the embeddings (one vector per row)
+    * - --id_columns
+      - None
+      - Can only be used when file_format=`parquet`. In this case these are the names of the columns containing the Ids of the vectors, and separate files will be generated to map these ids to indices in the KNN index
+    * - --ids_path
+      - None
+      - Only useful when id_columns is not None and file_format=`parquet`. This will be the path (in any filesystem) where the mapping files Ids->vector index will be store in parquet format
+    * - --metric_type
+      - "ip"
+      - (Optional) Similarity function used for query: ("ip" for inner product, "l2" for euclidian distance)
+    * - --max_index_memory_usage
+      - "32GB"
+      - (Optional) Maximum size in GB of the created index, this bound is strict.
+    * - --current_memory_available
+      - "32GB"
+      - (Optional) Memory available (in GB) on the machine creating the index, having more memory is a boost because it reduces the swipe between RAM and disk.
+    * - --max_index_query_time_ms
+      - 10
+      - (Optional) Bound on the query time for KNN search, this bound is approximative.
+    * - --index_key
+      - None
+      - (Optional) If present, the Faiss index will be build using this description string in the index_factory, more detail in the [Faiss documentation](https://github.com/facebookresearch/faiss/wiki/The-index-factory)
+    * - --index_param
+      - None
+      - (Optional) If present, the Faiss index will be set using this description string of hyperparameters, more detail in the [Faiss documentation](https://github.com/facebookresearch/faiss/wiki/Index-IO,-cloning-and-hyper-parameter-tuning)
+    * - --use_gpu
+      - False
+      - (Optional) Experimental, gpu training can be faster, but this feature is not tested so far.
+    * - --nb_cores
+      - None
+      - (Optional) The number of cores to use, by default will use all cores
 
 .. _Faiss documentation: https://github.com/facebookresearch/faiss/wiki/The-index-factory
 

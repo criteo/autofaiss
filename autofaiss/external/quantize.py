@@ -63,12 +63,21 @@ def build_index(
         Destination path of the quantized model.
     index_infos_path: Optional(str)
         Destination path of the metadata file.
+    ids_path: Optional(str)
+        Only useful when id_columns is not None and file_format=`parquet`. T
+        his will be the path (in any filesystem)
+        where the mapping files Ids->vector index will be store in parquet format
     save_on_disk: bool
         Whether to save the index on disk, default to True.
     file_format: Optional(str)
         npy or parquet ; default npy
     embedding_column_name: Optional(str)
         embeddings column name for parquet ; default embedding
+    id_columns: Optional(List[str])
+        Can only be used when file_format=`parquet`.
+        In this case these are the names of the columns containing the Ids of the vectors,
+        and separate files will be generated to map these ids to indices in the KNN index ;
+        default None
     index_key: Optional(str)
         Optional string to give to the index factory in order to create the index.
         If None, an index is chosen based on an heuristic.
