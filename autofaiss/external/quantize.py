@@ -174,8 +174,8 @@ def build_index(
                 print("\tAs ids_path=None - the Ids DataFrame will not be written and will be ignored subsequently")
                 print("\tPlease provide a value ids_path for the Ids to be written")
 
-        def write_ids_df_to_parquet(ids: pd.DataFrame):
-            filename = f"{uuid.uuid1()}.parquet"
+        def write_ids_df_to_parquet(ids: pd.DataFrame, batch_id: int):
+            filename = f"part-{batch_id:08d}-{uuid.uuid1()}.parquet"
             output_file = os.path.join(ids_path, filename)  # type: ignore
             with fsspec.open(output_file, "wb") as f:
                 LOGGER.debug(f"Writing id DataFrame to file {output_file}")
