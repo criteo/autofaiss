@@ -294,9 +294,7 @@ def read_embeddings(
     total_embeddings_processed = 0
     for filename in iterator:
         file_path = os.path.join(embeddings_path, filename)
-        with get_matrix_reader(
-            file_format, fs, os.path.join(embeddings_path, file_path), embedding_column_name, id_columns
-        ) as matrix_reader:
+        with get_matrix_reader(file_format, fs, file_path, embedding_column_name, id_columns) as matrix_reader:
             array = matrix_reader.get_lazy_array()
             vec_size = array.num_rows
             current_emb_index = 0
