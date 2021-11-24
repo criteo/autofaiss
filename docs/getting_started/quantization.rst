@@ -21,7 +21,7 @@ The ``autofaiss build_index`` command takes the following parameters:
     * - Flag available
       - Default
       - Description
-    * - --embeddings_path
+    * - --embeddings_or_path
       - required
       - Source path of the directory containing your .npy embedding files. If there are several files, they are read in the lexicographical order. This can be a local path or a path in another Filesystem e.g. `hdfs://root/...` or `s3://...`
     * - --index_path
@@ -35,7 +35,7 @@ The ``autofaiss build_index`` command takes the following parameters:
       - Save the index on the disk.
     * - --file_format
       - "npy"
-      - File format of the files in embeddings_path Can be either `npy` for numpy matrix files or `parquet` for parquet serialized tables
+      - File format of the files in embeddings_or_path. Can be either `npy` for numpy matrix files or `parquet` for parquet serialized tables
     * - --embedding_column_name
       - "embeddings"
       - Only necessary when file_format=`parquet` In this case this is the name of the column containing the embeddings (one vector per row)
@@ -164,13 +164,13 @@ Be careful, computing accurate metrics is slow.
 
 Compute metrics on a given index, use cached ground truth for fast scoring the next times.
 
-``autofaiss score_index --embeddings_path="folder/embs" --index_path="some.index" --output_index_info_path "infos.json" --current_memory_available="4G"``
+``autofaiss score_index --embeddings_or_path="folder/embs" --index_path="some.index" --output_index_info_path "infos.json" --current_memory_available="4G"``
 
 Parameters
 ----------
 index_path : Union[str, Any]
     Path to .index file. Or in memory index
-embeddings_path: str
+embeddings_or_path: str
     Local path containing all preprocessed vectors and cached files.
 output_index_info_path : str
     Path to index infos .json
