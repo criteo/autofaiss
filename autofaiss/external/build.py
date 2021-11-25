@@ -1,9 +1,9 @@
 """ gather functions necessary to build an index """
-
 import re
-from typing import Optional, Tuple, Union
+from typing import Optional, Tuple, Union, Callable, Any, List
 
 import faiss
+import pandas as pd
 
 from autofaiss.readers.embeddings_iterators import read_first_file_shape, read_embeddings
 from autofaiss.external.metadata import IndexMetadata
@@ -90,6 +90,8 @@ def create_index(
     current_memory_available: str,
     file_format: str = "npy",
     embedding_column_name: str = "embeddings",
+    id_columns: Optional[List[str]] = None,
+    embedding_ids_df_handler: Optional[Callable[[pd.DataFrame, int], Any]] = None,
     use_gpu: bool = False,
 ):
     """
@@ -136,7 +138,7 @@ def create_index(
             )
 
             # Extract training vectors
-            train_vectors = next(
+            train_vectors, _ = next(
                 read_embeddings(
                     embeddings_path,
                     file_format=file_format,
@@ -180,14 +182,19 @@ def create_index(
         print(
             f"Using a batch size of {batch_size} (memory overhead {cast_bytes_to_memory_string(batch_size*vec_dim*4)})"
         )
-        for vec_batch in read_embeddings(
-            embeddings_path,
-            file_format=file_format,
-            embedding_column_name=embedding_column_name,
-            batch_size=batch_size,
-            verbose=True,
+        for batch_id, (vec_batch, ids_batch) in enumerate(
+            read_embeddings(
+                embeddings_path,
+                file_format=file_format,
+                embedding_column_name=embedding_column_name,
+                id_columns=id_columns,
+                batch_size=batch_size,
+                verbose=True,
+            )
         ):
             index.add(vec_batch)
+            if embedding_ids_df_handler:
+                embedding_ids_df_handler(ids_batch, batch_id)
 
     # Give standard values for index hyperparameters if possible.
     if any(re.findall(r"OPQ\d+_\d+,IVF\d+_HNSW\d+,PQ\d+", index_key)):

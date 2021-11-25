@@ -1,16 +1,19 @@
 """ main file to create an index from the the begining """
 
 import logging
+from typing import Any, Tuple, Dict, Optional, Union, List
+import os
+import uuid
 from pprint import pprint as pp
-from typing import Dict, Optional, Union, Any, Tuple
 import multiprocessing
 import tempfile
-import fsspec
 
 import faiss
 import json
 
 import fire
+import fsspec
+import pandas as pd
 
 from autofaiss.readers.embeddings_iterators import read_total_nb_vectors_and_dim
 from autofaiss.external.build import (
@@ -25,14 +28,18 @@ from autofaiss.utils.decorators import Timeit
 from autofaiss.utils.cast import cast_memory_to_bytes, cast_bytes_to_memory_string
 import numpy as np
 
+LOGGER = logging.getLogger(__name__)
+
 
 def build_index(
-    embeddings_path: Union[str, np.ndarray],
+    embeddings: Union[str, np.ndarray],
     index_path: str = "knn.index",
     index_infos_path: str = "index_infos.json",
+    ids_path: Optional[str] = None,
     save_on_disk: bool = True,
     file_format: str = "npy",
     embedding_column_name: str = "embedding",
+    id_columns: Optional[List[str]] = None,
     index_key: Optional[str] = None,
     index_param: Optional[str] = None,
     max_index_query_time_ms: float = 10.0,
@@ -48,19 +55,29 @@ def build_index(
 
     Parameters
     ----------
-    embeddings_path : Union[str, np.ndarray]
+    embeddings : Union[str, np.ndarray]
         Local path containing all preprocessed vectors and cached files.
         Files will be added if empty.
+        Or directly the Numpy array of embeddings
     index_path: Optional(str)
         Destination path of the quantized model.
     index_infos_path: Optional(str)
         Destination path of the metadata file.
+    ids_path: Optional(str)
+        Only useful when id_columns is not None and file_format=`parquet`. T
+        his will be the path (in any filesystem)
+        where the mapping files Ids->vector index will be store in parquet format
     save_on_disk: bool
         Whether to save the index on disk, default to True.
     file_format: Optional(str)
         npy or parquet ; default npy
     embedding_column_name: Optional(str)
         embeddings column name for parquet ; default embedding
+    id_columns: Optional(List[str])
+        Can only be used when file_format=`parquet`.
+        In this case these are the names of the columns containing the Ids of the vectors,
+        and separate files will be generated to map these ids to indices in the KNN index ;
+        default None
     index_key: Optional(str)
         Optional string to give to the index factory in order to create the index.
         If None, an index is chosen based on an heuristic.
@@ -100,10 +117,12 @@ def build_index(
     print(f"Using {nb_cores} omp threads (processes), consider increasing --nb_cores if you have more")
     faiss.omp_set_num_threads(nb_cores)
 
-    if isinstance(embeddings_path, np.ndarray):
+    if isinstance(embeddings, np.ndarray):
         tmp_dir_embeddings = tempfile.TemporaryDirectory()
-        np.save(tmp_dir_embeddings.name + "/emb.npy", embeddings_path)
+        np.save(os.path.join(tmp_dir_embeddings.name, "emb.npy"), embeddings)
         embeddings_path = tmp_dir_embeddings.name
+    else:
+        embeddings_path = embeddings
 
     with Timeit("Launching the whole pipeline"):
 
@@ -145,6 +164,23 @@ def build_index(
                     return None, None
                 index_key = best_index_keys[0]
 
+        if id_columns is not None:
+            print(f"Id columns provided {id_columns} - will be reading the corresponding columns")
+            if ids_path is not None:
+                print("\tWill be writing the Ids DataFrame in parquet format to {ids_path}")
+                fs, _ = fsspec.core.url_to_fs(ids_path)
+                fs.mkdirs(ids_path, exist_ok=True)
+            else:
+                print("\tAs ids_path=None - the Ids DataFrame will not be written and will be ignored subsequently")
+                print("\tPlease provide a value ids_path for the Ids to be written")
+
+        def write_ids_df_to_parquet(ids: pd.DataFrame, batch_id: int):
+            filename = f"part-{batch_id:08d}-{uuid.uuid1()}.parquet"
+            output_file = os.path.join(ids_path, filename)  # type: ignore
+            with fsspec.open(output_file, "wb") as f:
+                LOGGER.debug(f"Writing id DataFrame to file {output_file}")
+                ids.to_parquet(f)
+
         with Timeit("Creating the index", indent=1):
             index = create_index(
                 embeddings_path,
@@ -155,6 +191,8 @@ def build_index(
                 use_gpu=use_gpu,
                 file_format=file_format,
                 embedding_column_name=embedding_column_name,
+                id_columns=id_columns,
+                embedding_ids_df_handler=write_ids_df_to_parquet if ids_path and id_columns else None,
             )
 
         if index_param is None:
@@ -253,7 +291,7 @@ def tune_index(
 
 def score_index(
     index_path: Union[str, Any],
-    embeddings_path: Union[str, np.ndarray],
+    embeddings: Union[str, np.ndarray],
     save_on_disk: bool = True,
     output_index_info_path: str = "infos.json",
     current_memory_available: str = "32G",
@@ -265,7 +303,7 @@ def score_index(
     ----------
     index_path : Union[str, Any]
         Path to .index file. Or in memory index
-    embeddings_path: Union[str, np.ndarray]
+    embeddings: Union[str, np.ndarray]
         Path containing all preprocessed vectors and cached files. Can also be an in memory array.
     save_on_disk: bool
         Whether to save on disk
@@ -289,10 +327,12 @@ def score_index(
             fs, path_in_fs = fsspec.core.url_to_fs(f.name)
             index_memory = fs.size(path_in_fs)
 
-    if isinstance(embeddings_path, np.ndarray):
+    if isinstance(embeddings, np.ndarray):
         tmp_dir_embeddings = tempfile.TemporaryDirectory()
-        np.save(tmp_dir_embeddings.name + "/emb.npy", embeddings_path)
+        np.save(os.path.join(tmp_dir_embeddings.name, "emb.npy"), embeddings)
         embeddings_path = tmp_dir_embeddings.name
+    else:
+        embeddings_path = embeddings
 
     infos: Dict[str, Union[str, float, int]] = {}
 

@@ -56,7 +56,10 @@ If you have many embeddings file, it is preferred to save them on disk as .npy f
 
 ```python
 from autofaiss import build_index
-build_index(embeddings_path="embeddings", index_path="my_index_folder/knn.index", index_infos_path="my_index_folder/index_infos.json", max_index_memory_usage="4G", current_memory_available="4G")
+
+build_index(embeddings="embeddings", index_path="my_index_folder/knn.index",
+            index_infos_path="my_index_folder/index_infos.json", max_index_memory_usage="4G",
+            current_memory_available="4G")
 ```
 
 
@@ -74,7 +77,7 @@ os.mkdir("my_index_folder")
 
 Generate a Knn index
 ``` bash
-autofaiss build_index --embeddings_path="embeddings" --index_path="my_index_folder/knn.index" --index_infos_path="my_index_folder/index_infos.json" --metric_type="ip"
+autofaiss build_index --embeddings="embeddings" --index_path="my_index_folder/knn.index" --index_infos_path="my_index_folder/index_infos.json" --metric_type="ip"
 ```
 
 Try the index
@@ -99,9 +102,9 @@ To understand better why indices are selected and what are their characteristics
 ## Command quick overview
 Quick description of the `autofaiss build_index` command:
 
-*embeddings_path*           -> Source path of the embeddings in numpy.  
-*index_path*               -> Destination path of the created index.
-*index_infos_path*         -> Destination path of the index infos.
+*embeddings*        -> Source path of the embeddings in numpy.  
+*index_path*                -> Destination path of the created index.
+*index_infos_path*          -> Destination path of the index infos.
 *save_on_disk*              -> Save the index on the disk.
 *metric_type*               -> Similarity distance for the queries.  
 
@@ -116,12 +119,14 @@ The `autofaiss build_index` command takes the following parameters:
 
 | Flag available             |  Default | Description                                                                                                                                                                                                                                               |
 |----------------------------|:--------:|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| --embeddings_path          | required | directory containing your .npy embedding files. If there are several files, they are read in the lexicographical order. This can be a local path or a path in another Filesystem e.g. `hdfs://root/...` or `s3://...`                                                                                                        |
-| --index_path              | required | Destination path of the faiss index on local machine.                                                                                                                                                                                                     |
-| --index_infos_path              | required | Destination path of the faiss index infos on local machine.                                                                                                                                                                                                     |
-| --save_on_disk              | required | Save the index on the disk.                                                                                                                                                                                                     |
-| --file_format              | "npy"    | File format of the files in embeddings_path Can be either `npy` for numpy matrix files or `parquet` for parquet serialized tables |
-| --embedding_column_name    | "embeddings" | Only necessary when when file_format=`parquet` In this case this is the name of the column containing the embeddings (one vector per row) |
+| --embeddings          | required | directory containing your .npy embedding files. If there are several files, they are read in the lexicographical order. This can be a local path or a path in another Filesystem e.g. `hdfs://root/...` or `s3://...`                                                                                                        |
+| --index_path               | required | Destination path of the faiss index on local machine.                                                                                                                                                                                                     |
+| --index_infos_path         | required | Destination path of the faiss index infos on local machine.                                                                                                                                                                                                     |
+| --save_on_disk             | required | Save the index on the disk.                                                                                                                                                                                                     |
+| --file_format              | "npy"    | File format of the files in embeddings Can be either `npy` for numpy matrix files or `parquet` for parquet serialized tables |
+| --embedding_column_name    | "embeddings" | Only necessary when file_format=`parquet` In this case this is the name of the column containing the embeddings (one vector per row) |
+| --id_columns               | None | Can only be used when file_format=`parquet`. In this case these are the names of the columns containing the Ids of the vectors, and separate files will be generated to map these ids to indices in the KNN index |
+| --ids_path                 | None | Only useful when id_columns is not None and file_format=`parquet`. This will be the path (in any filesystem) where the mapping files Ids->vector index will be store in parquet format|
 | --metric_type              |   "ip"   | (Optional) Similarity function used for query: ("ip" for inner product, "l2" for euclidian distance)                                                                                                                                                                                                            |
 | --max_index_memory_usage   |  "32GB"  | (Optional) Maximum size in GB of the created index, this bound is strict.                                                                                                                        |
 | --current_memory_available |  "32GB"  | (Optional) Memory available (in GB) on the machine creating the index, having more memory is a boost because it reduces the swipe between RAM and disk.                                                                               |
