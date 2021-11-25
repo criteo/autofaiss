@@ -448,7 +448,7 @@ div.rendered_html tbody tr:hover {
 !pip install autofaiss &amp;&gt; /dev/null
 
 # Build a KNN index
-!autofaiss build_index --embeddings_path={embeddings_dir} \
+!autofaiss build_index --embeddings={embeddings_dir} \
                     --index_path=&quot;knn.index&quot; \
                     --index_infos_path=&quot;infos.json&quot; \
                     --metric_type={metric_type} \
@@ -551,7 +551,7 @@ Top 5 elements in the dataset for max inner product search:
 <div class="input_area highlight-python notranslate"><div class="highlight"><pre>
 <span></span><span class="kn">from</span> <span class="nn">autofaiss</span> <span class="kn">import</span> <span class="n">build_index</span>
 
-<span class="n">build_index</span><span class="p">(</span><span class="n">embeddings_path</span><span class="o">=</span><span class="s2">&quot;embeddings_folder&quot;</span><span class="p">,</span>
+<span class="n">build_index</span><span class="p">(</span><span class="n">embeddings</span><span class="o">=</span><span class="s2">&quot;embeddings_folder&quot;</span><span class="p">,</span>
                    <span class="n">index_path</span><span class="o">=</span><span class="s2">&quot;knn.index&quot;</span><span class="p">,</span>
                    <span class="n">index_infos_path</span><span class="o">=</span><span class="s2">&quot;infos.json&quot;</span><span class="p">,</span>
                    <span class="n">max_index_query_time_ms</span> <span class="o">=</span> <span class="n">max_index_query_time_ms</span><span class="p">,</span>

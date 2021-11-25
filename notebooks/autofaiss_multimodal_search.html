@@ -929,7 +929,7 @@ image_list = df[&quot;image_path&quot;].tolist()
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span># Build a KNN index
-!autofaiss build_index --embeddings_path=&quot;embedding_folder/img_emb&quot; \
+!autofaiss build_index --embeddings=&quot;embedding_folder/img_emb&quot; \
                     --index_path=&quot;knn.index&quot; \
                     --index_infos_path=&quot;infos.json&quot; \
                     --metric_type=&quot;ip&quot; \

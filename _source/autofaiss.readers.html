@@ -135,19 +135,90 @@
 <span id="autofaiss-readers-embeddings-iterators-module"></span><h2>autofaiss.readers.embeddings_iterators module<a class="headerlink" href="#module-autofaiss.readers.embeddings_iterators" title="Permalink to this headline"></a></h2>
 <p>Functions that read efficiently files stored on disk</p>
 <dl class="py class">
+<dt class="sig sig-object py" id="autofaiss.readers.embeddings_iterators.AbstractArray">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autofaiss.readers.embeddings_iterators.</span></span><span class="sig-name descname"><span class="pre">AbstractArray</span></span><a class="reference internal" href="../_modules/autofaiss/readers/embeddings_iterators.html#AbstractArray"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.readers.embeddings_iterators.AbstractArray" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="autofaiss.readers.embeddings_iterators.AbstractArray.get_rows">
+<span class="sig-name descname"><span class="pre">get_rows</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/readers/embeddings_iterators.html#AbstractArray.get_rows"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.readers.embeddings_iterators.AbstractArray.get_rows" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.10)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code></a>[<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.10)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code>]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autofaiss.readers.embeddings_iterators.AbstractArray.num_rows">
+<span class="sig-name descname"><span class="pre">num_rows</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a></em><a class="headerlink" href="#autofaiss.readers.embeddings_iterators.AbstractArray.num_rows" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="autofaiss.readers.embeddings_iterators.AbstractMatrixReader">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autofaiss.readers.embeddings_iterators.</span></span><span class="sig-name descname"><span class="pre">AbstractMatrixReader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/readers/embeddings_iterators.html#AbstractMatrixReader"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.readers.embeddings_iterators.AbstractMatrixReader" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/abc.html#abc.ABC" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></a></p>
 <p>Read a file and provide its shape, row count and ndarray. Behaves as a context manager</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="autofaiss.readers.embeddings_iterators.AbstractMatrixReader.get_eager_array">
+<span class="sig-name descname"><span class="pre">get_eager_array</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/readers/embeddings_iterators.html#AbstractMatrixReader.get_eager_array"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.readers.embeddings_iterators.AbstractMatrixReader.get_eager_array" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#autofaiss.readers.embeddings_iterators.AbstractArray" title="autofaiss.readers.embeddings_iterators.AbstractArray"><code class="xref py py-class docutils literal notranslate"><span class="pre">AbstractArray</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autofaiss.readers.embeddings_iterators.AbstractMatrixReader.get_lazy_array">
+<span class="sig-name descname"><span class="pre">get_lazy_array</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/readers/embeddings_iterators.html#AbstractMatrixReader.get_lazy_array"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.readers.embeddings_iterators.AbstractMatrixReader.get_lazy_array" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#autofaiss.readers.embeddings_iterators.AbstractArray" title="autofaiss.readers.embeddings_iterators.AbstractArray"><code class="xref py py-class docutils literal notranslate"><span class="pre">AbstractArray</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autofaiss.readers.embeddings_iterators.AbstractMatrixReader.get_row_count">
+<span class="sig-name descname"><span class="pre">get_row_count</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/readers/embeddings_iterators.html#AbstractMatrixReader.get_row_count"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.readers.embeddings_iterators.AbstractMatrixReader.get_row_count" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autofaiss.readers.embeddings_iterators.AbstractMatrixReader.get_shape">
+<span class="sig-name descname"><span class="pre">get_shape</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/readers/embeddings_iterators.html#AbstractMatrixReader.get_shape"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.readers.embeddings_iterators.AbstractMatrixReader.get_shape" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.10)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="autofaiss.readers.embeddings_iterators.NumpyEagerNdArray">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autofaiss.readers.embeddings_iterators.</span></span><span class="sig-name descname"><span class="pre">NumpyEagerNdArray</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/readers/embeddings_iterators.html#NumpyEagerNdArray"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.readers.embeddings_iterators.NumpyEagerNdArray" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#autofaiss.readers.embeddings_iterators.AbstractArray" title="autofaiss.readers.embeddings_iterators.AbstractArray"><code class="xref py py-class docutils literal notranslate"><span class="pre">autofaiss.readers.embeddings_iterators.AbstractArray</span></code></a></p>
 <dl class="py method">
 <dt class="sig sig-object py" id="autofaiss.readers.embeddings_iterators.NumpyEagerNdArray.get_rows">
 <span class="sig-name descname"><span class="pre">get_rows</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/readers/embeddings_iterators.html#NumpyEagerNdArray.get_rows"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.readers.embeddings_iterators.NumpyEagerNdArray.get_rows" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.10)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code></a>[<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.10)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code>]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autofaiss.readers.embeddings_iterators.NumpyEagerNdArray.num_rows">
+<span class="sig-name descname"><span class="pre">num_rows</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a></em><a class="headerlink" href="#autofaiss.readers.embeddings_iterators.NumpyEagerNdArray.num_rows" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -155,11 +226,21 @@
 <dl class="py class">
 <dt class="sig sig-object py" id="autofaiss.readers.embeddings_iterators.NumpyLazyNdArray">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autofaiss.readers.embeddings_iterators.</span></span><span class="sig-name descname"><span class="pre">NumpyLazyNdArray</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/readers/embeddings_iterators.html#NumpyLazyNdArray"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.readers.embeddings_iterators.NumpyLazyNdArray" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#autofaiss.readers.embeddings_iterators.AbstractArray" title="autofaiss.readers.embeddings_iterators.AbstractArray"><code class="xref py py-class docutils literal notranslate"><span class="pre">autofaiss.readers.embeddings_iterators.AbstractArray</span></code></a></p>
 <p>Reads a numpy file lazily</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="autofaiss.readers.embeddings_iterators.NumpyLazyNdArray.get_rows">
 <span class="sig-name descname"><span class="pre">get_rows</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/readers/embeddings_iterators.html#NumpyLazyNdArray.get_rows"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.readers.embeddings_iterators.NumpyLazyNdArray.get_rows" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.10)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code></a>[<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.10)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code>]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autofaiss.readers.embeddings_iterators.NumpyLazyNdArray.num_rows">
+<span class="sig-name descname"><span class="pre">num_rows</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a></em><a class="headerlink" href="#autofaiss.readers.embeddings_iterators.NumpyLazyNdArray.num_rows" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -170,89 +251,160 @@
 <dd><p>Bases: <a class="reference internal" href="#autofaiss.readers.embeddings_iterators.AbstractMatrixReader" title="autofaiss.readers.embeddings_iterators.AbstractMatrixReader"><code class="xref py py-class docutils literal notranslate"><span class="pre">autofaiss.readers.embeddings_iterators.AbstractMatrixReader</span></code></a></p>
 <p>Read a numpy file and provide its shape, row count and ndarray. Behaves as a context manager</p>
 <dl class="py method">
-<dt class="sig sig-object py" id="autofaiss.readers.embeddings_iterators.NumpyMatrixReader.get_eager_ndarray">
-<span class="sig-name descname"><span class="pre">get_eager_ndarray</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/readers/embeddings_iterators.html#NumpyMatrixReader.get_eager_ndarray"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.readers.embeddings_iterators.NumpyMatrixReader.get_eager_ndarray" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dt class="sig sig-object py" id="autofaiss.readers.embeddings_iterators.NumpyMatrixReader.get_eager_array">
+<span class="sig-name descname"><span class="pre">get_eager_array</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/readers/embeddings_iterators.html#NumpyMatrixReader.get_eager_array"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.readers.embeddings_iterators.NumpyMatrixReader.get_eager_array" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#autofaiss.readers.embeddings_iterators.NumpyEagerNdArray" title="autofaiss.readers.embeddings_iterators.NumpyEagerNdArray"><code class="xref py py-class docutils literal notranslate"><span class="pre">NumpyEagerNdArray</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="autofaiss.readers.embeddings_iterators.NumpyMatrixReader.get_lazy_ndarray">
-<span class="sig-name descname"><span class="pre">get_lazy_ndarray</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/readers/embeddings_iterators.html#NumpyMatrixReader.get_lazy_ndarray"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.readers.embeddings_iterators.NumpyMatrixReader.get_lazy_ndarray" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dt class="sig sig-object py" id="autofaiss.readers.embeddings_iterators.NumpyMatrixReader.get_lazy_array">
+<span class="sig-name descname"><span class="pre">get_lazy_array</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/readers/embeddings_iterators.html#NumpyMatrixReader.get_lazy_array"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.readers.embeddings_iterators.NumpyMatrixReader.get_lazy_array" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#autofaiss.readers.embeddings_iterators.NumpyLazyNdArray" title="autofaiss.readers.embeddings_iterators.NumpyLazyNdArray"><code class="xref py py-class docutils literal notranslate"><span class="pre">NumpyLazyNdArray</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="autofaiss.readers.embeddings_iterators.NumpyMatrixReader.get_row_count">
 <span class="sig-name descname"><span class="pre">get_row_count</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/readers/embeddings_iterators.html#NumpyMatrixReader.get_row_count"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.readers.embeddings_iterators.NumpyMatrixReader.get_row_count" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="autofaiss.readers.embeddings_iterators.NumpyMatrixReader.get_shape">
 <span class="sig-name descname"><span class="pre">get_shape</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/readers/embeddings_iterators.html#NumpyMatrixReader.get_shape"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.readers.embeddings_iterators.NumpyMatrixReader.get_shape" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.10)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>]</p>
+</dd>
+</dl>
+</dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="autofaiss.readers.embeddings_iterators.ParquetEagerNdArray">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autofaiss.readers.embeddings_iterators.</span></span><span class="sig-name descname"><span class="pre">ParquetEagerNdArray</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embedding_column_name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/readers/embeddings_iterators.html#ParquetEagerNdArray"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.readers.embeddings_iterators.ParquetEagerNdArray" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autofaiss.readers.embeddings_iterators.</span></span><span class="sig-name descname"><span class="pre">ParquetEagerNdArray</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embedding_column_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_columns</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/readers/embeddings_iterators.html#ParquetEagerNdArray"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.readers.embeddings_iterators.ParquetEagerNdArray" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#autofaiss.readers.embeddings_iterators.AbstractArray" title="autofaiss.readers.embeddings_iterators.AbstractArray"><code class="xref py py-class docutils literal notranslate"><span class="pre">autofaiss.readers.embeddings_iterators.AbstractArray</span></code></a></p>
 <dl class="py method">
 <dt class="sig sig-object py" id="autofaiss.readers.embeddings_iterators.ParquetEagerNdArray.get_rows">
 <span class="sig-name descname"><span class="pre">get_rows</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/readers/embeddings_iterators.html#ParquetEagerNdArray.get_rows"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.readers.embeddings_iterators.ParquetEagerNdArray.get_rows" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.10)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code></a>[<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.10)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code>]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autofaiss.readers.embeddings_iterators.ParquetEagerNdArray.num_rows">
+<span class="sig-name descname"><span class="pre">num_rows</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a></em><a class="headerlink" href="#autofaiss.readers.embeddings_iterators.ParquetEagerNdArray.num_rows" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="autofaiss.readers.embeddings_iterators.ParquetLazyNdArray">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autofaiss.readers.embeddings_iterators.</span></span><span class="sig-name descname"><span class="pre">ParquetLazyNdArray</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embedding_column_name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/readers/embeddings_iterators.html#ParquetLazyNdArray"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.readers.embeddings_iterators.ParquetLazyNdArray" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autofaiss.readers.embeddings_iterators.</span></span><span class="sig-name descname"><span class="pre">ParquetLazyNdArray</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embedding_column_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_columns</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/readers/embeddings_iterators.html#ParquetLazyNdArray"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.readers.embeddings_iterators.ParquetLazyNdArray" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#autofaiss.readers.embeddings_iterators.AbstractArray" title="autofaiss.readers.embeddings_iterators.AbstractArray"><code class="xref py py-class docutils literal notranslate"><span class="pre">autofaiss.readers.embeddings_iterators.AbstractArray</span></code></a></p>
+<p>Reads a parquet file lazily</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="autofaiss.readers.embeddings_iterators.ParquetLazyNdArray.get_rows">
 <span class="sig-name descname"><span class="pre">get_rows</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/readers/embeddings_iterators.html#ParquetLazyNdArray.get_rows"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.readers.embeddings_iterators.ParquetLazyNdArray.get_rows" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.10)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code></a>[<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.10)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code>]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autofaiss.readers.embeddings_iterators.ParquetLazyNdArray.num_rows">
+<span class="sig-name descname"><span class="pre">num_rows</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a></em><a class="headerlink" href="#autofaiss.readers.embeddings_iterators.ParquetLazyNdArray.num_rows" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="autofaiss.readers.embeddings_iterators.ParquetMatrixReader">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autofaiss.readers.embeddings_iterators.</span></span><span class="sig-name descname"><span class="pre">ParquetMatrixReader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embedding_column_name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/readers/embeddings_iterators.html#ParquetMatrixReader"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.readers.embeddings_iterators.ParquetMatrixReader" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autofaiss.readers.embeddings_iterators.</span></span><span class="sig-name descname"><span class="pre">ParquetMatrixReader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embedding_column_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_columns</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/readers/embeddings_iterators.html#ParquetMatrixReader"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.readers.embeddings_iterators.ParquetMatrixReader" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#autofaiss.readers.embeddings_iterators.AbstractMatrixReader" title="autofaiss.readers.embeddings_iterators.AbstractMatrixReader"><code class="xref py py-class docutils literal notranslate"><span class="pre">autofaiss.readers.embeddings_iterators.AbstractMatrixReader</span></code></a></p>
 <p>Read a parquet file and provide its shape, row count and ndarray. Behaves as a context manager</p>
 <dl class="py method">
-<dt class="sig sig-object py" id="autofaiss.readers.embeddings_iterators.ParquetMatrixReader.get_eager_ndarray">
-<span class="sig-name descname"><span class="pre">get_eager_ndarray</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/readers/embeddings_iterators.html#ParquetMatrixReader.get_eager_ndarray"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.readers.embeddings_iterators.ParquetMatrixReader.get_eager_ndarray" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dt class="sig sig-object py" id="autofaiss.readers.embeddings_iterators.ParquetMatrixReader.get_eager_array">
+<span class="sig-name descname"><span class="pre">get_eager_array</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/readers/embeddings_iterators.html#ParquetMatrixReader.get_eager_array"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.readers.embeddings_iterators.ParquetMatrixReader.get_eager_array" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#autofaiss.readers.embeddings_iterators.ParquetEagerNdArray" title="autofaiss.readers.embeddings_iterators.ParquetEagerNdArray"><code class="xref py py-class docutils literal notranslate"><span class="pre">ParquetEagerNdArray</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="autofaiss.readers.embeddings_iterators.ParquetMatrixReader.get_lazy_ndarray">
-<span class="sig-name descname"><span class="pre">get_lazy_ndarray</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/readers/embeddings_iterators.html#ParquetMatrixReader.get_lazy_ndarray"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.readers.embeddings_iterators.ParquetMatrixReader.get_lazy_ndarray" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dt class="sig sig-object py" id="autofaiss.readers.embeddings_iterators.ParquetMatrixReader.get_lazy_array">
+<span class="sig-name descname"><span class="pre">get_lazy_array</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/readers/embeddings_iterators.html#ParquetMatrixReader.get_lazy_array"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.readers.embeddings_iterators.ParquetMatrixReader.get_lazy_array" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#autofaiss.readers.embeddings_iterators.ParquetLazyNdArray" title="autofaiss.readers.embeddings_iterators.ParquetLazyNdArray"><code class="xref py py-class docutils literal notranslate"><span class="pre">ParquetLazyNdArray</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="autofaiss.readers.embeddings_iterators.ParquetMatrixReader.get_row_count">
 <span class="sig-name descname"><span class="pre">get_row_count</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/readers/embeddings_iterators.html#ParquetMatrixReader.get_row_count"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.readers.embeddings_iterators.ParquetMatrixReader.get_row_count" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="autofaiss.readers.embeddings_iterators.ParquetMatrixReader.get_shape">
 <span class="sig-name descname"><span class="pre">get_shape</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/readers/embeddings_iterators.html#ParquetMatrixReader.get_shape"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.readers.embeddings_iterators.ParquetMatrixReader.get_shape" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.10)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>]</p>
+</dd>
+</dl>
+</dd></dl>
 
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="autofaiss.readers.embeddings_iterators.get_file_list">
 <span class="sig-prename descclassname"><span class="pre">autofaiss.readers.embeddings_iterators.</span></span><span class="sig-name descname"><span class="pre">get_file_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_format</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/readers/embeddings_iterators.html#get_file_list"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.readers.embeddings_iterators.get_file_list" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.10)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code></a>[<code class="xref py py-class docutils literal notranslate"><span class="pre">AbstractFileSystem</span></code>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]]</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="autofaiss.readers.embeddings_iterators.get_matrix_reader">
 <span class="sig-prename descclassname"><span class="pre">autofaiss.readers.embeddings_iterators.</span></span><span class="sig-name descname"><span class="pre">get_matrix_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_format</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_path</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/readers/embeddings_iterators.html#get_matrix_reader"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.readers.embeddings_iterators.get_matrix_reader" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#autofaiss.readers.embeddings_iterators.AbstractMatrixReader" title="autofaiss.readers.embeddings_iterators.AbstractMatrixReader"><code class="xref py py-class docutils literal notranslate"><span class="pre">AbstractMatrixReader</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="autofaiss.readers.embeddings_iterators.read_embeddings">
-<span class="sig-prename descclassname"><span class="pre">autofaiss.readers.embeddings_iterators.</span></span><span class="sig-name descname"><span class="pre">read_embeddings</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">embeddings_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'npy'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embedding_column_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'embeddings'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/readers/embeddings_iterators.html#read_embeddings"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.readers.embeddings_iterators.read_embeddings" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">autofaiss.readers.embeddings_iterators.</span></span><span class="sig-name descname"><span class="pre">read_embeddings</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">embeddings_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'npy'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embedding_column_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'embeddings'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_columns</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/readers/embeddings_iterators.html#read_embeddings"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.readers.embeddings_iterators.read_embeddings" title="Permalink to this definition"></a></dt>
 <dd><p>Iterate over embeddings arrays.
 It is possible to iterate over batchs of files and yield stacked embeddings arrays.</p>
 <p>The implementation adopted here is chosen for memory concern: it is very important
@@ -271,13 +423,17 @@ This parameter is useful when working with many small files.</p></li>
 npy or parquet</p></li>
 <li><p><strong>verbose</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a>) – Print detailed informations if set to True</p></li>
 <li><p><strong>embedding_column_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – If file_format=”parquet” - the name of the column containing the embeddings</p></li>
+<li><p><strong>id_columns</strong> (<em>List</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>] </em><em>(</em><em>default None</em><em>)</em>) – List of columns containing the ids of the vectors,
+these will be mapped to integer ids between 0 and total_nb_embeddings</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p><strong>embeddings_iterator</strong> – An iterator over batches of stacked embedding arrays.</p>
+<dd class="field-even"><p><strong>embeddings_iterator</strong> – An iterator over batches of stacked embedding arrays
+and (optionally) a DataFrame containing the mapping between id columns
+and an index in [0, total_nb_embeddings-1] store in a column “i”</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>Iterator[np.ndarray]</p>
+<dd class="field-odd"><p>Iterator[Tuple[np.ndarray, Optional[pd.DataFrame]]]</p>
 </dd>
 </dl>
 </dd></dl>

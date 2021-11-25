@@ -138,6 +138,86 @@ recall scores given a memory and query speed constraint.</p>
 <section id="the-build-index-command">
 <h2>The build_index command<a class="headerlink" href="#the-build-index-command" title="Permalink to this headline"></a></h2>
 <p>The <code class="docutils literal notranslate"><span class="pre">autofaiss</span> <span class="pre">build_index</span></code> command takes the following parameters:</p>
+<table class="colwidths-given docutils align-default" id="id6">
+<caption><span class="caption-text">Parameters</span><a class="headerlink" href="#id6" title="Permalink to this table"></a></caption>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Flag available</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>–embeddings</p></td>
+<td><p>required</p></td>
+<td><p>Source path of the directory containing your .npy embedding files. If there are several files, they are read in the lexicographical order. This can be a local path or a path in another Filesystem e.g. <cite>hdfs://root/…</cite> or <cite>s3://…</cite></p></td>
+</tr>
+<tr class="row-odd"><td><p>–index_path</p></td>
+<td><p>required</p></td>
+<td><p>Destination path of the faiss index on local machine.</p></td>
+</tr>
+<tr class="row-even"><td><p>–index_infos_path</p></td>
+<td><p>required</p></td>
+<td><p>Destination path of the faiss index infos on local machine.</p></td>
+</tr>
+<tr class="row-odd"><td><p>–save_on_disk</p></td>
+<td><p>required</p></td>
+<td><p>Save the index on the disk.</p></td>
+</tr>
+<tr class="row-even"><td><p>–file_format</p></td>
+<td><p>“npy”</p></td>
+<td><p>File format of the files in embeddings. Can be either <cite>npy</cite> for numpy matrix files or <cite>parquet</cite> for parquet serialized tables</p></td>
+</tr>
+<tr class="row-odd"><td><p>–embedding_column_name</p></td>
+<td><p>“embeddings”</p></td>
+<td><p>Only necessary when file_format=`parquet` In this case this is the name of the column containing the embeddings (one vector per row)</p></td>
+</tr>
+<tr class="row-even"><td><p>–id_columns</p></td>
+<td><p>None</p></td>
+<td><p>Can only be used when file_format=`parquet`. In this case these are the names of the columns containing the Ids of the vectors, and separate files will be generated to map these ids to indices in the KNN index</p></td>
+</tr>
+<tr class="row-odd"><td><p>–ids_path</p></td>
+<td><p>None</p></td>
+<td><p>Only useful when id_columns is not None and file_format=`parquet`. This will be the path (in any filesystem) where the mapping files Ids-&gt;vector index will be store in parquet format</p></td>
+</tr>
+<tr class="row-even"><td><p>–metric_type</p></td>
+<td><p>“ip”</p></td>
+<td><p>(Optional) Similarity function used for query: (“ip” for inner product, “l2” for euclidian distance)</p></td>
+</tr>
+<tr class="row-odd"><td><p>–max_index_memory_usage</p></td>
+<td><p>“32GB”</p></td>
+<td><p>(Optional) Maximum size in GB of the created index, this bound is strict.</p></td>
+</tr>
+<tr class="row-even"><td><p>–current_memory_available</p></td>
+<td><p>“32GB”</p></td>
+<td><p>(Optional) Memory available (in GB) on the machine creating the index, having more memory is a boost because it reduces the swipe between RAM and disk.</p></td>
+</tr>
+<tr class="row-odd"><td><p>–max_index_query_time_ms</p></td>
+<td><p>10</p></td>
+<td><p>(Optional) Bound on the query time for KNN search, this bound is approximative.</p></td>
+</tr>
+<tr class="row-even"><td><p>–index_key</p></td>
+<td><p>None</p></td>
+<td><p>(Optional) If present, the Faiss index will be build using this description string in the index_factory, more detail in the [Faiss documentation](<a class="reference external" href="https://github.com/facebookresearch/faiss/wiki/The-index-factory">https://github.com/facebookresearch/faiss/wiki/The-index-factory</a>)</p></td>
+</tr>
+<tr class="row-odd"><td><p>–index_param</p></td>
+<td><p>None</p></td>
+<td><p>(Optional) If present, the Faiss index will be set using this description string of hyperparameters, more detail in the [Faiss documentation](<a class="reference external" href="https://github.com/facebookresearch/faiss/wiki/Index-IO,-cloning-and-hyper-parameter-tuning">https://github.com/facebookresearch/faiss/wiki/Index-IO,-cloning-and-hyper-parameter-tuning</a>)</p></td>
+</tr>
+<tr class="row-even"><td><p>–use_gpu</p></td>
+<td><p>False</p></td>
+<td><p>(Optional) Experimental, gpu training can be faster, but this feature is not tested so far.</p></td>
+</tr>
+<tr class="row-odd"><td><p>–nb_cores</p></td>
+<td><p>None</p></td>
+<td><p>(Optional) The number of cores to use, by default will use all cores</p></td>
+</tr>
+</tbody>
+</table>
 <p>It is possible to force the creation of a specific index with specific hyperparameters if more control is needed.
 Here is some documentation &lt;<a class="reference external" href="https://github.com/facebookresearch/faiss/wiki/Guidelines-to-choose-an-index">https://github.com/facebookresearch/faiss/wiki/Guidelines-to-choose-an-index</a>&gt; and
 &lt;<a class="reference external" href="https://github.com/facebookresearch/faiss/wiki/The-index-factory">https://github.com/facebookresearch/faiss/wiki/The-index-factory</a>&gt; to help you to choose which index you need.</p>
@@ -223,14 +303,14 @@ There is a command for that too, it’s the score command.</p>
 <p>You just need the path to your index and the embeddings for this one.
 Be careful, computing accurate metrics is slow.</p>
 <p>Compute metrics on a given index, use cached ground truth for fast scoring the next times.</p>
-<p><code class="docutils literal notranslate"><span class="pre">autofaiss</span> <span class="pre">score_index</span> <span class="pre">--embeddings_path=&quot;folder/embs&quot;</span> <span class="pre">--index_path=&quot;some.index&quot;</span> <span class="pre">--output_index_info_path</span> <span class="pre">&quot;infos.json&quot;</span> <span class="pre">--current_memory_available=&quot;4G&quot;</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">autofaiss</span> <span class="pre">score_index</span> <span class="pre">--embeddings=&quot;folder/embs&quot;</span> <span class="pre">--index_path=&quot;some.index&quot;</span> <span class="pre">--output_index_info_path</span> <span class="pre">&quot;infos.json&quot;</span> <span class="pre">--current_memory_available=&quot;4G&quot;</span></code></p>
 </section>
 <section id="id4">
 <h2>Parameters<a class="headerlink" href="#id4" title="Permalink to this headline"></a></h2>
 <dl class="simple">
 <dt>index_path<span class="classifier">Union[str, Any]</span></dt><dd><p>Path to .index file. Or in memory index</p>
 </dd>
-<dt>embeddings_path: str</dt><dd><p>Local path containing all preprocessed vectors and cached files.</p>
+<dt>embeddings: str</dt><dd><p>Local path containing all preprocessed vectors and cached files.</p>
 </dd>
 <dt>output_index_info_path<span class="classifier">str</span></dt><dd><p>Path to index infos .json</p>
 </dd>

@@ -114,7 +114,7 @@
 
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">embeddings_path</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
         <span class="c1"># pylint: disable=bare-except</span>
-        <span class="n">query_embeddings</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span>
+        <span class="n">query_embeddings</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span>
             <span class="n">read_embeddings</span><span class="p">(</span>
                 <span class="n">embeddings_path</span><span class="p">,</span> <span class="n">file_format</span><span class="o">=</span><span class="n">file_format</span><span class="p">,</span> <span class="n">embedding_column_name</span><span class="o">=</span><span class="n">embedding_column_name</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span>
             <span class="p">)</span>
@@ -158,11 +158,11 @@
 
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">embeddings_path</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
         <span class="c1"># pylint: disable=bare-except</span>
-        <span class="n">embedding_block</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">read_embeddings</span><span class="p">(</span><span class="n">embeddings_path</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+        <span class="n">embedding_block</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">read_embeddings</span><span class="p">(</span><span class="n">embeddings_path</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
 
         <span class="k">if</span> <span class="n">embedding_block</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">nb_test_points</span><span class="p">:</span>
             <span class="c1"># pylint: disable=bare-except</span>
-            <span class="n">embedding_block</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">read_embeddings</span><span class="p">(</span><span class="n">embeddings_path</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">nb_test_points</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+            <span class="n">embedding_block</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">read_embeddings</span><span class="p">(</span><span class="n">embeddings_path</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">nb_test_points</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
 
         <span class="n">query_embeddings</span> <span class="o">=</span> <span class="n">embedding_block</span><span class="p">[:</span><span class="n">nb_test_points</span><span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>

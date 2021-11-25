@@ -83,11 +83,11 @@
              
   <h1>Source code for autofaiss.external.build</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot; gather functions necessary to build an index &quot;&quot;&quot;</span>
-
 <span class="kn">import</span> <span class="nn">re</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">List</span>
 
 <span class="kn">import</span> <span class="nn">faiss</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 
 <span class="kn">from</span> <span class="nn">autofaiss.readers.embeddings_iterators</span> <span class="kn">import</span> <span class="n">read_first_file_shape</span><span class="p">,</span> <span class="n">read_embeddings</span>
 <span class="kn">from</span> <span class="nn">autofaiss.external.metadata</span> <span class="kn">import</span> <span class="n">IndexMetadata</span>
@@ -174,6 +174,8 @@
     <span class="n">current_memory_available</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">file_format</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;npy&quot;</span><span class="p">,</span>
     <span class="n">embedding_column_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;embeddings&quot;</span><span class="p">,</span>
+    <span class="n">id_columns</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">embedding_ids_df_handler</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">use_gpu</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
 <span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -220,7 +222,7 @@
             <span class="p">)</span>
 
             <span class="c1"># Extract training vectors</span>
-            <span class="n">train_vectors</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span>
+            <span class="n">train_vectors</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span>
                 <span class="n">read_embeddings</span><span class="p">(</span>
                     <span class="n">embeddings_path</span><span class="p">,</span>
                     <span class="n">file_format</span><span class="o">=</span><span class="n">file_format</span><span class="p">,</span>
@@ -264,14 +266,19 @@
         <span class="nb">print</span><span class="p">(</span>
             <span class="sa">f</span><span class="s2">&quot;Using a batch size of </span><span class="si">{</span><span class="n">batch_size</span><span class="si">}</span><span class="s2"> (memory overhead </span><span class="si">{</span><span class="n">cast_bytes_to_memory_string</span><span class="p">(</span><span class="n">batch_size</span><span class="o">*</span><span class="n">vec_dim</span><span class="o">*</span><span class="mi">4</span><span class="p">)</span><span class="si">}</span><span class="s2">)&quot;</span>
         <span class="p">)</span>
-        <span class="k">for</span> <span class="n">vec_batch</span> <span class="ow">in</span> <span class="n">read_embeddings</span><span class="p">(</span>
-            <span class="n">embeddings_path</span><span class="p">,</span>
-            <span class="n">file_format</span><span class="o">=</span><span class="n">file_format</span><span class="p">,</span>
-            <span class="n">embedding_column_name</span><span class="o">=</span><span class="n">embedding_column_name</span><span class="p">,</span>
-            <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span>
-            <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="k">for</span> <span class="n">batch_id</span><span class="p">,</span> <span class="p">(</span><span class="n">vec_batch</span><span class="p">,</span> <span class="n">ids_batch</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span>
+            <span class="n">read_embeddings</span><span class="p">(</span>
+                <span class="n">embeddings_path</span><span class="p">,</span>
+                <span class="n">file_format</span><span class="o">=</span><span class="n">file_format</span><span class="p">,</span>
+                <span class="n">embedding_column_name</span><span class="o">=</span><span class="n">embedding_column_name</span><span class="p">,</span>
+                <span class="n">id_columns</span><span class="o">=</span><span class="n">id_columns</span><span class="p">,</span>
+                <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span>
+                <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="p">)</span>
         <span class="p">):</span>
             <span class="n">index</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">vec_batch</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">embedding_ids_df_handler</span><span class="p">:</span>
+                <span class="n">embedding_ids_df_handler</span><span class="p">(</span><span class="n">ids_batch</span><span class="p">,</span> <span class="n">batch_id</span><span class="p">)</span>
 
     <span class="c1"># Give standard values for index hyperparameters if possible.</span>
     <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;OPQ\d+_\d+,IVF\d+_HNSW\d+,PQ\d+&quot;</span><span class="p">,</span> <span class="n">index_key</span><span class="p">)):</span>

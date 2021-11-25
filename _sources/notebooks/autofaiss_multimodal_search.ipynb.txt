@@ -700,7 +700,7 @@
       ],
       "source": [
         "# Build a KNN index\n",
-        "!autofaiss build_index --embeddings_path=\"embedding_folder/img_emb\" \\\n",
+        "!autofaiss build_index --embeddings=\"embedding_folder/img_emb\" \\\n",
         "                    --index_path=\"knn.index\" \\\n",
         "                    --index_infos_path=\"infos.json\" \\\n",
         "                    --metric_type=\"ip\" \\\n",
