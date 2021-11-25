@@ -32,7 +32,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 def build_index(
-    embeddings_or_path: Union[str, np.ndarray],
+    embeddings: Union[str, np.ndarray],
     index_path: str = "knn.index",
     index_infos_path: str = "index_infos.json",
     ids_path: Optional[str] = None,
@@ -55,7 +55,7 @@ def build_index(
 
     Parameters
     ----------
-    embeddings_or_path : Union[str, np.ndarray]
+    embeddings : Union[str, np.ndarray]
         Local path containing all preprocessed vectors and cached files.
         Files will be added if empty.
         Or directly the Numpy array of embeddings
@@ -117,12 +117,12 @@ def build_index(
     print(f"Using {nb_cores} omp threads (processes), consider increasing --nb_cores if you have more")
     faiss.omp_set_num_threads(nb_cores)
 
-    if isinstance(embeddings_or_path, np.ndarray):
+    if isinstance(embeddings, np.ndarray):
         tmp_dir_embeddings = tempfile.TemporaryDirectory()
-        np.save(os.path.join(tmp_dir_embeddings.name, "emb.npy"), embeddings_or_path)
+        np.save(os.path.join(tmp_dir_embeddings.name, "emb.npy"), embeddings)
         embeddings_path = tmp_dir_embeddings.name
     else:
-        embeddings_path = embeddings_or_path
+        embeddings_path = embeddings
 
     with Timeit("Launching the whole pipeline"):
 
@@ -291,7 +291,7 @@ def tune_index(
 
 def score_index(
     index_path: Union[str, Any],
-    embeddings_or_path: Union[str, np.ndarray],
+    embeddings: Union[str, np.ndarray],
     save_on_disk: bool = True,
     output_index_info_path: str = "infos.json",
     current_memory_available: str = "32G",
@@ -303,7 +303,7 @@ def score_index(
     ----------
     index_path : Union[str, Any]
         Path to .index file. Or in memory index
-    embeddings_or_path: Union[str, np.ndarray]
+    embeddings: Union[str, np.ndarray]
         Path containing all preprocessed vectors and cached files. Can also be an in memory array.
     save_on_disk: bool
         Whether to save on disk
@@ -327,12 +327,12 @@ def score_index(
             fs, path_in_fs = fsspec.core.url_to_fs(f.name)
             index_memory = fs.size(path_in_fs)
 
-    if isinstance(embeddings_or_path, np.ndarray):
+    if isinstance(embeddings, np.ndarray):
         tmp_dir_embeddings = tempfile.TemporaryDirectory()
-        np.save(os.path.join(tmp_dir_embeddings.name, "emb.npy"), embeddings_or_path)
+        np.save(os.path.join(tmp_dir_embeddings.name, "emb.npy"), embeddings)
         embeddings_path = tmp_dir_embeddings.name
     else:
-        embeddings_path = embeddings_or_path
+        embeddings_path = embeddings
 
     infos: Dict[str, Union[str, float, int]] = {}
 

@@ -29,7 +29,7 @@ def test_quantize(tmpdir):
     output_numpy_index_infos = os.path.join(tmpdir.strpath, "numpy_knn_infos.json")
 
     build_index(
-        embeddings_or_path=tmp_dir,
+        embeddings=tmp_dir,
         file_format="npy",
         index_path=output_numpy_index,
         index_infos_path=output_numpy_index_infos,
@@ -48,7 +48,7 @@ def test_quantize(tmpdir):
     index_infos_path = os.path.join(tmpdir.strpath, "infos.json")
 
     build_index(
-        embeddings_or_path=tmp_dir,
+        embeddings=tmp_dir,
         file_format="parquet",
         embedding_column_name="embedding",
         index_path=index_path,
@@ -76,7 +76,7 @@ def test_quantize_with_ids(tmpdir):
     ids_path = os.path.join(tmpdir.strpath, "ids")
 
     build_index(
-        embeddings_or_path=tmp_dir,
+        embeddings=tmp_dir,
         file_format="parquet",
         embedding_column_name="embedding",
         index_path=index_path,
