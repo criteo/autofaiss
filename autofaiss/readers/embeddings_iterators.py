@@ -60,11 +60,14 @@ class NumpyEagerNdArray(AbstractArray):
 
 def read_numpy_header(f):
     f.seek(0)
-    first_line = f.readline()
+    file_size = f.size if isinstance(f.size, int) else f.size()
+    first_line = f.read(min(file_size, 300)).split(b"\n")[0]
     result = re.search(r"'shape': \(([0-9]+), ([0-9]+)\)", str(first_line))
     shape = (int(result.group(1)), int(result.group(2)))
     dtype = re.search(r"'descr': '([<f0-9]+)'", str(first_line)).group(1)
-    return (shape, dtype, f.tell())
+    end = len(first_line) + 1  # the first line content and the endline
+    f.seek(0)
+    return (shape, dtype, end)
 
 
 class NumpyLazyNdArray(AbstractArray):
