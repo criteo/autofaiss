@@ -44,9 +44,12 @@ If you have a few embeddings, you can use autofaiss with in memory numpy arrays:
 ```python
 from autofaiss import build_index
 import numpy as np
-embeddings = np.ones((100, 512), "float32")
+
+embeddings = np.float32(np.random.rand(100, 512))
 index, index_infos = build_index(embeddings, save_on_disk=False)
-_, I = index.search(embeddings, 1)
+
+query = np.float32(np.random.rand(1, 512))
+_, I = index.search(query, 1)
 print(I)
 ```
 
