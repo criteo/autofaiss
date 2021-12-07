@@ -138,7 +138,7 @@ The `autofaiss build_index` command takes the following parameters:
 | --index_param              |   None       | (Optional) If present, the Faiss index will be set using this description string of hyperparameters, more detail in the [Faiss documentation](https://github.com/facebookresearch/faiss/wiki/Index-IO,-cloning-and-hyper-parameter-tuning) |
 | --use_gpu                  |   False      | (Optional) Experimental, gpu training can be faster, but this feature is not tested so far.                                                                                                                                         |
 | --nb_cores                 |   None       | (Optional) The number of cores to use, by default will use all cores                                                                                                                                         |
-| --make_direct_map          |   False      | (Optional) Create a direct map allowing reconstruction of embeddings. This is only needed for IVF indices.
+| --make_direct_map          |   False      | (Optional) Create a direct map allowing reconstruction of embeddings. This is only needed for IVF indices. Note that might increase the RAM usage (approximately 8GB for 1 billion embeddings).
 
 ## Install from source
 
