@@ -4,6 +4,7 @@ from typing import Optional, Tuple, Union, Callable, Any, List
 
 import faiss
 import pandas as pd
+from faiss import extract_index_ivf
 
 from autofaiss.readers.embeddings_iterators import read_first_file_shape, read_embeddings
 from autofaiss.external.metadata import IndexMetadata
@@ -93,6 +94,7 @@ def create_index(
     id_columns: Optional[List[str]] = None,
     embedding_ids_df_handler: Optional[Callable[[pd.DataFrame, int], Any]] = None,
     use_gpu: bool = False,
+    make_direct_map: bool = False,
 ):
     """
     Function that returns an index on the numpy arrays stored on disk in the embeddings_path path.
@@ -182,6 +184,18 @@ def create_index(
         print(
             f"Using a batch size of {batch_size} (memory overhead {cast_bytes_to_memory_string(batch_size*vec_dim*4)})"
         )
+
+        if make_direct_map:
+            # Retrieve the embedded index if we are in an IndexPreTransform state
+            if isinstance(index, faiss.swigfaiss.IndexPreTransform):
+                embedded_index = extract_index_ivf(index)
+            else:
+                embedded_index = index
+
+            # Make direct map is only implemented for IndexIVF and IndexBinaryIVF, see built file faiss/swigfaiss.py
+            if isinstance(embedded_index, (faiss.swigfaiss.IndexIVF, faiss.swigfaiss.IndexBinaryIVF)):
+                embedded_index.make_direct_map()
+
         for batch_id, (vec_batch, ids_batch) in enumerate(
             read_embeddings(
                 embeddings_path,

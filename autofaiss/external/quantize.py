@@ -48,6 +48,7 @@ def build_index(
     use_gpu: bool = False,
     metric_type: str = "ip",
     nb_cores: Optional[int] = None,
+    make_direct_map: bool = False,
 ) -> Tuple[Optional[Any], Optional[Dict[str, Union[str, float, int]]]]:
     """
     Reads embeddings and creates a quantized index from them.
@@ -99,6 +100,8 @@ def build_index(
             - "l2" for euclidian distance
     nb_cores: Optional[int]
         Number of cores to use. Will try to guess the right number if not provided
+    make_direct_map: bool
+        Create a direct map allowing reconstruction of embeddings. This is only needed for IVF indices.
     """
 
     current_bytes = cast_memory_to_bytes(current_memory_available)
@@ -193,6 +196,7 @@ def build_index(
                 embedding_column_name=embedding_column_name,
                 id_columns=id_columns,
                 embedding_ids_df_handler=write_ids_df_to_parquet if ids_path and id_columns else None,
+                make_direct_map=make_direct_map,
             )
 
         if index_param is None:
