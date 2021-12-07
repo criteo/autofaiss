@@ -132,6 +132,7 @@
     <span class="n">use_gpu</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">metric_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;ip&quot;</span><span class="p">,</span>
     <span class="n">nb_cores</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">make_direct_map</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">],</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]]]:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Reads embeddings and creates a quantized index from them.</span>
@@ -183,6 +184,8 @@
 <span class="sd">            - &quot;l2&quot; for euclidian distance</span>
 <span class="sd">    nb_cores: Optional[int]</span>
 <span class="sd">        Number of cores to use. Will try to guess the right number if not provided</span>
+<span class="sd">    make_direct_map: bool</span>
+<span class="sd">        Create a direct map allowing reconstruction of embeddings. This is only needed for IVF indices.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">current_bytes</span> <span class="o">=</span> <span class="n">cast_memory_to_bytes</span><span class="p">(</span><span class="n">current_memory_available</span><span class="p">)</span>
@@ -277,6 +280,7 @@
                 <span class="n">embedding_column_name</span><span class="o">=</span><span class="n">embedding_column_name</span><span class="p">,</span>
                 <span class="n">id_columns</span><span class="o">=</span><span class="n">id_columns</span><span class="p">,</span>
                 <span class="n">embedding_ids_df_handler</span><span class="o">=</span><span class="n">write_ids_df_to_parquet</span> <span class="k">if</span> <span class="n">ids_path</span> <span class="ow">and</span> <span class="n">id_columns</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="n">make_direct_map</span><span class="o">=</span><span class="n">make_direct_map</span><span class="p">,</span>
             <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">index_param</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>

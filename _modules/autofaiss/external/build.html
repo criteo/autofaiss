@@ -88,6 +88,7 @@
 
 <span class="kn">import</span> <span class="nn">faiss</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">faiss</span> <span class="kn">import</span> <span class="n">extract_index_ivf</span>
 
 <span class="kn">from</span> <span class="nn">autofaiss.readers.embeddings_iterators</span> <span class="kn">import</span> <span class="n">read_first_file_shape</span><span class="p">,</span> <span class="n">read_embeddings</span>
 <span class="kn">from</span> <span class="nn">autofaiss.external.metadata</span> <span class="kn">import</span> <span class="n">IndexMetadata</span>
@@ -177,6 +178,7 @@
     <span class="n">id_columns</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">embedding_ids_df_handler</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">use_gpu</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">make_direct_map</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
 <span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Function that returns an index on the numpy arrays stored on disk in the embeddings_path path.</span>
@@ -266,6 +268,18 @@
         <span class="nb">print</span><span class="p">(</span>
             <span class="sa">f</span><span class="s2">&quot;Using a batch size of </span><span class="si">{</span><span class="n">batch_size</span><span class="si">}</span><span class="s2"> (memory overhead </span><span class="si">{</span><span class="n">cast_bytes_to_memory_string</span><span class="p">(</span><span class="n">batch_size</span><span class="o">*</span><span class="n">vec_dim</span><span class="o">*</span><span class="mi">4</span><span class="p">)</span><span class="si">}</span><span class="s2">)&quot;</span>
         <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">make_direct_map</span><span class="p">:</span>
+            <span class="c1"># Retrieve the embedded index if we are in an IndexPreTransform state</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">faiss</span><span class="o">.</span><span class="n">swigfaiss</span><span class="o">.</span><span class="n">IndexPreTransform</span><span class="p">):</span>
+                <span class="n">embedded_index</span> <span class="o">=</span> <span class="n">extract_index_ivf</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">embedded_index</span> <span class="o">=</span> <span class="n">index</span>
+
+            <span class="c1"># Make direct map is only implemented for IndexIVF and IndexBinaryIVF, see built file faiss/swigfaiss.py</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">embedded_index</span><span class="p">,</span> <span class="p">(</span><span class="n">faiss</span><span class="o">.</span><span class="n">swigfaiss</span><span class="o">.</span><span class="n">IndexIVF</span><span class="p">,</span> <span class="n">faiss</span><span class="o">.</span><span class="n">swigfaiss</span><span class="o">.</span><span class="n">IndexBinaryIVF</span><span class="p">)):</span>
+                <span class="n">embedded_index</span><span class="o">.</span><span class="n">make_direct_map</span><span class="p">()</span>
+
         <span class="k">for</span> <span class="n">batch_id</span><span class="p">,</span> <span class="p">(</span><span class="n">vec_batch</span><span class="p">,</span> <span class="n">ids_batch</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span>
             <span class="n">read_embeddings</span><span class="p">(</span>
                 <span class="n">embeddings_path</span><span class="p">,</span>
