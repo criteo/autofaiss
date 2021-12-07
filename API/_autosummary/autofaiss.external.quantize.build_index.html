@@ -160,7 +160,8 @@ because it reduces the swipe between RAM and disk.</p></li>
 </dl>
 </p></li>
 <li><p><strong>nb_cores</strong> (<em>Optional</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a><em>]</em>) – Number of cores to use. Will try to guess the right number if not provided</p></li>
-<li><p><strong>make_direct_map</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a>) – Create a direct map allowing reconstruction of embeddings. This is only needed for IVF indices.</p></li>
+<li><p><strong>make_direct_map</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a>) – Create a direct map allowing reconstruction of embeddings. This is only needed for IVF indices.
+Note that might increase the RAM usage (approximately 8GB for 1 billion embeddings)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type</dt>

@@ -186,6 +186,7 @@
 <span class="sd">        Number of cores to use. Will try to guess the right number if not provided</span>
 <span class="sd">    make_direct_map: bool</span>
 <span class="sd">        Create a direct map allowing reconstruction of embeddings. This is only needed for IVF indices.</span>
+<span class="sd">        Note that might increase the RAM usage (approximately 8GB for 1 billion embeddings)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">current_bytes</span> <span class="o">=</span> <span class="n">cast_memory_to_bytes</span><span class="p">(</span><span class="n">current_memory_available</span><span class="p">)</span>
