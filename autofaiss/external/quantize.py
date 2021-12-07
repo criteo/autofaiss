@@ -102,6 +102,7 @@ def build_index(
         Number of cores to use. Will try to guess the right number if not provided
     make_direct_map: bool
         Create a direct map allowing reconstruction of embeddings. This is only needed for IVF indices.
+        Note that might increase the RAM usage (approximately 8GB for 1 billion embeddings)
     """
 
     current_bytes = cast_memory_to_bytes(current_memory_available)
