@@ -140,7 +140,7 @@ def build_index(
 
         with Timeit("Checking that your have enough memory available to create the index", indent=1):
             necessary_mem, index_key_used = estimate_memory_required_for_index_creation(
-                nb_vectors, vec_dim, index_key, max_index_memory_usage
+                nb_vectors, vec_dim, index_key, max_index_memory_usage, make_direct_map
             )
             print(
                 f"{cast_bytes_to_memory_string(necessary_mem)} of memory "
