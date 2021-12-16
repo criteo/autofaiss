@@ -224,7 +224,7 @@
 
         <span class="k">with</span> <span class="n">Timeit</span><span class="p">(</span><span class="s2">&quot;Checking that your have enough memory available to create the index&quot;</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
             <span class="n">necessary_mem</span><span class="p">,</span> <span class="n">index_key_used</span> <span class="o">=</span> <span class="n">estimate_memory_required_for_index_creation</span><span class="p">(</span>
-                <span class="n">nb_vectors</span><span class="p">,</span> <span class="n">vec_dim</span><span class="p">,</span> <span class="n">index_key</span><span class="p">,</span> <span class="n">max_index_memory_usage</span>
+                <span class="n">nb_vectors</span><span class="p">,</span> <span class="n">vec_dim</span><span class="p">,</span> <span class="n">index_key</span><span class="p">,</span> <span class="n">max_index_memory_usage</span><span class="p">,</span> <span class="n">make_direct_map</span>
             <span class="p">)</span>
             <span class="nb">print</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cast_bytes_to_memory_string</span><span class="p">(</span><span class="n">necessary_mem</span><span class="p">)</span><span class="si">}</span><span class="s2"> of memory &quot;</span>
