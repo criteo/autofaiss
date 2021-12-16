@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and this project adheres to [Semantic Versioning](https://semver.org).
 
+## [2.4.0] - 2021-12-16
+
+### Added
+* add make_direct_map to memory estimation
+### Changed
+### Deprecated
+### Removed
+### Fixed
+* clean ids_batch and ids_batch_df between each batch
+### Security
+
 ## [2.3.0] - 2021-12-07
 
 ### Added
