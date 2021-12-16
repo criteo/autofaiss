@@ -331,6 +331,8 @@ def read_embeddings(
                     total_embeddings_processed += nb_emb_in_batch
                     nb_emb_in_batch = 0
                     embeddings_batch = None
+                    ids_batch = None
+                    ids_batch_df = None
                 if additional == 0:
                     break
 
