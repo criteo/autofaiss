@@ -27,7 +27,11 @@ from autofaiss.utils.decorators import Timeit
 
 
 def estimate_memory_required_for_index_creation(
-    nb_vectors: int, vec_dim: int, index_key: Optional[str] = None, max_index_memory_usage: Optional[str] = None
+    nb_vectors: int,
+    vec_dim: int,
+    index_key: Optional[str] = None,
+    max_index_memory_usage: Optional[str] = None,
+    make_direct_map: bool = False,
 ) -> Tuple[int, str]:
     """
     Estimates the RAM necessary to create the index
@@ -40,7 +44,7 @@ def estimate_memory_required_for_index_creation(
         else:
             raise ValueError("you should give max_index_memory_usage value if no index_key is given")
 
-    metadata = IndexMetadata(index_key, nb_vectors, vec_dim)
+    metadata = IndexMetadata(index_key, nb_vectors, vec_dim, make_direct_map)
 
     index_memory = metadata.estimated_index_size_in_bytes()
     needed_for_adding = min(index_memory * 0.1, 10 ** 9)

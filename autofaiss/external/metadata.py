@@ -31,7 +31,7 @@ class IndexMetadata:
     Note: We don't create classes for each index type in order to keep the code simple.
     """
 
-    def __init__(self, index_key: str, nb_vectors: int, dim_vector: int):
+    def __init__(self, index_key: str, nb_vectors: int, dim_vector: int, make_direct_map: bool = False):
 
         self.index_key = index_key
         self.nb_vectors = nb_vectors
@@ -40,6 +40,7 @@ class IndexMetadata:
         self.description_blocs = []
         self.tunable_params = []
         self.params = {}
+        self.make_direct_map = make_direct_map
 
         params = [int(x) for x in re.findall(r"\d+", index_key)]
 
@@ -123,6 +124,8 @@ class IndexMetadata:
             return vectors_size_in_bytes + hnsw_graph_in_bytes
 
         if self.index_type in [IndexType.OPQ_IVF_PQ, IndexType.OPQ_IVF_HNSW_PQ, IndexType.PAD_IVF_HNSW_PQ]:
+            direct_map_overhead = 8 * self.nb_vectors if self.make_direct_map else 0
+
             # We neglict the size of the OPQ table for the moment.
             code_size = ceil(self.params["pq"] * self.params["nbits"] / 8)
             cluster_size_byte = 1 + int((log2(self.params["ncentroids"]) - 1) // 8)
@@ -131,7 +134,7 @@ class IndexMetadata:
             vectors_size_in_bytes = self.nb_vectors * vector_size_byte
             centroid_size_in_bytes = self.params["ncentroids"] * self.dim_vector * 4
 
-            total_size_in_byte = vectors_size_in_bytes + centroid_size_in_bytes
+            total_size_in_byte = direct_map_overhead + vectors_size_in_bytes + centroid_size_in_bytes
 
             if self.index_type in [IndexType.OPQ_IVF_HNSW_PQ, IndexType.PAD_IVF_HNSW_PQ]:
                 total_size_in_byte += self.params["ncentroids"] * self.params["M_HNSW"] * 2 * 4
