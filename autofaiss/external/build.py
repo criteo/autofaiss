@@ -118,7 +118,7 @@ def create_index(
         # Instanciate the index
         index = index_factory(vec_dim, index_key, metric_type)
 
-    metadata = IndexMetadata(index_key, nb_vectors, vec_dim)
+    metadata = IndexMetadata(index_key, nb_vectors, vec_dim, make_direct_map)
 
     print(
         f"The index size will be approximately {cast_bytes_to_memory_string(metadata.estimated_index_size_in_bytes())}"
