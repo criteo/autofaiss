@@ -202,7 +202,7 @@
         <span class="c1"># Instanciate the index</span>
         <span class="n">index</span> <span class="o">=</span> <span class="n">index_factory</span><span class="p">(</span><span class="n">vec_dim</span><span class="p">,</span> <span class="n">index_key</span><span class="p">,</span> <span class="n">metric_type</span><span class="p">)</span>
 
-    <span class="n">metadata</span> <span class="o">=</span> <span class="n">IndexMetadata</span><span class="p">(</span><span class="n">index_key</span><span class="p">,</span> <span class="n">nb_vectors</span><span class="p">,</span> <span class="n">vec_dim</span><span class="p">)</span>
+    <span class="n">metadata</span> <span class="o">=</span> <span class="n">IndexMetadata</span><span class="p">(</span><span class="n">index_key</span><span class="p">,</span> <span class="n">nb_vectors</span><span class="p">,</span> <span class="n">vec_dim</span><span class="p">,</span> <span class="n">make_direct_map</span><span class="p">)</span>
 
     <span class="nb">print</span><span class="p">(</span>
         <span class="sa">f</span><span class="s2">&quot;The index size will be approximately </span><span class="si">{</span><span class="n">cast_bytes_to_memory_string</span><span class="p">(</span><span class="n">metadata</span><span class="o">.</span><span class="n">estimated_index_size_in_bytes</span><span class="p">())</span><span class="si">}</span><span class="s2">&quot;</span>

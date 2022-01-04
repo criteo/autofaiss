@@ -295,7 +295,7 @@ div.nboutput.container div.output_area > div[class^='highlight']{
 }
 
 /* hide copybtn icon on prompts (needed for 'sphinx_copybutton') */
-.prompt a.copybtn {
+.prompt .copybtn {
     display: none;
 }
 
@@ -361,8 +361,7 @@ div.rendered_html tbody tr:hover {
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span># Install autofaiss
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># Install autofaiss
 !pip install autofaiss &amp;&gt; /dev/null
 </pre></div>
 </div>
@@ -371,8 +370,7 @@ div.rendered_html tbody tr:hover {
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span>## Import automatic index selection function
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>## Import automatic index selection function
 from autofaiss.external.optimize import get_optimal_index_keys_v2
 from autofaiss.external.metadata import IndexMetadata
 </pre></div>
@@ -382,8 +380,7 @@ from autofaiss.external.metadata import IndexMetadata
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span>#@title Demo
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>#@title Demo
 import ipywidgets as widgets
 from IPython.display import display
 from ipywidgets import HBox, Label
