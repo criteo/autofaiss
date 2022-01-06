@@ -87,7 +87,7 @@ def index_factory(d: int, index_key: str, metric_type: int, ef_construction: Opt
             raise ValueError(
                 (
                     "Be careful, faiss might not create what you expect when using the "
-                    "inner product similarity metric, remove this line to try it anyway."
+                    "inner product similarity metric, remove this line to try it anyway. "
                     "Happened with index_key: " + str(index_key)
                 )
             )

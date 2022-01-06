@@ -49,6 +49,7 @@ def build_index(
     metric_type: str = "ip",
     nb_cores: Optional[int] = None,
     make_direct_map: bool = False,
+    ivf_index_only: bool = False,
 ) -> Tuple[Optional[Any], Optional[Dict[str, Union[str, float, int]]]]:
     """
     Reads embeddings and creates a quantized index from them.
@@ -163,7 +164,9 @@ def build_index(
 
         if index_key is None:
             with Timeit("Selecting most promising index types given data characteristics", indent=1):
-                best_index_keys = get_optimal_index_keys_v2(nb_vectors, vec_dim, max_index_memory_usage)
+                best_index_keys = get_optimal_index_keys_v2(
+                    nb_vectors, vec_dim, max_index_memory_usage, ivf_index_only=ivf_index_only
+                )
                 if not best_index_keys:
                     return None, None
                 index_key = best_index_keys[0]
@@ -202,7 +205,7 @@ def build_index(
 
         if index_param is None:
             with Timeit("Computing best hyperparameters", indent=1):
-                index_param = get_optimal_hyperparameters(index, index_key, max_speed=max_index_query_time_ms)
+                index_param = get_optimal_hyperparameters(index, index_key, max_speed_ms=max_index_query_time_ms)
 
         # Set search hyperparameters for the index
         set_search_hyperparameters(index, index_param, use_gpu)
@@ -280,7 +283,7 @@ def tune_index(
 
     if index_param is None:
         with Timeit("Compute best hyperparameters"):
-            index_param = get_optimal_hyperparameters(index, index_key, max_speed=max_index_query_time_ms)
+            index_param = get_optimal_hyperparameters(index, index_key, max_speed_ms=max_index_query_time_ms)
 
     with Timeit("Set search hyperparameters for the index"):
         set_search_hyperparameters(index, index_param, use_gpu)

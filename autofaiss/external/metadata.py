@@ -22,6 +22,7 @@ class IndexType(Enum):
     OPQ_IVF_HNSW_PQ = 3
     PAD_IVF_HNSW_PQ = 4
     NOT_SUPPORTED = 5
+    IVF_FLAT = 6
 
 
 class IndexMetadata:
@@ -91,6 +92,14 @@ class IndexMetadata:
 
             self.params["M_HNSW"] = params[0]
 
+        elif any(re.findall(r"IVF\d+,Flat", index_key)):
+            self.index_type = IndexType.IVF_FLAT
+            self.fast_description = "An inverted file index (IVF) with no quantization"
+            self.description_blocs = [IndexBlock.IVF]
+            self.tunable_params = [TunableParam.NPROBE]
+
+            self.params["ncentroids"] = params[0]
+
         elif index_key == "Flat":
             self.index_type = IndexType.FLAT
             self.fast_description = "A simple flat index."
@@ -143,6 +152,14 @@ class IndexMetadata:
                 total_size_in_byte += self.params["M_OPQ"] * self.params["out_d"] * 4
 
             return total_size_in_byte
+
+        if self.index_type == IndexType.IVF_FLAT:
+
+            direct_map_overhead = 8 * self.nb_vectors if self.make_direct_map else 0
+            vectors_size_in_bytes = self.nb_vectors * self.dim_vector * 4
+            centroid_size_in_bytes = self.params["ncentroids"] * self.dim_vector * 4
+
+            return direct_map_overhead + vectors_size_in_bytes + centroid_size_in_bytes
 
         return -1
 

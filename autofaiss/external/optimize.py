@@ -2,17 +2,18 @@
 
 import re
 from functools import partial, reduce
-from math import log2, sqrt, floor
+from math import floor, log2, sqrt
 from operator import mul
-from typing import List, Optional
+from typing import Callable, List, Optional, TypeVar
 
+import faiss
+from autofaiss.external.metadata import IndexMetadata
 from autofaiss.indices.index_utils import set_search_hyperparameters, speed_test_ms_per_query
 from autofaiss.utils.algorithms import discrete_binary_search
 from autofaiss.utils.cast import cast_memory_to_bytes
-from autofaiss.utils.decorators import Timeit
 
 
-def check_if_index_needs_training(index_key: str):
+def check_if_index_needs_training(index_key: str) -> bool:
     """
     Function that checks if the index needs to be trained
     """
@@ -25,7 +26,7 @@ def check_if_index_needs_training(index_key: str):
         return False
 
 
-def index_key_to_nb_cluster(index_key: str):
+def index_key_to_nb_cluster(index_key: str) -> int:
     """
     Function that takes an index key and returns the number of clusters
     """
@@ -47,7 +48,7 @@ def index_key_to_nb_cluster(index_key: str):
     return nb_clusters
 
 
-def compute_memory_necessary_for_training(nb_training_vectors: int, index_key: str, vec_dim: int):
+def compute_memory_necessary_for_training(nb_training_vectors: int, index_key: str, vec_dim: int) -> float:
     """
     Function that computes the memory necessary to train an index with nb_training_vectors vectors
     """
@@ -130,10 +131,10 @@ def get_optimal_nb_clusters(nb_vectors: int) -> List[int]:
         nb_clusters_list.append(65_536)
         nb_clusters_list.append(2 ** 20)  # very slow training !
 
-    nb_clusters_list = [int(x) for x in nb_clusters_list if x >= 256]
+    nb_clusters_list = [int(x) for x in nb_clusters_list]
 
     if not nb_clusters_list:
-        return [256]  # minimum possible value for Faiss IVF
+        return [256]  # default value
 
     return nb_clusters_list
 
@@ -143,9 +144,10 @@ def get_optimal_index_keys_v2(
     dim_vector: int,
     max_index_memory_usage: str,
     flat_threshold: int = 1000,
-    hnsw_threshold: int = 10000,
+    quantization_threshold: int = 10000,
     force_pq: Optional[int] = None,
-):
+    ivf_index_only: bool = False,
+) -> List[str]:
     """
     Gives a list of interesting indices to try, *the one at the top is the most promising*
 
@@ -154,23 +156,52 @@ def get_optimal_index_keys_v2(
     """
 
     # Exception cases:
-    if nb_vectors < flat_threshold:  # HNSW Faiss slower when less than 1000 vectors
-        return ["Flat"]
-    if nb_vectors < hnsw_threshold:  # HNSW is faster and quantization is not possible (>=10_000 vectors needed)
+
+    if nb_vectors < flat_threshold:  # When less than 1000 vectors, the flat index is usually faster
+        return ["IVF1,Flat" if ivf_index_only else "Flat"]
+    if nb_vectors < quantization_threshold:  # quantization is not possible (>=10_000 vectors needed)
+        if ivf_index_only:
+            return get_optimal_ivf(nb_vectors)
         return ["HNSW15"]
-    if force_pq is not None:
+    if force_pq is not None:  # Forced quantization
         return get_optimal_quantization(nb_vectors, dim_vector, force_quantization_value=force_pq)
+
+    # General cases:
 
     # Get max memory usage
     max_size_in_bytes = cast_memory_to_bytes(max_index_memory_usage)
 
-    # If we can build an HNSW with the given memory constraints, it's the best
-    m_hnsw = int(floor((max_size_in_bytes / (4 * nb_vectors) - dim_vector) / 2))
-    if m_hnsw >= 8:
-        return [f"HNSW{min(m_hnsw, 32)}"]
+    if not ivf_index_only:
+        # If we can build an HNSW with the given memory constraints, it's the best
+        m_hnsw = int(floor((max_size_in_bytes / (4 * nb_vectors) - dim_vector) / 2))
+        if m_hnsw >= 8:
+            return [f"HNSW{min(m_hnsw, 32)}"]
+
+    # Try to build a not quantized IVF index
+    index_keys = get_optimal_ivf(nb_vectors)
+    index_metadata = IndexMetadata(index_keys[0], nb_vectors, dim_vector, make_direct_map=False)
+    if index_metadata.estimated_index_size_in_bytes() <= max_size_in_bytes:
+        return index_keys
 
     # Otherwise, there is not enough space, let's go for quantization
     return get_optimal_quantization(nb_vectors, dim_vector, force_max_index_memory_usage=max_index_memory_usage)
+
+
+def get_optimal_ivf(nb_vectors: int) -> List[str]:
+    """
+    Function that returns a list of relevant index_keys to create not quantized IVF indices.
+
+    Parameters
+    ----------
+    nb_vectors: int
+        Number of vectors in the dataset.
+    """
+    index_keys = []
+
+    for nb_clusters in get_optimal_nb_clusters(nb_vectors):
+        index_keys.append(f"IVF{nb_clusters},Flat")
+
+    return index_keys
 
 
 def get_optimal_quantization(
@@ -251,165 +282,133 @@ def get_optimal_quantization(
     return relevant_list
 
 
+T = TypeVar("T", int, float)
+
+
+def binary_search_on_param(
+    index: faiss.Index,
+    parameter_range: List[T],
+    max_speed_ms: float,  # milliseconds
+    hyperparameter_str_from_param: Callable[[T], str],
+    timeout_boost_for_precision_search: float = 6.0,
+    use_gpu: bool = False,
+    max_timeout_per_iteration_s: float = 1.0,  # seconds
+):
+    """
+    Apply a binary search on a given hyperparameter to maximize the recall given
+    a query speed constraint in milliseconds/query.
+
+    Parameters
+    ----------
+    index: faiss.Index
+        Index to search on.
+    parameter_range: List[T]
+        List of possible values for the hyperparameter.
+    max_speed_ms: float
+        Maximum query speed in milliseconds/query.
+    hyperparameter_str_from_param: Callable[[T], str]
+        Function to generate a hyperparameter string from the hyperparameter value
+        on which we do a binary search.
+    timeout_boost_for_precision_search: float
+        Timeout boost for the precision search phase.
+    use_gpu: bool
+        Whether the index is on the GPU.
+    max_timeout_per_iteration_s: float
+        Maximum timeout per iteration in seconds.
+    """
+
+    query_vectors = index.reconstruct_n(0, min(index.ntotal, 4000))
+    timout_s = 15 * max_speed_ms / 1000
+
+    get_speed = partial(
+        speed_test_ms_per_query, query=query_vectors, ksearch=40, timout_s=min(max_timeout_per_iteration_s, timout_s),
+    )
+
+    def is_not_acceptable_speed(rank: int) -> bool:
+
+        parameter_value = parameter_range[rank]
+        param_str = hyperparameter_str_from_param(parameter_value)
+        set_search_hyperparameters(index, param_str, use_gpu)
+        speed = get_speed(index)
+
+        return speed >= max_speed_ms
+
+    best_rank = max(0, discrete_binary_search(is_not_acceptable_speed, len(parameter_range)) - 1)
+
+    # make sure that the query time is respected by spending X more time to evaluate the query speed
+    decreasing_ratio = 0.95
+
+    query_vectors = index.reconstruct_n(0, min(index.ntotal, 50000))
+    get_speed = partial(
+        speed_test_ms_per_query,
+        query=query_vectors,
+        ksearch=40,
+        timout_s=min(max_timeout_per_iteration_s, timeout_boost_for_precision_search * timout_s),
+    )
+
+    while is_not_acceptable_speed(best_rank) and best_rank > 1:
+        best_rank -= max(1, floor((1 - decreasing_ratio) * best_rank))
+
+    best_rank = max(0, min(best_rank, len(parameter_range) - 1))
+
+    return parameter_range[best_rank]
+
+
 def get_optimal_hyperparameters(
     index,
     index_key: str,
-    max_speed: float,  # milliseconds
+    max_speed_ms: float,  # milliseconds
     use_gpu: bool = False,
-    max_timeout_per_iteration: float = 1.0,  # seconds
+    max_timeout_per_iteration_s: float = 1.0,  # seconds
     min_ef_search: int = 32,
 ) -> str:
     """Find the optimal hyperparameters to maximize the recall given a query speed in milliseconds/query"""
 
-    # nb_vectors = index.ntotal
+    params = [int(x) for x in re.findall(r"\d+", index_key)]
 
     if any(re.findall(r"OPQ\d+_\d+,IVF\d+,PQ\d+", index_key)):
-        with Timeit("starting initial reconstruct"):
-            query = index.reconstruct_n(0, 4000)
-        get_speed = partial(
-            speed_test_ms_per_query,
-            query=query,
-            ksearch=40,
-            timout_s=min(max_timeout_per_iteration, 15 * max_speed / 1000),
-        )
-
-        #
-        nprobes = list(range(max(1, min_ef_search // 2), 6144))
-        nprobes.sort()
 
         ht = 2048
-
-        def is_not_acceptable_speed(rank_nprobe):
-
-            nprobe = nprobes[rank_nprobe]
-            param_str = f"nprobe={nprobe},ht={ht}"
-            set_search_hyperparameters(index, param_str, use_gpu)
-            speed = get_speed(index)
-
-            return speed >= max_speed
-
-        with Timeit("starting initial binary search"):
-            rank_best_nprobe = discrete_binary_search(is_not_acceptable_speed, len(nprobes)) - 1
-
-        # make sure that the query time is respected
-        with Timeit("starting final reconstruct"):
-            query = index.reconstruct_n(0, min(index.ntotal, 50000))
-
-        get_speed = partial(
-            speed_test_ms_per_query,
-            query=query,
-            ksearch=40,
-            timout_s=min(max_timeout_per_iteration, 200 * max_speed / 1000),
-        )
-
-        with Timeit("final linear search"):
-            while is_not_acceptable_speed(rank_best_nprobe) and rank_best_nprobe > 1:
-                rank_best_nprobe -= 1
-
-        rank_best_nprobe = max(0, min(rank_best_nprobe, len(nprobes) - 1))
-
-        nprobe = nprobes[rank_best_nprobe]
-
-        param_str = f"nprobe={nprobe},ht={ht}"
-
-        return param_str
+        nb_clusters = int(params[2])
+        hyperparameter_str_from_param = lambda nprobe: f"nprobe={nprobe},ht={ht}"
+        parameter_range = list(range(1, min(6144, nb_clusters) + 1))
+        timeout_boost_for_precision_search = 6.0
 
     elif any(re.findall(r"OPQ\d+_\d+,IVF\d+_HNSW\d+,PQ\d+", index_key)):
 
-        with Timeit("starting initial reconstruct"):
-            query = index.reconstruct_n(0, 4000)
-        get_speed = partial(
-            speed_test_ms_per_query,
-            query=query,
-            ksearch=40,
-            timout_s=min(max_timeout_per_iteration, 15 * max_speed / 1000),
-        )
-
-        #
-        nprobes = list(range(max(1, min_ef_search // 2), 6144))
-        nprobes.sort()
-
         ht = 2048
+        nb_clusters = int(params[2])
+        hyperparameter_str_from_param = lambda nprobe: f"nprobe={nprobe},efSearch={2*nprobe},ht={ht}"
+        parameter_range = list(range(max(1, min_ef_search // 2), min(6144, nb_clusters) + 1))
+        timeout_boost_for_precision_search = 12.0
 
-        def is_not_acceptable_speed(rank_nprobe):
+    elif any(re.findall(r"HNSW\d+", index_key)):
 
-            nprobe = nprobes[rank_nprobe]
-            param_str = f"nprobe={nprobe},efSearch={2*nprobe},ht={ht}"
-            set_search_hyperparameters(index, param_str, use_gpu)
-            speed = get_speed(index)
+        hyperparameter_str_from_param = lambda ef_search: f"efSearch={ef_search}"
+        parameter_range = list(range(16, 2 ** 14))
+        timeout_boost_for_precision_search = 6.0
 
-            return speed >= max_speed
+    elif any(re.findall(r"IVF\d+,Flat", index_key)):
 
-        with Timeit("starting initial binary search"):
-            rank_best_nprobe = discrete_binary_search(is_not_acceptable_speed, len(nprobes)) - 1
+        nb_clusters = int(params[0])
+        hyperparameter_str_from_param = lambda nprobe: f"nprobe={nprobe}"
+        parameter_range = list(range(1, nb_clusters + 1))
+        timeout_boost_for_precision_search = 6.0
 
-        # make sure that the query time is respected
-        with Timeit("starting final reconstruct"):
-            query = index.reconstruct_n(0, min(index.ntotal, 50000))
-
-        get_speed = partial(
-            speed_test_ms_per_query,
-            query=query,
-            ksearch=40,
-            timout_s=min(max_timeout_per_iteration, 200 * max_speed / 1000),
-        )
-
-        with Timeit("final linear search"):
-            while is_not_acceptable_speed(rank_best_nprobe) and rank_best_nprobe > 1:
-                rank_best_nprobe -= 1
-
-        rank_best_nprobe = max(0, min(rank_best_nprobe, len(nprobes) - 1))
-
-        nprobe = nprobes[rank_best_nprobe]
-
-        param_str = f"nprobe={nprobe},efSearch={2*nprobe},ht={ht}"
-
-        return param_str
-
-    if any(re.findall(r"HNSW\d+", index_key)):
-
-        query = index.reconstruct_n(0, min(index.ntotal, 4000))
-        get_speed = partial(
-            speed_test_ms_per_query,
-            query=query,
-            ksearch=40,
-            timout_s=min(max_timeout_per_iteration, 15 * max_speed / 1000),
-        )
-
-        ef_searchs = list(range(16, 2 ** 14))
-
-        def is_not_acceptable_speed_ef_search(rank_efsearch):
-
-            ef_search = ef_searchs[rank_efsearch]
-            param_str = f"efSearch={ef_search}"
-            set_search_hyperparameters(index, param_str, use_gpu)
-            speed = get_speed(index)
-
-            return speed >= max_speed
-
-        rank_best_ef_search = discrete_binary_search(is_not_acceptable_speed_ef_search, len(ef_searchs)) - 1
-
-        # make sure that the query time is respected
-        query = index.reconstruct_n(0, min(index.ntotal, 50000))
-        get_speed = partial(
-            speed_test_ms_per_query,
-            query=query,
-            ksearch=40,
-            timout_s=min(max_timeout_per_iteration, 100 * max_speed / 1000),
-        )
-
-        while is_not_acceptable_speed_ef_search(rank_best_ef_search) and rank_best_ef_search > 1:
-            rank_best_ef_search -= 1
-
-        rank_best_ef_search = max(0, min(rank_best_ef_search, len(ef_searchs) - 1))
-
-        ef_search = ef_searchs[rank_best_ef_search]
-
-        param_str = f"efSearch={ef_search}"
-
-        return param_str
-
-    if index_key == "Flat":
+    elif index_key == "Flat":
         return ""
 
-    raise NotImplementedError("we don't have heuristics for that kind or index")
+    else:
+        raise NotImplementedError(f"we don't have heuristics for that kind or index ({index_key})")
+
+    optimal_param = binary_search_on_param(
+        index,
+        parameter_range,
+        max_speed_ms,
+        hyperparameter_str_from_param,
+        timeout_boost_for_precision_search,
+        use_gpu,
+        max_timeout_per_iteration_s,
+    )
+
+    return hyperparameter_str_from_param(optimal_param)
