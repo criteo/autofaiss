@@ -105,7 +105,8 @@
     <span class="n">OPQ_IVF_PQ</span> <span class="o">=</span> <span class="mi">2</span>
     <span class="n">OPQ_IVF_HNSW_PQ</span> <span class="o">=</span> <span class="mi">3</span>
     <span class="n">PAD_IVF_HNSW_PQ</span> <span class="o">=</span> <span class="mi">4</span>
-    <span class="n">NOT_SUPPORTED</span> <span class="o">=</span> <span class="mi">5</span></div>
+    <span class="n">NOT_SUPPORTED</span> <span class="o">=</span> <span class="mi">5</span>
+    <span class="n">IVF_FLAT</span> <span class="o">=</span> <span class="mi">6</span></div>
 
 
 <div class="viewcode-block" id="IndexMetadata"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.metadata.IndexMetadata">[docs]</a><span class="k">class</span> <span class="nc">IndexMetadata</span><span class="p">:</span>
@@ -175,6 +176,14 @@
 
             <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;M_HNSW&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
+        <span class="k">elif</span> <span class="nb">any</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;IVF\d+,Flat&quot;</span><span class="p">,</span> <span class="n">index_key</span><span class="p">)):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">index_type</span> <span class="o">=</span> <span class="n">IndexType</span><span class="o">.</span><span class="n">IVF_FLAT</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fast_description</span> <span class="o">=</span> <span class="s2">&quot;An inverted file index (IVF) with no quantization&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">description_blocs</span> <span class="o">=</span> <span class="p">[</span><span class="n">IndexBlock</span><span class="o">.</span><span class="n">IVF</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tunable_params</span> <span class="o">=</span> <span class="p">[</span><span class="n">TunableParam</span><span class="o">.</span><span class="n">NPROBE</span><span class="p">]</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;ncentroids&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
         <span class="k">elif</span> <span class="n">index_key</span> <span class="o">==</span> <span class="s2">&quot;Flat&quot;</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">index_type</span> <span class="o">=</span> <span class="n">IndexType</span><span class="o">.</span><span class="n">FLAT</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">fast_description</span> <span class="o">=</span> <span class="s2">&quot;A simple flat index.&quot;</span>
@@ -227,6 +236,14 @@
                 <span class="n">total_size_in_byte</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;M_OPQ&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;out_d&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="mi">4</span>
 
             <span class="k">return</span> <span class="n">total_size_in_byte</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">index_type</span> <span class="o">==</span> <span class="n">IndexType</span><span class="o">.</span><span class="n">IVF_FLAT</span><span class="p">:</span>
+
+            <span class="n">direct_map_overhead</span> <span class="o">=</span> <span class="mi">8</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">nb_vectors</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">make_direct_map</span> <span class="k">else</span> <span class="mi">0</span>
+            <span class="n">vectors_size_in_bytes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nb_vectors</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim_vector</span> <span class="o">*</span> <span class="mi">4</span>
+            <span class="n">centroid_size_in_bytes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;ncentroids&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim_vector</span> <span class="o">*</span> <span class="mi">4</span>
+
+            <span class="k">return</span> <span class="n">direct_map_overhead</span> <span class="o">+</span> <span class="n">vectors_size_in_bytes</span> <span class="o">+</span> <span class="n">centroid_size_in_bytes</span>
 
         <span class="k">return</span> <span class="o">-</span><span class="mi">1</span></div>
 

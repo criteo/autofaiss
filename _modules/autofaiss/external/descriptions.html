@@ -109,12 +109,16 @@
     <span class="n">IndexBlock</span><span class="o">.</span><span class="n">FLAT</span><span class="p">:</span> <span class="s2">&quot;&quot;&quot;Flat Index (Simple exhaustive search)</span>
 <span class="s2">    All the vectors are stored without compression in a 2D array.</span>
 <span class="s2">    The search is exhaustive and gives exact results, but it can be slow when there are</span>
-<span class="s2">    many vectors.&quot;&quot;&quot;</span><span class="p">,</span>
+<span class="s2">    many vectors.</span>
+<span class="s2">    This index can&#39;t be memory-mapped on disk in current faiss implementation, but and IVF</span>
+<span class="s2">    index with just one cluster makes it possible to memory-map it.&quot;&quot;&quot;</span><span class="p">,</span>
     <span class="n">IndexBlock</span><span class="o">.</span><span class="n">IVF</span><span class="p">:</span> <span class="s2">&quot;&quot;&quot;IVF (Inverted File Index):</span>
 <span class="s2">    The vector space is divided into several groups that are represented by a cluster vector.</span>
 <span class="s2">    The algorithm first looks for the closest cluster vectors by iterating over them one by one.</span>
 <span class="s2">    Then, The IVF mapping is used to read the vectors in the selected groups. The algorithm reads</span>
 <span class="s2">    each of them and select the k nearest neighbors.</span>
+<span class="s2">    It is possible to memory-map this index on disk, it reduces the RAM footprint to the size of</span>
+<span class="s2">    its cluster vectors, but the index is slower in that case.</span>
 <span class="s2">    -&gt; More info: https://hal.inria.fr/inria-00514462/PDF/jegou_pq_postprint.pdf&quot;&quot;&quot;</span><span class="p">,</span>
     <span class="n">IndexBlock</span><span class="o">.</span><span class="n">IVF_HNSW</span><span class="p">:</span> <span class="s2">&quot;&quot;&quot;IVF + HNSW (Inverted File Index + Hierarchical Navigable Small World index):</span>
 <span class="s2">    The vector space is divided into several groups that are represented by a cluster vector. </span>
@@ -122,6 +126,8 @@
 <span class="s2">    iterating over them one by one in the version without HNSW). Then, The IVF mapping is used</span>
 <span class="s2">    to read the vectors in the selected groups. The algorithm reads each of them and selects</span>
 <span class="s2">    the k nearest neighbors.</span>
+<span class="s2">    It is possible to memory-map this index on disk, it reduces the RAM footprint to the size of the</span>
+<span class="s2">    hnsw index, but the index is slower in that case.</span>
 <span class="s2">    -&gt; More info: https://hal.inria.fr/inria-00514462/PDF/jegou_pq_postprint.pdf&quot;&quot;&quot;</span><span class="p">,</span>
     <span class="n">IndexBlock</span><span class="o">.</span><span class="n">PQ</span><span class="p">:</span> <span class="s2">&quot;&quot;&quot;PQ (Product Quantization):</span>
 <span class="s2">    The vectors are compressed using product quantization.</span>
@@ -134,6 +140,7 @@
     <span class="n">IndexBlock</span><span class="o">.</span><span class="n">HNSW</span><span class="p">:</span> <span class="s2">&quot;&quot;&quot;HNSW (Hierarchical Navigable Small World):</span>
 <span class="s2">    All the vectors are stored in a 2D array without compression, and</span>
 <span class="s2">    a bidirectional graph is built on the top of the vectors to enable a fast search.</span>
+<span class="s2">    This index can&#39;t be memory-mapped on disk.</span>
 <span class="s2">    -&gt; More info: https://arxiv.org/ftp/arxiv/papers/1603/1603.09320.pdf&quot;&quot;&quot;</span><span class="p">,</span>
     <span class="n">IndexBlock</span><span class="o">.</span><span class="n">PAD</span><span class="p">:</span> <span class="s2">&quot;&quot;&quot;PAD (Padding):</span>
 <span class="s2">    Preprocessing operations where a padding with 0s is added to the end of the vectors.&quot;&quot;&quot;</span><span class="p">,</span>

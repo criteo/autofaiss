@@ -86,17 +86,18 @@
 
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span><span class="p">,</span> <span class="n">reduce</span>
-<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">log2</span><span class="p">,</span> <span class="n">sqrt</span><span class="p">,</span> <span class="n">floor</span>
+<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">floor</span><span class="p">,</span> <span class="n">log2</span><span class="p">,</span> <span class="n">sqrt</span>
 <span class="kn">from</span> <span class="nn">operator</span> <span class="kn">import</span> <span class="n">mul</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">TypeVar</span>
 
+<span class="kn">import</span> <span class="nn">faiss</span>
+<span class="kn">from</span> <span class="nn">autofaiss.external.metadata</span> <span class="kn">import</span> <span class="n">IndexMetadata</span>
 <span class="kn">from</span> <span class="nn">autofaiss.indices.index_utils</span> <span class="kn">import</span> <span class="n">set_search_hyperparameters</span><span class="p">,</span> <span class="n">speed_test_ms_per_query</span>
 <span class="kn">from</span> <span class="nn">autofaiss.utils.algorithms</span> <span class="kn">import</span> <span class="n">discrete_binary_search</span>
 <span class="kn">from</span> <span class="nn">autofaiss.utils.cast</span> <span class="kn">import</span> <span class="n">cast_memory_to_bytes</span>
-<span class="kn">from</span> <span class="nn">autofaiss.utils.decorators</span> <span class="kn">import</span> <span class="n">Timeit</span>
 
 
-<div class="viewcode-block" id="check_if_index_needs_training"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.optimize.check_if_index_needs_training">[docs]</a><span class="k">def</span> <span class="nf">check_if_index_needs_training</span><span class="p">(</span><span class="n">index_key</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<div class="viewcode-block" id="check_if_index_needs_training"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.optimize.check_if_index_needs_training">[docs]</a><span class="k">def</span> <span class="nf">check_if_index_needs_training</span><span class="p">(</span><span class="n">index_key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Function that checks if the index needs to be trained</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -109,7 +110,7 @@
         <span class="k">return</span> <span class="kc">False</span></div>
 
 
-<div class="viewcode-block" id="index_key_to_nb_cluster"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.optimize.index_key_to_nb_cluster">[docs]</a><span class="k">def</span> <span class="nf">index_key_to_nb_cluster</span><span class="p">(</span><span class="n">index_key</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<div class="viewcode-block" id="index_key_to_nb_cluster"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.optimize.index_key_to_nb_cluster">[docs]</a><span class="k">def</span> <span class="nf">index_key_to_nb_cluster</span><span class="p">(</span><span class="n">index_key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Function that takes an index key and returns the number of clusters</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -131,7 +132,7 @@
     <span class="k">return</span> <span class="n">nb_clusters</span></div>
 
 
-<div class="viewcode-block" id="compute_memory_necessary_for_training"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.optimize.compute_memory_necessary_for_training">[docs]</a><span class="k">def</span> <span class="nf">compute_memory_necessary_for_training</span><span class="p">(</span><span class="n">nb_training_vectors</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">index_key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">vec_dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+<div class="viewcode-block" id="compute_memory_necessary_for_training"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.optimize.compute_memory_necessary_for_training">[docs]</a><span class="k">def</span> <span class="nf">compute_memory_necessary_for_training</span><span class="p">(</span><span class="n">nb_training_vectors</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">index_key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">vec_dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Function that computes the memory necessary to train an index with nb_training_vectors vectors</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -214,10 +215,10 @@
         <span class="n">nb_clusters_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">65_536</span><span class="p">)</span>
         <span class="n">nb_clusters_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">2</span> <span class="o">**</span> <span class="mi">20</span><span class="p">)</span>  <span class="c1"># very slow training !</span>
 
-    <span class="n">nb_clusters_list</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">nb_clusters_list</span> <span class="k">if</span> <span class="n">x</span> <span class="o">&gt;=</span> <span class="mi">256</span><span class="p">]</span>
+    <span class="n">nb_clusters_list</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">nb_clusters_list</span><span class="p">]</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="n">nb_clusters_list</span><span class="p">:</span>
-        <span class="k">return</span> <span class="p">[</span><span class="mi">256</span><span class="p">]</span>  <span class="c1"># minimum possible value for Faiss IVF</span>
+        <span class="k">return</span> <span class="p">[</span><span class="mi">256</span><span class="p">]</span>  <span class="c1"># default value</span>
 
     <span class="k">return</span> <span class="n">nb_clusters_list</span></div>
 
@@ -227,9 +228,11 @@
     <span class="n">dim_vector</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="n">max_index_memory_usage</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">flat_threshold</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span>
-    <span class="n">hnsw_threshold</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10000</span><span class="p">,</span>
+    <span class="n">quantization_threshold</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10000</span><span class="p">,</span>
     <span class="n">force_pq</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-<span class="p">):</span>
+    <span class="n">make_direct_map</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">should_be_memory_mappable</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Gives a list of interesting indices to try, *the one at the top is the most promising*</span>
 
@@ -238,23 +241,52 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="c1"># Exception cases:</span>
-    <span class="k">if</span> <span class="n">nb_vectors</span> <span class="o">&lt;</span> <span class="n">flat_threshold</span><span class="p">:</span>  <span class="c1"># HNSW Faiss slower when less than 1000 vectors</span>
-        <span class="k">return</span> <span class="p">[</span><span class="s2">&quot;Flat&quot;</span><span class="p">]</span>
-    <span class="k">if</span> <span class="n">nb_vectors</span> <span class="o">&lt;</span> <span class="n">hnsw_threshold</span><span class="p">:</span>  <span class="c1"># HNSW is faster and quantization is not possible (&gt;=10_000 vectors needed)</span>
+
+    <span class="k">if</span> <span class="n">nb_vectors</span> <span class="o">&lt;</span> <span class="n">flat_threshold</span><span class="p">:</span>  <span class="c1"># When less than 1000 vectors, the flat index is usually faster</span>
+        <span class="k">return</span> <span class="p">[</span><span class="s2">&quot;IVF1,Flat&quot;</span> <span class="k">if</span> <span class="n">should_be_memory_mappable</span> <span class="k">else</span> <span class="s2">&quot;Flat&quot;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">nb_vectors</span> <span class="o">&lt;</span> <span class="n">quantization_threshold</span><span class="p">:</span>  <span class="c1"># quantization is not possible (&gt;=10_000 vectors needed)</span>
+        <span class="k">if</span> <span class="n">should_be_memory_mappable</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">get_optimal_ivf</span><span class="p">(</span><span class="n">nb_vectors</span><span class="p">)</span>
         <span class="k">return</span> <span class="p">[</span><span class="s2">&quot;HNSW15&quot;</span><span class="p">]</span>
-    <span class="k">if</span> <span class="n">force_pq</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">force_pq</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># Forced quantization</span>
         <span class="k">return</span> <span class="n">get_optimal_quantization</span><span class="p">(</span><span class="n">nb_vectors</span><span class="p">,</span> <span class="n">dim_vector</span><span class="p">,</span> <span class="n">force_quantization_value</span><span class="o">=</span><span class="n">force_pq</span><span class="p">)</span>
+
+    <span class="c1"># General cases:</span>
 
     <span class="c1"># Get max memory usage</span>
     <span class="n">max_size_in_bytes</span> <span class="o">=</span> <span class="n">cast_memory_to_bytes</span><span class="p">(</span><span class="n">max_index_memory_usage</span><span class="p">)</span>
 
-    <span class="c1"># If we can build an HNSW with the given memory constraints, it&#39;s the best</span>
-    <span class="n">m_hnsw</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">floor</span><span class="p">((</span><span class="n">max_size_in_bytes</span> <span class="o">/</span> <span class="p">(</span><span class="mi">4</span> <span class="o">*</span> <span class="n">nb_vectors</span><span class="p">)</span> <span class="o">-</span> <span class="n">dim_vector</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">))</span>
-    <span class="k">if</span> <span class="n">m_hnsw</span> <span class="o">&gt;=</span> <span class="mi">8</span><span class="p">:</span>
-        <span class="k">return</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;HNSW</span><span class="si">{</span><span class="nb">min</span><span class="p">(</span><span class="n">m_hnsw</span><span class="p">,</span> <span class="mi">32</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">should_be_memory_mappable</span><span class="p">:</span>
+        <span class="c1"># If we can build an HNSW with the given memory constraints, it&#39;s the best</span>
+        <span class="n">m_hnsw</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">floor</span><span class="p">((</span><span class="n">max_size_in_bytes</span> <span class="o">/</span> <span class="p">(</span><span class="mi">4</span> <span class="o">*</span> <span class="n">nb_vectors</span><span class="p">)</span> <span class="o">-</span> <span class="n">dim_vector</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">m_hnsw</span> <span class="o">&gt;=</span> <span class="mi">8</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;HNSW</span><span class="si">{</span><span class="nb">min</span><span class="p">(</span><span class="n">m_hnsw</span><span class="p">,</span> <span class="mi">32</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span>
+
+    <span class="c1"># Try to build a not quantized IVF index</span>
+    <span class="n">index_keys</span> <span class="o">=</span> <span class="n">get_optimal_ivf</span><span class="p">(</span><span class="n">nb_vectors</span><span class="p">)</span>
+    <span class="n">index_metadata</span> <span class="o">=</span> <span class="n">IndexMetadata</span><span class="p">(</span><span class="n">index_keys</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">nb_vectors</span><span class="p">,</span> <span class="n">dim_vector</span><span class="p">,</span> <span class="n">make_direct_map</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">index_metadata</span><span class="o">.</span><span class="n">estimated_index_size_in_bytes</span><span class="p">()</span> <span class="o">&lt;=</span> <span class="n">max_size_in_bytes</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">index_keys</span>
 
     <span class="c1"># Otherwise, there is not enough space, let&#39;s go for quantization</span>
     <span class="k">return</span> <span class="n">get_optimal_quantization</span><span class="p">(</span><span class="n">nb_vectors</span><span class="p">,</span> <span class="n">dim_vector</span><span class="p">,</span> <span class="n">force_max_index_memory_usage</span><span class="o">=</span><span class="n">max_index_memory_usage</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_optimal_ivf"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.optimize.get_optimal_ivf">[docs]</a><span class="k">def</span> <span class="nf">get_optimal_ivf</span><span class="p">(</span><span class="n">nb_vectors</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Function that returns a list of relevant index_keys to create not quantized IVF indices.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    nb_vectors: int</span>
+<span class="sd">        Number of vectors in the dataset.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">index_keys</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">nb_clusters</span> <span class="ow">in</span> <span class="n">get_optimal_nb_clusters</span><span class="p">(</span><span class="n">nb_vectors</span><span class="p">):</span>
+        <span class="n">index_keys</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;IVF</span><span class="si">{</span><span class="n">nb_clusters</span><span class="si">}</span><span class="s2">,Flat&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">index_keys</span></div>
 
 
 <div class="viewcode-block" id="get_optimal_quantization"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.optimize.get_optimal_quantization">[docs]</a><span class="k">def</span> <span class="nf">get_optimal_quantization</span><span class="p">(</span>
@@ -335,168 +367,136 @@
     <span class="k">return</span> <span class="n">relevant_list</span></div>
 
 
+<span class="n">T</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;T&quot;</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="binary_search_on_param"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.optimize.binary_search_on_param">[docs]</a><span class="k">def</span> <span class="nf">binary_search_on_param</span><span class="p">(</span>
+    <span class="n">index</span><span class="p">:</span> <span class="n">faiss</span><span class="o">.</span><span class="n">Index</span><span class="p">,</span>
+    <span class="n">parameter_range</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">T</span><span class="p">],</span>
+    <span class="n">max_speed_ms</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>  <span class="c1"># milliseconds</span>
+    <span class="n">hyperparameter_str_from_param</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">T</span><span class="p">],</span> <span class="nb">str</span><span class="p">],</span>
+    <span class="n">timeout_boost_for_precision_search</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">6.0</span><span class="p">,</span>
+    <span class="n">use_gpu</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">max_timeout_per_iteration_s</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>  <span class="c1"># seconds</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Apply a binary search on a given hyperparameter to maximize the recall given</span>
+<span class="sd">    a query speed constraint in milliseconds/query.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    index: faiss.Index</span>
+<span class="sd">        Index to search on.</span>
+<span class="sd">    parameter_range: List[T]</span>
+<span class="sd">        List of possible values for the hyperparameter.</span>
+<span class="sd">    max_speed_ms: float</span>
+<span class="sd">        Maximum query speed in milliseconds/query.</span>
+<span class="sd">    hyperparameter_str_from_param: Callable[[T], str]</span>
+<span class="sd">        Function to generate a hyperparameter string from the hyperparameter value</span>
+<span class="sd">        on which we do a binary search.</span>
+<span class="sd">    timeout_boost_for_precision_search: float</span>
+<span class="sd">        Timeout boost for the precision search phase.</span>
+<span class="sd">    use_gpu: bool</span>
+<span class="sd">        Whether the index is on the GPU.</span>
+<span class="sd">    max_timeout_per_iteration_s: float</span>
+<span class="sd">        Maximum timeout per iteration in seconds.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">query_vectors</span> <span class="o">=</span> <span class="n">index</span><span class="o">.</span><span class="n">reconstruct_n</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">index</span><span class="o">.</span><span class="n">ntotal</span><span class="p">,</span> <span class="mi">4000</span><span class="p">))</span>
+    <span class="n">timout_s</span> <span class="o">=</span> <span class="mi">15</span> <span class="o">*</span> <span class="n">max_speed_ms</span> <span class="o">/</span> <span class="mi">1000</span>
+
+    <span class="n">get_speed</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span>
+        <span class="n">speed_test_ms_per_query</span><span class="p">,</span> <span class="n">query</span><span class="o">=</span><span class="n">query_vectors</span><span class="p">,</span> <span class="n">ksearch</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span> <span class="n">timout_s</span><span class="o">=</span><span class="nb">min</span><span class="p">(</span><span class="n">max_timeout_per_iteration_s</span><span class="p">,</span> <span class="n">timout_s</span><span class="p">),</span>
+    <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">is_not_acceptable_speed</span><span class="p">(</span><span class="n">rank</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+
+        <span class="n">parameter_value</span> <span class="o">=</span> <span class="n">parameter_range</span><span class="p">[</span><span class="n">rank</span><span class="p">]</span>
+        <span class="n">param_str</span> <span class="o">=</span> <span class="n">hyperparameter_str_from_param</span><span class="p">(</span><span class="n">parameter_value</span><span class="p">)</span>
+        <span class="n">set_search_hyperparameters</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">param_str</span><span class="p">,</span> <span class="n">use_gpu</span><span class="p">)</span>
+        <span class="n">speed</span> <span class="o">=</span> <span class="n">get_speed</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">speed</span> <span class="o">&gt;=</span> <span class="n">max_speed_ms</span>
+
+    <span class="n">best_rank</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">discrete_binary_search</span><span class="p">(</span><span class="n">is_not_acceptable_speed</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">parameter_range</span><span class="p">))</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="c1"># make sure that the query time is respected by spending X more time to evaluate the query speed</span>
+    <span class="n">decreasing_ratio</span> <span class="o">=</span> <span class="mf">0.95</span>
+
+    <span class="n">query_vectors</span> <span class="o">=</span> <span class="n">index</span><span class="o">.</span><span class="n">reconstruct_n</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">index</span><span class="o">.</span><span class="n">ntotal</span><span class="p">,</span> <span class="mi">50000</span><span class="p">))</span>
+    <span class="n">get_speed</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span>
+        <span class="n">speed_test_ms_per_query</span><span class="p">,</span>
+        <span class="n">query</span><span class="o">=</span><span class="n">query_vectors</span><span class="p">,</span>
+        <span class="n">ksearch</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span>
+        <span class="n">timout_s</span><span class="o">=</span><span class="nb">min</span><span class="p">(</span><span class="n">max_timeout_per_iteration_s</span><span class="p">,</span> <span class="n">timeout_boost_for_precision_search</span> <span class="o">*</span> <span class="n">timout_s</span><span class="p">),</span>
+    <span class="p">)</span>
+
+    <span class="k">while</span> <span class="n">is_not_acceptable_speed</span><span class="p">(</span><span class="n">best_rank</span><span class="p">)</span> <span class="ow">and</span> <span class="n">best_rank</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">best_rank</span> <span class="o">-=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">floor</span><span class="p">((</span><span class="mi">1</span> <span class="o">-</span> <span class="n">decreasing_ratio</span><span class="p">)</span> <span class="o">*</span> <span class="n">best_rank</span><span class="p">))</span>
+
+    <span class="n">best_rank</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">best_rank</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">parameter_range</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">parameter_range</span><span class="p">[</span><span class="n">best_rank</span><span class="p">]</span></div>
+
+
 <div class="viewcode-block" id="get_optimal_hyperparameters"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.optimize.get_optimal_hyperparameters">[docs]</a><span class="k">def</span> <span class="nf">get_optimal_hyperparameters</span><span class="p">(</span>
     <span class="n">index</span><span class="p">,</span>
     <span class="n">index_key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-    <span class="n">max_speed</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>  <span class="c1"># milliseconds</span>
+    <span class="n">max_speed_ms</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>  <span class="c1"># milliseconds</span>
     <span class="n">use_gpu</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-    <span class="n">max_timeout_per_iteration</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>  <span class="c1"># seconds</span>
+    <span class="n">max_timeout_per_iteration_s</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>  <span class="c1"># seconds</span>
     <span class="n">min_ef_search</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">32</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Find the optimal hyperparameters to maximize the recall given a query speed in milliseconds/query&quot;&quot;&quot;</span>
 
-    <span class="c1"># nb_vectors = index.ntotal</span>
+    <span class="n">params</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;\d+&quot;</span><span class="p">,</span> <span class="n">index_key</span><span class="p">)]</span>
 
     <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;OPQ\d+_\d+,IVF\d+,PQ\d+&quot;</span><span class="p">,</span> <span class="n">index_key</span><span class="p">)):</span>
-        <span class="k">with</span> <span class="n">Timeit</span><span class="p">(</span><span class="s2">&quot;starting initial reconstruct&quot;</span><span class="p">):</span>
-            <span class="n">query</span> <span class="o">=</span> <span class="n">index</span><span class="o">.</span><span class="n">reconstruct_n</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">4000</span><span class="p">)</span>
-        <span class="n">get_speed</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span>
-            <span class="n">speed_test_ms_per_query</span><span class="p">,</span>
-            <span class="n">query</span><span class="o">=</span><span class="n">query</span><span class="p">,</span>
-            <span class="n">ksearch</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span>
-            <span class="n">timout_s</span><span class="o">=</span><span class="nb">min</span><span class="p">(</span><span class="n">max_timeout_per_iteration</span><span class="p">,</span> <span class="mi">15</span> <span class="o">*</span> <span class="n">max_speed</span> <span class="o">/</span> <span class="mi">1000</span><span class="p">),</span>
-        <span class="p">)</span>
-
-        <span class="c1">#</span>
-        <span class="n">nprobes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">min_ef_search</span> <span class="o">//</span> <span class="mi">2</span><span class="p">),</span> <span class="mi">6144</span><span class="p">))</span>
-        <span class="n">nprobes</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
 
         <span class="n">ht</span> <span class="o">=</span> <span class="mi">2048</span>
-
-        <span class="k">def</span> <span class="nf">is_not_acceptable_speed</span><span class="p">(</span><span class="n">rank_nprobe</span><span class="p">):</span>
-
-            <span class="n">nprobe</span> <span class="o">=</span> <span class="n">nprobes</span><span class="p">[</span><span class="n">rank_nprobe</span><span class="p">]</span>
-            <span class="n">param_str</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;nprobe=</span><span class="si">{</span><span class="n">nprobe</span><span class="si">}</span><span class="s2">,ht=</span><span class="si">{</span><span class="n">ht</span><span class="si">}</span><span class="s2">&quot;</span>
-            <span class="n">set_search_hyperparameters</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">param_str</span><span class="p">,</span> <span class="n">use_gpu</span><span class="p">)</span>
-            <span class="n">speed</span> <span class="o">=</span> <span class="n">get_speed</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
-
-            <span class="k">return</span> <span class="n">speed</span> <span class="o">&gt;=</span> <span class="n">max_speed</span>
-
-        <span class="k">with</span> <span class="n">Timeit</span><span class="p">(</span><span class="s2">&quot;starting initial binary search&quot;</span><span class="p">):</span>
-            <span class="n">rank_best_nprobe</span> <span class="o">=</span> <span class="n">discrete_binary_search</span><span class="p">(</span><span class="n">is_not_acceptable_speed</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">nprobes</span><span class="p">))</span> <span class="o">-</span> <span class="mi">1</span>
-
-        <span class="c1"># make sure that the query time is respected</span>
-        <span class="k">with</span> <span class="n">Timeit</span><span class="p">(</span><span class="s2">&quot;starting final reconstruct&quot;</span><span class="p">):</span>
-            <span class="n">query</span> <span class="o">=</span> <span class="n">index</span><span class="o">.</span><span class="n">reconstruct_n</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">index</span><span class="o">.</span><span class="n">ntotal</span><span class="p">,</span> <span class="mi">50000</span><span class="p">))</span>
-
-        <span class="n">get_speed</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span>
-            <span class="n">speed_test_ms_per_query</span><span class="p">,</span>
-            <span class="n">query</span><span class="o">=</span><span class="n">query</span><span class="p">,</span>
-            <span class="n">ksearch</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span>
-            <span class="n">timout_s</span><span class="o">=</span><span class="nb">min</span><span class="p">(</span><span class="n">max_timeout_per_iteration</span><span class="p">,</span> <span class="mi">200</span> <span class="o">*</span> <span class="n">max_speed</span> <span class="o">/</span> <span class="mi">1000</span><span class="p">),</span>
-        <span class="p">)</span>
-
-        <span class="k">with</span> <span class="n">Timeit</span><span class="p">(</span><span class="s2">&quot;final linear search&quot;</span><span class="p">):</span>
-            <span class="k">while</span> <span class="n">is_not_acceptable_speed</span><span class="p">(</span><span class="n">rank_best_nprobe</span><span class="p">)</span> <span class="ow">and</span> <span class="n">rank_best_nprobe</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="n">rank_best_nprobe</span> <span class="o">-=</span> <span class="mi">1</span>
-
-        <span class="n">rank_best_nprobe</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">rank_best_nprobe</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">nprobes</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
-
-        <span class="n">nprobe</span> <span class="o">=</span> <span class="n">nprobes</span><span class="p">[</span><span class="n">rank_best_nprobe</span><span class="p">]</span>
-
-        <span class="n">param_str</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;nprobe=</span><span class="si">{</span><span class="n">nprobe</span><span class="si">}</span><span class="s2">,ht=</span><span class="si">{</span><span class="n">ht</span><span class="si">}</span><span class="s2">&quot;</span>
-
-        <span class="k">return</span> <span class="n">param_str</span>
+        <span class="n">nb_clusters</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+        <span class="n">hyperparameter_str_from_param</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">nprobe</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;nprobe=</span><span class="si">{</span><span class="n">nprobe</span><span class="si">}</span><span class="s2">,ht=</span><span class="si">{</span><span class="n">ht</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">parameter_range</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="mi">6144</span><span class="p">,</span> <span class="n">nb_clusters</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="n">timeout_boost_for_precision_search</span> <span class="o">=</span> <span class="mf">6.0</span>
 
     <span class="k">elif</span> <span class="nb">any</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;OPQ\d+_\d+,IVF\d+_HNSW\d+,PQ\d+&quot;</span><span class="p">,</span> <span class="n">index_key</span><span class="p">)):</span>
 
-        <span class="k">with</span> <span class="n">Timeit</span><span class="p">(</span><span class="s2">&quot;starting initial reconstruct&quot;</span><span class="p">):</span>
-            <span class="n">query</span> <span class="o">=</span> <span class="n">index</span><span class="o">.</span><span class="n">reconstruct_n</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">4000</span><span class="p">)</span>
-        <span class="n">get_speed</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span>
-            <span class="n">speed_test_ms_per_query</span><span class="p">,</span>
-            <span class="n">query</span><span class="o">=</span><span class="n">query</span><span class="p">,</span>
-            <span class="n">ksearch</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span>
-            <span class="n">timout_s</span><span class="o">=</span><span class="nb">min</span><span class="p">(</span><span class="n">max_timeout_per_iteration</span><span class="p">,</span> <span class="mi">15</span> <span class="o">*</span> <span class="n">max_speed</span> <span class="o">/</span> <span class="mi">1000</span><span class="p">),</span>
-        <span class="p">)</span>
-
-        <span class="c1">#</span>
-        <span class="n">nprobes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">min_ef_search</span> <span class="o">//</span> <span class="mi">2</span><span class="p">),</span> <span class="mi">6144</span><span class="p">))</span>
-        <span class="n">nprobes</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
-
         <span class="n">ht</span> <span class="o">=</span> <span class="mi">2048</span>
+        <span class="n">nb_clusters</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+        <span class="n">hyperparameter_str_from_param</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">nprobe</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;nprobe=</span><span class="si">{</span><span class="n">nprobe</span><span class="si">}</span><span class="s2">,efSearch=</span><span class="si">{</span><span class="mi">2</span><span class="o">*</span><span class="n">nprobe</span><span class="si">}</span><span class="s2">,ht=</span><span class="si">{</span><span class="n">ht</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">parameter_range</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">min_ef_search</span> <span class="o">//</span> <span class="mi">2</span><span class="p">),</span> <span class="nb">min</span><span class="p">(</span><span class="mi">6144</span><span class="p">,</span> <span class="n">nb_clusters</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="n">timeout_boost_for_precision_search</span> <span class="o">=</span> <span class="mf">12.0</span>
 
-        <span class="k">def</span> <span class="nf">is_not_acceptable_speed</span><span class="p">(</span><span class="n">rank_nprobe</span><span class="p">):</span>
+    <span class="k">elif</span> <span class="nb">any</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;HNSW\d+&quot;</span><span class="p">,</span> <span class="n">index_key</span><span class="p">)):</span>
 
-            <span class="n">nprobe</span> <span class="o">=</span> <span class="n">nprobes</span><span class="p">[</span><span class="n">rank_nprobe</span><span class="p">]</span>
-            <span class="n">param_str</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;nprobe=</span><span class="si">{</span><span class="n">nprobe</span><span class="si">}</span><span class="s2">,efSearch=</span><span class="si">{</span><span class="mi">2</span><span class="o">*</span><span class="n">nprobe</span><span class="si">}</span><span class="s2">,ht=</span><span class="si">{</span><span class="n">ht</span><span class="si">}</span><span class="s2">&quot;</span>
-            <span class="n">set_search_hyperparameters</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">param_str</span><span class="p">,</span> <span class="n">use_gpu</span><span class="p">)</span>
-            <span class="n">speed</span> <span class="o">=</span> <span class="n">get_speed</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+        <span class="n">hyperparameter_str_from_param</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">ef_search</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;efSearch=</span><span class="si">{</span><span class="n">ef_search</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">parameter_range</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="mi">2</span> <span class="o">**</span> <span class="mi">14</span><span class="p">))</span>
+        <span class="n">timeout_boost_for_precision_search</span> <span class="o">=</span> <span class="mf">6.0</span>
 
-            <span class="k">return</span> <span class="n">speed</span> <span class="o">&gt;=</span> <span class="n">max_speed</span>
+    <span class="k">elif</span> <span class="nb">any</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;IVF\d+,Flat&quot;</span><span class="p">,</span> <span class="n">index_key</span><span class="p">)):</span>
 
-        <span class="k">with</span> <span class="n">Timeit</span><span class="p">(</span><span class="s2">&quot;starting initial binary search&quot;</span><span class="p">):</span>
-            <span class="n">rank_best_nprobe</span> <span class="o">=</span> <span class="n">discrete_binary_search</span><span class="p">(</span><span class="n">is_not_acceptable_speed</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">nprobes</span><span class="p">))</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="n">nb_clusters</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">hyperparameter_str_from_param</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">nprobe</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;nprobe=</span><span class="si">{</span><span class="n">nprobe</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">parameter_range</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">nb_clusters</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="n">timeout_boost_for_precision_search</span> <span class="o">=</span> <span class="mf">6.0</span>
 
-        <span class="c1"># make sure that the query time is respected</span>
-        <span class="k">with</span> <span class="n">Timeit</span><span class="p">(</span><span class="s2">&quot;starting final reconstruct&quot;</span><span class="p">):</span>
-            <span class="n">query</span> <span class="o">=</span> <span class="n">index</span><span class="o">.</span><span class="n">reconstruct_n</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">index</span><span class="o">.</span><span class="n">ntotal</span><span class="p">,</span> <span class="mi">50000</span><span class="p">))</span>
-
-        <span class="n">get_speed</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span>
-            <span class="n">speed_test_ms_per_query</span><span class="p">,</span>
-            <span class="n">query</span><span class="o">=</span><span class="n">query</span><span class="p">,</span>
-            <span class="n">ksearch</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span>
-            <span class="n">timout_s</span><span class="o">=</span><span class="nb">min</span><span class="p">(</span><span class="n">max_timeout_per_iteration</span><span class="p">,</span> <span class="mi">200</span> <span class="o">*</span> <span class="n">max_speed</span> <span class="o">/</span> <span class="mi">1000</span><span class="p">),</span>
-        <span class="p">)</span>
-
-        <span class="k">with</span> <span class="n">Timeit</span><span class="p">(</span><span class="s2">&quot;final linear search&quot;</span><span class="p">):</span>
-            <span class="k">while</span> <span class="n">is_not_acceptable_speed</span><span class="p">(</span><span class="n">rank_best_nprobe</span><span class="p">)</span> <span class="ow">and</span> <span class="n">rank_best_nprobe</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="n">rank_best_nprobe</span> <span class="o">-=</span> <span class="mi">1</span>
-
-        <span class="n">rank_best_nprobe</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">rank_best_nprobe</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">nprobes</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
-
-        <span class="n">nprobe</span> <span class="o">=</span> <span class="n">nprobes</span><span class="p">[</span><span class="n">rank_best_nprobe</span><span class="p">]</span>
-
-        <span class="n">param_str</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;nprobe=</span><span class="si">{</span><span class="n">nprobe</span><span class="si">}</span><span class="s2">,efSearch=</span><span class="si">{</span><span class="mi">2</span><span class="o">*</span><span class="n">nprobe</span><span class="si">}</span><span class="s2">,ht=</span><span class="si">{</span><span class="n">ht</span><span class="si">}</span><span class="s2">&quot;</span>
-
-        <span class="k">return</span> <span class="n">param_str</span>
-
-    <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;HNSW\d+&quot;</span><span class="p">,</span> <span class="n">index_key</span><span class="p">)):</span>
-
-        <span class="n">query</span> <span class="o">=</span> <span class="n">index</span><span class="o">.</span><span class="n">reconstruct_n</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">index</span><span class="o">.</span><span class="n">ntotal</span><span class="p">,</span> <span class="mi">4000</span><span class="p">))</span>
-        <span class="n">get_speed</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span>
-            <span class="n">speed_test_ms_per_query</span><span class="p">,</span>
-            <span class="n">query</span><span class="o">=</span><span class="n">query</span><span class="p">,</span>
-            <span class="n">ksearch</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span>
-            <span class="n">timout_s</span><span class="o">=</span><span class="nb">min</span><span class="p">(</span><span class="n">max_timeout_per_iteration</span><span class="p">,</span> <span class="mi">15</span> <span class="o">*</span> <span class="n">max_speed</span> <span class="o">/</span> <span class="mi">1000</span><span class="p">),</span>
-        <span class="p">)</span>
-
-        <span class="n">ef_searchs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="mi">2</span> <span class="o">**</span> <span class="mi">14</span><span class="p">))</span>
-
-        <span class="k">def</span> <span class="nf">is_not_acceptable_speed_ef_search</span><span class="p">(</span><span class="n">rank_efsearch</span><span class="p">):</span>
-
-            <span class="n">ef_search</span> <span class="o">=</span> <span class="n">ef_searchs</span><span class="p">[</span><span class="n">rank_efsearch</span><span class="p">]</span>
-            <span class="n">param_str</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;efSearch=</span><span class="si">{</span><span class="n">ef_search</span><span class="si">}</span><span class="s2">&quot;</span>
-            <span class="n">set_search_hyperparameters</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">param_str</span><span class="p">,</span> <span class="n">use_gpu</span><span class="p">)</span>
-            <span class="n">speed</span> <span class="o">=</span> <span class="n">get_speed</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
-
-            <span class="k">return</span> <span class="n">speed</span> <span class="o">&gt;=</span> <span class="n">max_speed</span>
-
-        <span class="n">rank_best_ef_search</span> <span class="o">=</span> <span class="n">discrete_binary_search</span><span class="p">(</span><span class="n">is_not_acceptable_speed_ef_search</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">ef_searchs</span><span class="p">))</span> <span class="o">-</span> <span class="mi">1</span>
-
-        <span class="c1"># make sure that the query time is respected</span>
-        <span class="n">query</span> <span class="o">=</span> <span class="n">index</span><span class="o">.</span><span class="n">reconstruct_n</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">index</span><span class="o">.</span><span class="n">ntotal</span><span class="p">,</span> <span class="mi">50000</span><span class="p">))</span>
-        <span class="n">get_speed</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span>
-            <span class="n">speed_test_ms_per_query</span><span class="p">,</span>
-            <span class="n">query</span><span class="o">=</span><span class="n">query</span><span class="p">,</span>
-            <span class="n">ksearch</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span>
-            <span class="n">timout_s</span><span class="o">=</span><span class="nb">min</span><span class="p">(</span><span class="n">max_timeout_per_iteration</span><span class="p">,</span> <span class="mi">100</span> <span class="o">*</span> <span class="n">max_speed</span> <span class="o">/</span> <span class="mi">1000</span><span class="p">),</span>
-        <span class="p">)</span>
-
-        <span class="k">while</span> <span class="n">is_not_acceptable_speed_ef_search</span><span class="p">(</span><span class="n">rank_best_ef_search</span><span class="p">)</span> <span class="ow">and</span> <span class="n">rank_best_ef_search</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="n">rank_best_ef_search</span> <span class="o">-=</span> <span class="mi">1</span>
-
-        <span class="n">rank_best_ef_search</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">rank_best_ef_search</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">ef_searchs</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
-
-        <span class="n">ef_search</span> <span class="o">=</span> <span class="n">ef_searchs</span><span class="p">[</span><span class="n">rank_best_ef_search</span><span class="p">]</span>
-
-        <span class="n">param_str</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;efSearch=</span><span class="si">{</span><span class="n">ef_search</span><span class="si">}</span><span class="s2">&quot;</span>
-
-        <span class="k">return</span> <span class="n">param_str</span>
-
-    <span class="k">if</span> <span class="n">index_key</span> <span class="o">==</span> <span class="s2">&quot;Flat&quot;</span><span class="p">:</span>
+    <span class="k">elif</span> <span class="n">index_key</span> <span class="o">==</span> <span class="s2">&quot;Flat&quot;</span><span class="p">:</span>
         <span class="k">return</span> <span class="s2">&quot;&quot;</span>
 
-    <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;we don&#39;t have heuristics for that kind or index&quot;</span><span class="p">)</span></div>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;we don&#39;t have heuristics for that kind or index (</span><span class="si">{</span><span class="n">index_key</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+
+    <span class="n">optimal_param</span> <span class="o">=</span> <span class="n">binary_search_on_param</span><span class="p">(</span>
+        <span class="n">index</span><span class="p">,</span>
+        <span class="n">parameter_range</span><span class="p">,</span>
+        <span class="n">max_speed_ms</span><span class="p">,</span>
+        <span class="n">hyperparameter_str_from_param</span><span class="p">,</span>
+        <span class="n">timeout_boost_for_precision_search</span><span class="p">,</span>
+        <span class="n">use_gpu</span><span class="p">,</span>
+        <span class="n">max_timeout_per_iteration_s</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">hyperparameter_str_from_param</span><span class="p">(</span><span class="n">optimal_param</span><span class="p">)</span></div>
 </pre></div>
 
            </div>

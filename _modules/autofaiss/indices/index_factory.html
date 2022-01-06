@@ -164,14 +164,14 @@
             <span class="n">M_HNSW</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
             <span class="n">index</span> <span class="o">=</span> <span class="n">faiss</span><span class="o">.</span><span class="n">IndexHNSWFlat</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">M_HNSW</span><span class="p">,</span> <span class="n">metric_type</span><span class="p">)</span>
             <span class="k">assert</span> <span class="n">index</span><span class="o">.</span><span class="n">metric_type</span> <span class="o">==</span> <span class="n">metric_type</span>
-        <span class="k">elif</span> <span class="n">index_key</span> <span class="o">==</span> <span class="s2">&quot;Flat&quot;</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">index_key</span> <span class="o">==</span> <span class="s2">&quot;Flat&quot;</span> <span class="ow">or</span> <span class="nb">any</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;IVF\d+,Flat&quot;</span><span class="p">,</span> <span class="n">index_key</span><span class="p">)):</span>
             <span class="n">index</span> <span class="o">=</span> <span class="n">faiss</span><span class="o">.</span><span class="n">index_factory</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">index_key</span><span class="p">,</span> <span class="n">metric_type</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">index</span> <span class="o">=</span> <span class="n">faiss</span><span class="o">.</span><span class="n">index_factory</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">index_key</span><span class="p">,</span> <span class="n">metric_type</span><span class="p">)</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                 <span class="p">(</span>
                     <span class="s2">&quot;Be careful, faiss might not create what you expect when using the &quot;</span>
-                    <span class="s2">&quot;inner product similarity metric, remove this line to try it anyway.&quot;</span>
+                    <span class="s2">&quot;inner product similarity metric, remove this line to try it anyway. &quot;</span>
                     <span class="s2">&quot;Happened with index_key: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">index_key</span><span class="p">)</span>
                 <span class="p">)</span>
             <span class="p">)</span>

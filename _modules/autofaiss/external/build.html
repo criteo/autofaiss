@@ -124,7 +124,9 @@
 
     <span class="k">if</span> <span class="n">index_key</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">max_index_memory_usage</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">index_key</span> <span class="o">=</span> <span class="n">get_optimal_index_keys_v2</span><span class="p">(</span><span class="n">nb_vectors</span><span class="p">,</span> <span class="n">vec_dim</span><span class="p">,</span> <span class="n">max_index_memory_usage</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">index_key</span> <span class="o">=</span> <span class="n">get_optimal_index_keys_v2</span><span class="p">(</span>
+                <span class="n">nb_vectors</span><span class="p">,</span> <span class="n">vec_dim</span><span class="p">,</span> <span class="n">max_index_memory_usage</span><span class="p">,</span> <span class="n">make_direct_map</span><span class="o">=</span><span class="n">make_direct_map</span>
+            <span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;you should give max_index_memory_usage value if no index_key is given&quot;</span><span class="p">)</span>
 
