@@ -81,10 +81,12 @@ faiss.read_index("my_index_folder/knn.index", faiss.IO_FLAG_MMAP | faiss.IO_FLAG
 
 You can have a look to the [examples](examples/memory_mapped_autofaiss.py) to see how to use it.
 
-Technical note: You can create a direct map on IVF indices with .make_direct_map() in order to speed up
-the reconstruct method (function that gives you the value of one of your vector given its rank).
+Technical note: You can create a direct map on IVF indices with index.make_direct_map() (or directly from the
+build_index function by passing the make_direct_map boolean). Doing this speeds up a lot
+the .reconstruct() method, function that gives you the value of one of your vector given its rank.
 However, this mapping will be stored in RAM... We advise you to create your own direct map in a memory-mapped
-numpy array and then call .reconstruct_with_offset() with your custom direct_map.
+numpy array and then call .reconstruct_from_offset() with your custom direct_map.
+
 
 
 ## Using the command line

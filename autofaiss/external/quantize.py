@@ -165,7 +165,11 @@ def build_index(
         if index_key is None:
             with Timeit("Selecting most promising index types given data characteristics", indent=1):
                 best_index_keys = get_optimal_index_keys_v2(
-                    nb_vectors, vec_dim, max_index_memory_usage, should_be_memory_mappable=should_be_memory_mappable
+                    nb_vectors,
+                    vec_dim,
+                    max_index_memory_usage,
+                    make_direct_map=make_direct_map,
+                    should_be_memory_mappable=should_be_memory_mappable,
                 )
                 if not best_index_keys:
                     return None, None

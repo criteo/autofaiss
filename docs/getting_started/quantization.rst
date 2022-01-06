@@ -69,8 +69,16 @@ The ``autofaiss build_index`` command takes the following parameters:
     * - --nb_cores
       - None
       - (Optional) The number of cores to use, by default will use all cores
+      - --make_direct_map
+      - False
+      - (Optional) If set to True and that the created index is an IVF, call .make_direct_map() on the index to build a mapping (stored on RAM only) that speeds up greatly the calls to .reconstruct().
+      - --should_be_memory_mappable
+      - False
+      - (Optional) If set to true, the created index will be selected only among the indices that can be memory-mapped on disk. This makes it possible to use 50GB indices on a machine with only 1GB of RAM.
 
 .. _Faiss documentation: https://github.com/facebookresearch/faiss/wiki/The-index-factory
+
+The same function can be called directly from a python environment (from autofaiss import build_index).
 
 It is possible to force the creation of a specific index with specific hyperparameters if more control is needed.
 Here is some documentation <https://github.com/facebookresearch/faiss/wiki/Guidelines-to-choose-an-index> and

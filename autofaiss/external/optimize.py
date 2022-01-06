@@ -146,6 +146,7 @@ def get_optimal_index_keys_v2(
     flat_threshold: int = 1000,
     quantization_threshold: int = 10000,
     force_pq: Optional[int] = None,
+    make_direct_map: bool = False,
     should_be_memory_mappable: bool = False,
 ) -> List[str]:
     """
@@ -179,7 +180,7 @@ def get_optimal_index_keys_v2(
 
     # Try to build a not quantized IVF index
     index_keys = get_optimal_ivf(nb_vectors)
-    index_metadata = IndexMetadata(index_keys[0], nb_vectors, dim_vector, make_direct_map=False)
+    index_metadata = IndexMetadata(index_keys[0], nb_vectors, dim_vector, make_direct_map)
     if index_metadata.estimated_index_size_in_bytes() <= max_size_in_bytes:
         return index_keys
 
