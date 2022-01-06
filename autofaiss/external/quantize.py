@@ -303,7 +303,7 @@ def score_index(
     save_on_disk: bool = True,
     output_index_info_path: str = "infos.json",
     current_memory_available: str = "32G",
-) -> None:
+) -> Optional[Dict[str, Union[str, float, int]]]:
     """
     Compute metrics on a given index, use cached ground truth for fast scoring the next times.
 
@@ -370,7 +370,7 @@ def score_index(
         with fsspec.open(output_index_info_path, "w").open() as f:
             json.dump(infos, f)
 
-    return index
+    return infos
 
 
 def main():
