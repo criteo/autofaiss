@@ -65,6 +65,29 @@ build_index(embeddings="embeddings", index_path="my_index_folder/knn.index",
             current_memory_available="4G")
 ```
 
+## Memory-mapped indices
+
+Faiss makes it possible to use memory-mapped indices. This is useful when you don't need a fast search time (>50ms)
+and still want to reduce the memory footprint to the minimum.
+
+We provide the should_be_memory_mappable boolean in build_index function to generate memory-mapped indices only.
+Note: Only IVF indices can be memory-mapped in faiss, so the output index will be a IVF index.
+
+To load an index in memory mapping mode, use the following code:
+```python
+import faiss
+faiss.read_index("my_index_folder/knn.index", faiss.IO_FLAG_MMAP | faiss.IO_FLAG_READ_ONLY)
+```
+
+You can have a look to the [examples](examples/memory_mapped_autofaiss.py) to see how to use it.
+
+Technical note: You can create a direct map on IVF indices with index.make_direct_map() (or directly from the
+build_index function by passing the make_direct_map boolean). Doing this speeds up a lot
+the .reconstruct() method, function that gives you the value of one of your vector given its rank.
+However, this mapping will be stored in RAM... We advise you to create your own direct map in a memory-mapped
+numpy array and then call .reconstruct_from_offset() with your custom direct_map.
+
+
 
 ## Using the command line
 
@@ -120,25 +143,26 @@ Quick description of the `autofaiss build_index` command:
 
 The `autofaiss build_index` command takes the following parameters:
 
-| Flag available             |  Default     | Description                                                                                                                                                                                                                                               |
-|----------------------------|:------------:|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| --embeddings               | required     | directory containing your .npy embedding files. If there are several files, they are read in the lexicographical order. This can be a local path or a path in another Filesystem e.g. `hdfs://root/...` or `s3://...`                                                                                                        |
-| --index_path               | required     | Destination path of the faiss index on local machine.                                                                                                                                                                                                     |
-| --index_infos_path         | required     | Destination path of the faiss index infos on local machine.                                                                                                                                                                                                     |
-| --save_on_disk             | required     | Save the index on the disk.                                                                                                                                                                                                     |
-| --file_format              | "npy"        | File format of the files in embeddings Can be either `npy` for numpy matrix files or `parquet` for parquet serialized tables |
-| --embedding_column_name    | "embeddings" | Only necessary when file_format=`parquet` In this case this is the name of the column containing the embeddings (one vector per row) |
-| --id_columns               | None         | Can only be used when file_format=`parquet`. In this case these are the names of the columns containing the Ids of the vectors, and separate files will be generated to map these ids to indices in the KNN index |
-| --ids_path                 | None         | Only useful when id_columns is not None and file_format=`parquet`. This will be the path (in any filesystem) where the mapping files Ids->vector index will be store in parquet format|
-| --metric_type              |   "ip"       | (Optional) Similarity function used for query: ("ip" for inner product, "l2" for euclidian distance)                                                                                                                                                                                                            |
-| --max_index_memory_usage   |  "32GB"      | (Optional) Maximum size in GB of the created index, this bound is strict.                                                                                                                        |
-| --current_memory_available |  "32GB"      | (Optional) Memory available (in GB) on the machine creating the index, having more memory is a boost because it reduces the swipe between RAM and disk.                                                                               |
-| --max_index_query_time_ms  |    10        | (Optional) Bound on the query time for KNN search, this bound is approximative.                                                                                                                                   |
-| --index_key                |   None       | (Optional) If present, the Faiss index will be build using this description string in the index_factory, more detail in the [Faiss documentation](https://github.com/facebookresearch/faiss/wiki/The-index-factory)
-| --index_param              |   None       | (Optional) If present, the Faiss index will be set using this description string of hyperparameters, more detail in the [Faiss documentation](https://github.com/facebookresearch/faiss/wiki/Index-IO,-cloning-and-hyper-parameter-tuning) |
-| --use_gpu                  |   False      | (Optional) Experimental, gpu training can be faster, but this feature is not tested so far.                                                                                                                                         |
-| --nb_cores                 |   None       | (Optional) The number of cores to use, by default will use all cores                                                                                                                                         |
-| --make_direct_map          |   False      | (Optional) Create a direct map allowing reconstruction of embeddings. This is only needed for IVF indices. Note that might increase the RAM usage (approximately 8GB for 1 billion embeddings).
+| Flag available               |  Default     | Description                                                                                                                                                                                                                                               |
+|------------------------------|:------------:|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| --embeddings                 | required     | directory containing your .npy embedding files. If there are several files, they are read in the lexicographical order. This can be a local path or a path in another Filesystem e.g. `hdfs://root/...` or `s3://...`                                                                                                        |
+| --index_path                 | required     | Destination path of the faiss index on local machine.                                                                                                                                                                                                     |
+| --index_infos_path           | required     | Destination path of the faiss index infos on local machine.                                                                                                                                                                                                     |
+| --save_on_disk               | required     | Save the index on the disk.                                                                                                                                                                                                     |
+| --file_format                | "npy"        | File format of the files in embeddings Can be either `npy` for numpy matrix files or `parquet` for parquet serialized tables |
+| --embedding_column_name      | "embeddings" | Only necessary when file_format=`parquet` In this case this is the name of the column containing the embeddings (one vector per row) |
+| --id_columns                 | None         | Can only be used when file_format=`parquet`. In this case these are the names of the columns containing the Ids of the vectors, and separate files will be generated to map these ids to indices in the KNN index |
+| --ids_path                   | None         | Only useful when id_columns is not None and file_format=`parquet`. This will be the path (in any filesystem) where the mapping files Ids->vector index will be store in parquet format|
+| --metric_type                |   "ip"       | (Optional) Similarity function used for query: ("ip" for inner product, "l2" for euclidian distance)                                                                                                                                                                                                            |
+| --max_index_memory_usage     |  "32GB"      | (Optional) Maximum size in GB of the created index, this bound is strict.                                                                                                                        |
+| --current_memory_available   |  "32GB"      | (Optional) Memory available (in GB) on the machine creating the index, having more memory is a boost because it reduces the swipe between RAM and disk.                                                                               |
+| --max_index_query_time_ms    |    10        | (Optional) Bound on the query time for KNN search, this bound is approximative.                                                                                                                                   |
+| --index_key                  |   None       | (Optional) If present, the Faiss index will be build using this description string in the index_factory, more detail in the [Faiss documentation](https://github.com/facebookresearch/faiss/wiki/The-index-factory)
+| --index_param                |   None       | (Optional) If present, the Faiss index will be set using this description string of hyperparameters, more detail in the [Faiss documentation](https://github.com/facebookresearch/faiss/wiki/Index-IO,-cloning-and-hyper-parameter-tuning) |
+| --use_gpu                    |   False      | (Optional) Experimental, gpu training can be faster, but this feature is not tested so far.                                                                                                                                         |
+| --nb_cores                   |   None       | (Optional) The number of cores to use, by default will use all cores                                                                                                                                         |
+| --make_direct_map            |   False      | (Optional) Create a direct map allowing reconstruction of embeddings. This is only needed for IVF indices. Note that might increase the RAM usage (approximately 8GB for 1 billion embeddings).                                                                                                                                         |
+| --should_be_memory_mappable  |   False      | (Optional) Boolean used to force the index to be selected among indices having an on-disk memory-mapping implementation.                                                                                                                                             |
 
 ## Install from source
 

@@ -40,7 +40,9 @@ def estimate_memory_required_for_index_creation(
 
     if index_key is None:
         if max_index_memory_usage is not None:
-            index_key = get_optimal_index_keys_v2(nb_vectors, vec_dim, max_index_memory_usage)[0]
+            index_key = get_optimal_index_keys_v2(
+                nb_vectors, vec_dim, max_index_memory_usage, make_direct_map=make_direct_map
+            )[0]
         else:
             raise ValueError("you should give max_index_memory_usage value if no index_key is given")
 

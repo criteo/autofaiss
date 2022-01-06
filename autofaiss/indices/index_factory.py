@@ -80,14 +80,14 @@ def index_factory(d: int, index_key: str, metric_type: int, ef_construction: Opt
             M_HNSW = params[0]
             index = faiss.IndexHNSWFlat(d, M_HNSW, metric_type)
             assert index.metric_type == metric_type
-        elif index_key == "Flat":
+        elif index_key == "Flat" or any(re.findall(r"IVF\d+,Flat", index_key)):
             index = faiss.index_factory(d, index_key, metric_type)
         else:
             index = faiss.index_factory(d, index_key, metric_type)
             raise ValueError(
                 (
                     "Be careful, faiss might not create what you expect when using the "
-                    "inner product similarity metric, remove this line to try it anyway."
+                    "inner product similarity metric, remove this line to try it anyway. "
                     "Happened with index_key: " + str(index_key)
                 )
             )
