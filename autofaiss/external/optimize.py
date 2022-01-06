@@ -146,7 +146,7 @@ def get_optimal_index_keys_v2(
     flat_threshold: int = 1000,
     quantization_threshold: int = 10000,
     force_pq: Optional[int] = None,
-    ivf_index_only: bool = False,
+    should_be_memory_mappable: bool = False,
 ) -> List[str]:
     """
     Gives a list of interesting indices to try, *the one at the top is the most promising*
@@ -158,9 +158,9 @@ def get_optimal_index_keys_v2(
     # Exception cases:
 
     if nb_vectors < flat_threshold:  # When less than 1000 vectors, the flat index is usually faster
-        return ["IVF1,Flat" if ivf_index_only else "Flat"]
+        return ["IVF1,Flat" if should_be_memory_mappable else "Flat"]
     if nb_vectors < quantization_threshold:  # quantization is not possible (>=10_000 vectors needed)
-        if ivf_index_only:
+        if should_be_memory_mappable:
             return get_optimal_ivf(nb_vectors)
         return ["HNSW15"]
     if force_pq is not None:  # Forced quantization
@@ -171,7 +171,7 @@ def get_optimal_index_keys_v2(
     # Get max memory usage
     max_size_in_bytes = cast_memory_to_bytes(max_index_memory_usage)
 
-    if not ivf_index_only:
+    if not should_be_memory_mappable:
         # If we can build an HNSW with the given memory constraints, it's the best
         m_hnsw = int(floor((max_size_in_bytes / (4 * nb_vectors) - dim_vector) / 2))
         if m_hnsw >= 8:

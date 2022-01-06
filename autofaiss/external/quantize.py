@@ -49,7 +49,7 @@ def build_index(
     metric_type: str = "ip",
     nb_cores: Optional[int] = None,
     make_direct_map: bool = False,
-    ivf_index_only: bool = False,
+    should_be_memory_mappable: bool = False,
 ) -> Tuple[Optional[Any], Optional[Dict[str, Union[str, float, int]]]]:
     """
     Reads embeddings and creates a quantized index from them.
@@ -165,7 +165,7 @@ def build_index(
         if index_key is None:
             with Timeit("Selecting most promising index types given data characteristics", indent=1):
                 best_index_keys = get_optimal_index_keys_v2(
-                    nb_vectors, vec_dim, max_index_memory_usage, ivf_index_only=ivf_index_only
+                    nb_vectors, vec_dim, max_index_memory_usage, should_be_memory_mappable=should_be_memory_mappable
                 )
                 if not best_index_keys:
                     return None, None

@@ -15,8 +15,10 @@ LOGGER = logging.getLogger(__name__)
 @pytest.mark.parametrize("max_index_memory_usage", ["1K", "1M", "1G"])
 def test_get_optimal_index_keys_v2(nb_vectors: int, dim_vector: int, max_index_memory_usage: str) -> None:
 
-    # Check that ivf_index_only returns only ivf indices
-    for index_key in get_optimal_index_keys_v2(nb_vectors, dim_vector, max_index_memory_usage, ivf_index_only=True):
+    # Check that should_be_memory_mappable returns only ivf indices
+    for index_key in get_optimal_index_keys_v2(
+        nb_vectors, dim_vector, max_index_memory_usage, should_be_memory_mappable=True
+    ):
         # LOGGER.debug(f"nb_vectors={nb_vectors}, max_mem={max_index_memory_usage} -> {index_key}")
         assert "IVF" in index_key
 
