@@ -178,7 +178,7 @@ def build_index(
         if id_columns is not None:
             print(f"Id columns provided {id_columns} - will be reading the corresponding columns")
             if ids_path is not None:
-                print("\tWill be writing the Ids DataFrame in parquet format to {ids_path}")
+                print(f"\tWill be writing the Ids DataFrame in parquet format to {ids_path}")
                 fs, _ = fsspec.core.url_to_fs(ids_path)
                 fs.mkdirs(ids_path, exist_ok=True)
             else:
