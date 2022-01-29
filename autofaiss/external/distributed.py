@@ -8,14 +8,16 @@ import shutil
 from itertools import repeat
 from multiprocessing.pool import ThreadPool
 from tempfile import NamedTemporaryFile
-from typing import List, Optional, Union, Iterator, Tuple
+from typing import List, Optional, Union, Iterator, Tuple, Callable, Any
 
 import faiss
 import fsspec
 import numpy as np
+import pandas as pd
+from fsspec import get_filesystem_class
 from tqdm import tqdm
 
-from autofaiss.readers.embeddings_iterators import get_file_list, ParquetLazyNdArray, ParquetMatrixReader
+from autofaiss.readers.embeddings_iterators import get_file_list, get_matrix_reader
 from autofaiss.utils.decorators import Timeit
 
 
@@ -24,7 +26,9 @@ def _yield_embeddings_batch(
     chunk_sizes: List[int],
     start: int,
     end: int,
-    embedding_column_name: str
+    embedding_column_name: str,
+    file_format: str,
+    id_columns: Optional[List[str]] = None,
 ):
     """Lazy load a batch of embeddings."""
     cur_start = cur_end = 0
@@ -33,10 +37,16 @@ def _yield_embeddings_batch(
         if cur_end < start:
             cur_start += chunk_size
             continue
-        parquet_array = ParquetLazyNdArray(f=file_path, embedding_column_name=embedding_column_name)
         slice_start = max(0, start - cur_start)
         slice_end = min(chunk_size, end - cur_start)
-        yield from parquet_array.get_rows(start=slice_start, end=slice_end)[0]
+        with get_matrix_reader(
+            file_format,
+            get_filesystem_class("hdfs")(),
+            file_path,
+            embedding_column_name,
+            id_columns
+        ) as matrix_reader:
+            yield matrix_reader.get_lazy_array().get_rows(start=slice_start, end=slice_end)
         if cur_end > end:
             break
         cur_start += chunk_size
@@ -95,7 +105,10 @@ def _add_index(
     embedding_column_name: str,
     batch_id: int,
     small_indices_folder: str,
+    file_format: str,
+    id_columns: Optional[List[str]] = None,
     num_cores: Optional[int] = None,
+    embedding_ids_df_handler: Optional[Callable[[pd.DataFrame, int], Any]] = None
 ):
     """
     Add a batch of embeddings on trained index and save this index.
@@ -120,19 +133,31 @@ def _add_index(
         The folder where we save all the small indices
     num_cores: int
         Number of CPU cores (not Vcores)
+    file_format: str
+        Embedding file format, "npy" or "parquet"
+    id_columns: Optional[List[str]]
+        Names of the columns containing the Ids of the vectors, only used when file_format is "parquet"
+    embedding_ids_df_handler: Optional[Callable[[pd.DataFrame, int], Any]]
+        The function that handles the embeddings Ids when id_columns is given
     """
     if end > sum(chunk_sizes):
         end = sum(chunk_sizes)
     if len(chunk_sizes) != len(embeddings_file_paths):
         raise ValueError("The length of chunk_sizes should be equal to the number of embeddings_file_paths")
-
-    embeddings_to_add = np.vstack(_yield_embeddings_batch(
+    batch_vectors_gen, batch_ids_gen = iter(zip(*_yield_embeddings_batch(
         embeddings_paths=embeddings_file_paths,
         chunk_sizes=chunk_sizes,
         start=start,
         end=end,
-        embedding_column_name=embedding_column_name
-    )).astype(np.float32)  # faiss requires float32 type
+        embedding_column_name=embedding_column_name,
+        id_columns=id_columns,
+        file_format=file_format
+    )))
+
+    embeddings_to_add = np.vstack(batch_vectors_gen).astype(np.float32)  # faiss requires float32 type
+
+    if embedding_ids_df_handler is not None:
+        embedding_ids_df_handler(pd.concat(batch_ids_gen), batch_id)
 
     if num_cores is None:
         num_cores = multiprocessing.cpu_count()
@@ -155,7 +180,7 @@ def _add_index(
 
 def _get_pyspark_active_session():
     """Reproduce SparkSession.getActiveSession() available since pyspark 3.0."""
-    import pyspark # pylint: disable=import-outside-toplevel
+    import pyspark  # pylint: disable=import-outside-toplevel
     # pylint: disable=protected-access
     ss: Optional[
         pyspark.sql.SparkSession
@@ -199,19 +224,19 @@ def _parallel_download_indices_from_hdfs(indices_file_paths: List[str], dst_fold
                 pbar.update(1)
 
 
-def _merge_index(small_indices_folder: str, ):
+def _merge_index(small_indices_folder: str) -> faiss.Index:
     """Merge all the indices in `small_indices_folder` into single one return the merged index."""
     fs = _get_file_system(small_indices_folder)
     small_indices_files = fs.ls(small_indices_folder, detail=False)
     if len(small_indices_files) == 0:
         raise ValueError(f"No small index is saved in {small_indices_folder}")
 
-    def _get_index_from_file(filepath: str):
+    def _get_index_from_file(filepath: str) -> faiss.Index:
         with open(filepath, "rb") as f:
             index_bytes = f.read()
         return _get_index_from_bytes(index_bytes)
 
-    def _merge_from_local():
+    def _merge_from_local() -> faiss.Index:
         local_file_paths = [os.path.join(local_indices_folder, filename) for filename in
                             os.listdir(local_indices_folder)]
         with Timeit("-> Load first index", indent=4):
@@ -233,11 +258,22 @@ def _merge_index(small_indices_folder: str, ):
     return merged_index
 
 
-def _get_chunk_sizes(embed_paths: List[str], embedding_column_name: str) -> List[int]:
+def _get_chunk_sizes(
+    embed_paths: List[str],
+    embedding_column_name: str,
+    id_columns: Optional[List[str]],
+    file_format: str
+) -> List[int]:
     """Get chunk sizes from a list of embeddings files."""
     def _get_parquet_row_count(embed_path: str) -> int:
-        fs = _get_file_system(embed_path)
-        return ParquetMatrixReader(fs, embed_path, embedding_column_name).get_row_count()
+        with get_matrix_reader(
+                file_format,
+                _get_file_system(embed_path),
+                embed_path,
+                embedding_column_name,
+                id_columns
+        ) as matrix_reader:
+            return matrix_reader.get_row_count()
     chunk_sizes = []
     # use ThreadPool instead of multiprocessing.Pool to avoid having problem in _get_parquet_row_count
     with ThreadPool(50) as pool:
@@ -252,7 +288,10 @@ def run(
     batch_size: int,
     embedding_column_name: str = "embedding",
     num_cores_per_executor: Optional[int] = None,
-    small_indices_folder="hdfs://root/tmp/distributed_autofaiss_indices"
+    small_indices_folder="hdfs://root/tmp/distributed_autofaiss_indices",
+    file_format: str = "npy",
+    id_columns: Optional[List[str]] = None,
+    embedding_ids_df_handler: Optional[Callable[[pd.DataFrame, int], Any]] = None
 ) -> faiss.Index:
     """
     Create indices by pyspark.
@@ -260,17 +299,22 @@ def run(
     Parameters
     ----------
     faiss_index: faiss.Index
-        Trained faiss index.
+        Trained faiss index
     embeddings_path: str
-        Embeddings folder.
-    embedding_column_name: str
-        Embeddings column name for parquet ; default "embedding"
+        Embeddings folder
     batch_size: int
         Number of vectors handled per worker
+    embedding_column_name: str
+        Embeddings column name for parquet; default "embedding"
     num_cores_per_executor: int
         Number of CPU cores per executor
     small_indices_folder: str
-        Folder to save the temporary small indices.
+        Folder to save the temporary small indices
+    file_format: str
+        Embeddings file format; default "npy"
+        "npy" or "parquet"
+    id_columns: Optional[List[str]]
+    embedding_ids_df_handler: Optional[Callable[[pd.DataFrame, int], Any]]
     """
     ss = _get_pyspark_active_session()
 
@@ -278,30 +322,32 @@ def run(
     trained_index_bytes = _get_bytes_from_index(faiss_index)
     broadcast_trained_index_bytes = ss.sparkContext.broadcast(trained_index_bytes)
 
-    _, filenames = get_file_list(path=embeddings_path, file_format="parquet")
+    _, filenames = get_file_list(path=embeddings_path, file_format=file_format)
 
     embed_paths = [os.path.join(embeddings_path, filename) for filename in filenames]
-
-    chunk_sizes = _get_chunk_sizes(embed_paths, embedding_column_name)
-    embed_paths = [p.replace("hdfs", "viewfs") for p in embed_paths]
+    chunk_sizes = _get_chunk_sizes(embed_paths, embedding_column_name, id_columns=id_columns, file_format=file_format)
 
     nb_vectors = sum(chunk_sizes)
     nb_batches = math.ceil(nb_vectors / batch_size)  # use math.ceil to make sure that we cover every vector
-
     batches = _batch_loader(batch_size=batch_size, nb_batches=nb_batches)
     rdd = ss.sparkContext.parallelize(batches, nb_batches)
 
     with Timeit("-> Adding indices", indent=2):
-        rdd.foreach(lambda x: _add_index(
-            batch_id=x[0],
-            start=x[1],
-            end=x[2],
-            broadcast_trained_index_bytes=broadcast_trained_index_bytes,
-            embeddings_file_paths=embed_paths,
-            chunk_sizes=chunk_sizes,
-            embedding_column_name=embedding_column_name,
-            small_indices_folder=small_indices_folder,
-            num_cores=num_cores_per_executor))
+        rdd.foreach(
+            lambda x: _add_index(
+                batch_id=x[0],
+                start=x[1],
+                end=x[2],
+                broadcast_trained_index_bytes=broadcast_trained_index_bytes,
+                embeddings_file_paths=embed_paths,
+                chunk_sizes=chunk_sizes,
+                embedding_column_name=embedding_column_name,
+                id_columns=id_columns,
+                small_indices_folder=small_indices_folder,
+                num_cores=num_cores_per_executor,
+                embedding_ids_df_handler=embedding_ids_df_handler,
+                file_format=file_format)
+        )
 
     with Timeit("-> Merging indices", indent=2):
         merged_index = _merge_index(small_indices_folder)
@@ -312,5 +358,5 @@ def run(
     return merged_index
 
 
-def _get_file_system(small_indices_folder: str) -> fsspec.AbstractFileSystem:
-    return fsspec.core.url_to_fs(small_indices_folder)[0]
+def _get_file_system(path: str) -> fsspec.AbstractFileSystem:
+    return fsspec.core.url_to_fs(path)[0]

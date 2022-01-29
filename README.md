@@ -91,7 +91,7 @@ numpy array and then call .reconstruct_from_offset() with your custom direct_map
 Autofaiss allows users to build indices in Spark, you need to do the following steps:
 
 1. Install pyspark by `pip install pyspark`
-2. Prepare your embeddings file in *parquet* format *on HDFS*
+2. Prepare your embeddings file *on HDFS*
 3. Create a spark session before using `build_index` (optional), if you don't create it, a default session would
     be created with the least configuration.
 

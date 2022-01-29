@@ -109,9 +109,6 @@ def build_index(
         If "pyspark", create the indices using pyspark.
         Only "parquet" file format is supported.
     """
-    if distributed == "pyspark" and file_format != "parquet":
-        print(f"{file_format} file format is not supported when distributed is \"pyspark\"")
-        return None, None
 
     current_bytes = cast_memory_to_bytes(current_memory_available)
     max_index_bytes = cast_memory_to_bytes(max_index_memory_usage)

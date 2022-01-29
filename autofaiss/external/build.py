@@ -221,8 +221,11 @@ def create_index(
             index = run(
                 faiss_index=index,
                 embedding_column_name=embedding_column_name,
+                id_columns=id_columns,
+                file_format=file_format,
                 embeddings_path=str(embeddings_path),
-                batch_size=batch_size
+                batch_size=batch_size,
+                embedding_ids_df_handler=embedding_ids_df_handler,
             )
         else:
             raise ValueError(f"Distributed by {distributed} is not supported")
