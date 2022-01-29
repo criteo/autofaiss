@@ -1,3 +1,6 @@
+"""
+Building the index with pyspark.
+"""
 import math
 import multiprocessing
 import os
@@ -151,8 +154,8 @@ def _add_index(
 
 
 def _get_pyspark_active_session():
-    import pyspark
-    """Reproduce SparkSession.getActiveSession() available since pyspark 3.0"""
+    """Reproduce SparkSession.getActiveSession() available since pyspark 3.0."""
+    import pyspark # pylint: disable=import-outside-toplevel
     # pylint: disable=protected-access
     ss: Optional[
         pyspark.sql.SparkSession
