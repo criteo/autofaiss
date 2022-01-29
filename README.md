@@ -87,7 +87,13 @@ the .reconstruct() method, function that gives you the value of one of your vect
 However, this mapping will be stored in RAM... We advise you to create your own direct map in a memory-mapped
 numpy array and then call .reconstruct_from_offset() with your custom direct_map.
 
+## Using autofaiss with pyspark
+Autofaiss allows users to build indices in Spark, you need to do the following steps:
 
+1. Install pyspark by `pip install pyspark`
+2. Prepare your embeddings file in *parquet* format *on HDFS*
+3. Create a spark session before using `build_index` (optional), if you don't create it, a default session would
+    be created with the least configuration.
 
 ## Using the command line
 
@@ -163,6 +169,7 @@ The `autofaiss build_index` command takes the following parameters:
 | --nb_cores                   |   None       | (Optional) The number of cores to use, by default will use all cores                                                                                                                                         |
 | --make_direct_map            |   False      | (Optional) Create a direct map allowing reconstruction of embeddings. This is only needed for IVF indices. Note that might increase the RAM usage (approximately 8GB for 1 billion embeddings).                                                                                                                                         |
 | --should_be_memory_mappable  |   False      | (Optional) Boolean used to force the index to be selected among indices having an on-disk memory-mapping implementation.                                                                                                                                             |
+| --distributed                |   None       | (Optional) If "pyspark", create the indices using pyspark.|
 
 ## Install from source
 

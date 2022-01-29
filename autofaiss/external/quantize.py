@@ -50,6 +50,7 @@ def build_index(
     nb_cores: Optional[int] = None,
     make_direct_map: bool = False,
     should_be_memory_mappable: bool = False,
+    distributed: Optional[str] = None
 ) -> Tuple[Optional[Any], Optional[Dict[str, Union[str, float, int]]]]:
     """
     Reads embeddings and creates a quantized index from them.
@@ -104,7 +105,13 @@ def build_index(
     make_direct_map: bool
         Create a direct map allowing reconstruction of embeddings. This is only needed for IVF indices.
         Note that might increase the RAM usage (approximately 8GB for 1 billion embeddings)
+    distributed: Optional[str]
+        If "pyspark", create the indices using pyspark.
+        Only "parquet" file format is supported.
     """
+    if distributed == "pyspark" and file_format != "parquet":
+        print(f"{file_format} file format is not supported when distributed is \"pyspark\"")
+        return None, None
 
     current_bytes = cast_memory_to_bytes(current_memory_available)
     max_index_bytes = cast_memory_to_bytes(max_index_memory_usage)
@@ -205,6 +212,7 @@ def build_index(
                 id_columns=id_columns,
                 embedding_ids_df_handler=write_ids_df_to_parquet if ids_path and id_columns else None,
                 make_direct_map=make_direct_map,
+                distributed=distributed
             )
 
         if index_param is None:
