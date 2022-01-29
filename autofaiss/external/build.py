@@ -24,6 +24,7 @@ from autofaiss.utils.cast import (
     to_readable_time,
 )
 from autofaiss.utils.decorators import Timeit
+from autofaiss.indices.distributed import run
 
 
 def estimate_memory_required_for_index_creation(
@@ -101,6 +102,8 @@ def create_index(
     embedding_ids_df_handler: Optional[Callable[[pd.DataFrame, int], Any]] = None,
     use_gpu: bool = False,
     make_direct_map: bool = False,
+    distributed: Optional[str] = None,
+    temporary_indices_folder: str = "hdfs://root/tmp/distributed_autofaiss_indices",
 ):
     """
     Function that returns an index on the numpy arrays stored on disk in the embeddings_path path.
@@ -201,24 +204,35 @@ def create_index(
             # Make direct map is only implemented for IndexIVF and IndexBinaryIVF, see built file faiss/swigfaiss.py
             if isinstance(embedded_index, (faiss.swigfaiss.IndexIVF, faiss.swigfaiss.IndexBinaryIVF)):
                 embedded_index.make_direct_map()
-
-        for batch_id, (vec_batch, ids_batch) in enumerate(
-            read_embeddings(
-                embeddings_path,
-                file_format=file_format,
+        if distributed is None:
+            for batch_id, (vec_batch, ids_batch) in enumerate(
+                read_embeddings(
+                    embeddings_path,
+                    file_format=file_format,
+                    embedding_column_name=embedding_column_name,
+                    id_columns=id_columns,
+                    batch_size=batch_size,
+                    verbose=True,
+                )
+            ):
+                index.add(vec_batch)
+                if embedding_ids_df_handler:
+                    embedding_ids_df_handler(ids_batch, batch_id)
+        elif distributed == "pyspark":
+            index = run(
+                faiss_index=index,
                 embedding_column_name=embedding_column_name,
                 id_columns=id_columns,
+                file_format=file_format,
+                embeddings_path=str(embeddings_path),
                 batch_size=batch_size,
-                verbose=True,
+                embedding_ids_df_handler=embedding_ids_df_handler,
+                temporary_indices_folder=temporary_indices_folder,
             )
-        ):
-            index.add(vec_batch)
-            if embedding_ids_df_handler:
-                embedding_ids_df_handler(ids_batch, batch_id)
-
+        else:
+            raise ValueError(f'Distributed by {distributed} is not supported, only "pyspark" is supported')
     # Give standard values for index hyperparameters if possible.
     if any(re.findall(r"OPQ\d+_\d+,IVF\d+_HNSW\d+,PQ\d+", index_key)):
         set_search_hyperparameters(index, f"nprobe={64},efSearch={128},ht={2048}", use_gpu)
-
     # return the index.
     return index

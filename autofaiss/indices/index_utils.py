@@ -4,6 +4,7 @@ import os
 import time
 from itertools import chain, repeat
 from pathlib import Path
+from tempfile import NamedTemporaryFile
 from typing import Dict, Optional, Union
 import random
 
@@ -110,3 +111,28 @@ def set_search_hyperparameters(index: faiss.Index, param_str: str, use_gpu: bool
     # depends on installed faiss version # pylint: disable=no-member
     params = faiss.ParameterSpace() if not use_gpu else faiss.GpuParameterSpace()
     params.set_index_parameters(index, param_str)
+
+
+def _get_index_from_bytes(index_bytes: Union[bytearray, bytes]) -> faiss.Index:
+    """Transforms a bytearray containing a faiss index into the corresponding object."""
+
+    with NamedTemporaryFile(delete=False) as output_file:
+        output_file.write(index_bytes)
+        tmp_name = output_file.name
+
+    b = faiss.read_index(tmp_name)
+    os.remove(tmp_name)
+    return b
+
+
+def _get_bytes_from_index(index: faiss.Index) -> bytearray:
+    """Transforms a faiss index into a bytearray."""
+
+    with NamedTemporaryFile(delete=False) as output_file:
+        faiss.write_index(index, output_file.name)
+        tmp_name = output_file.name
+
+    with open(tmp_name, "rb") as index_file:
+        b = index_file.read()
+        os.remove(tmp_name)
+        return bytearray(b)
