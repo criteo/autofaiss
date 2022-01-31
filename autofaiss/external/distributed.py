@@ -40,11 +40,7 @@ def _yield_embeddings_batch(
         slice_start = max(0, start - cur_start)
         slice_end = min(chunk_size, end - cur_start)
         with get_matrix_reader(
-            file_format,
-            get_filesystem_class("hdfs")(),
-            file_path,
-            embedding_column_name,
-            id_columns
+            file_format, get_filesystem_class("hdfs")(), file_path, embedding_column_name, id_columns
         ) as matrix_reader:
             yield matrix_reader.get_lazy_array().get_rows(start=slice_start, end=slice_end)
         if cur_end > end:
@@ -81,11 +77,7 @@ def _generate_small_index_file_name(batch_id: int) -> str:
     return f"index_{batch_id}"
 
 
-def _save_small_index(
-    index: faiss.Index,
-    batch_id: int,
-    small_indices_folder: str
-):
+def _save_small_index(index: faiss.Index, batch_id: int, small_indices_folder: str):
     """Save index for one batch."""
     fs = _get_file_system(small_indices_folder)
     fs.mkdirs(small_indices_folder, exist_ok=True)
@@ -108,7 +100,7 @@ def _add_index(
     file_format: str,
     id_columns: Optional[List[str]] = None,
     num_cores: Optional[int] = None,
-    embedding_ids_df_handler: Optional[Callable[[pd.DataFrame, int], Any]] = None
+    embedding_ids_df_handler: Optional[Callable[[pd.DataFrame, int], Any]] = None,
 ):
     """
     Add a batch of embeddings on trained index and save this index.
@@ -144,15 +136,19 @@ def _add_index(
         end = sum(chunk_sizes)
     if len(chunk_sizes) != len(embeddings_file_paths):
         raise ValueError("The length of chunk_sizes should be equal to the number of embeddings_file_paths")
-    batch_vectors_gen, batch_ids_gen = iter(zip(*_yield_embeddings_batch(
-        embeddings_paths=embeddings_file_paths,
-        chunk_sizes=chunk_sizes,
-        start=start,
-        end=end,
-        embedding_column_name=embedding_column_name,
-        id_columns=id_columns,
-        file_format=file_format
-    )))
+    batch_vectors_gen, batch_ids_gen = iter(
+        zip(
+            *_yield_embeddings_batch(
+                embeddings_paths=embeddings_file_paths,
+                chunk_sizes=chunk_sizes,
+                start=start,
+                end=end,
+                embedding_column_name=embedding_column_name,
+                id_columns=id_columns,
+                file_format=file_format,
+            )
+        )
+    )
 
     embeddings_to_add = np.vstack(batch_vectors_gen).astype(np.float32)  # faiss requires float32 type
 
@@ -171,33 +167,27 @@ def _add_index(
 
     del embeddings_to_add
 
-    _save_small_index(
-        index=empty_index,
-        small_indices_folder=small_indices_folder,
-        batch_id=batch_id
-    )
+    _save_small_index(index=empty_index, small_indices_folder=small_indices_folder, batch_id=batch_id)
 
 
 def _get_pyspark_active_session():
     """Reproduce SparkSession.getActiveSession() available since pyspark 3.0."""
     import pyspark  # pylint: disable=import-outside-toplevel
+
     # pylint: disable=protected-access
-    ss: Optional[
-        pyspark.sql.SparkSession
-    ] = pyspark.sql.SparkSession._instantiatedSession  # mypy: ignore
+    ss: Optional[pyspark.sql.SparkSession] = pyspark.sql.SparkSession._instantiatedSession  # mypy: ignore
     if ss is None:
         print("No pyspark session found, creating a new one!")
-        ss = pyspark.sql.SparkSession.builder.config("spark.driver.memory", "16G") \
-            .master('local[1]') \
-            .appName('Distributed autofaiss') \
+        ss = (
+            pyspark.sql.SparkSession.builder.config("spark.driver.memory", "16G")
+            .master("local[1]")
+            .appName("Distributed autofaiss")
             .getOrCreate()
+        )
     return ss
 
 
-def _batch_loader(
-    batch_size: int,
-    nb_batches: int
-) -> Iterator[Tuple[int, int, int]]:
+def _batch_loader(batch_size: int, nb_batches: int) -> Iterator[Tuple[int, int, int]]:
     """Yield [batch id, batch start position, batch end position]"""
     for batch_id in range(nb_batches):
         start = batch_size * batch_id
@@ -237,8 +227,9 @@ def _merge_index(small_indices_folder: str) -> faiss.Index:
         return _get_index_from_bytes(index_bytes)
 
     def _merge_from_local() -> faiss.Index:
-        local_file_paths = [os.path.join(local_indices_folder, filename) for filename in
-                            os.listdir(local_indices_folder)]
+        local_file_paths = [
+            os.path.join(local_indices_folder, filename) for filename in os.listdir(local_indices_folder)
+        ]
         with Timeit("-> Load first index", indent=4):
             merged = _get_index_from_file(local_file_paths[0])
         with Timeit("-> Merge the rest of indices", indent=4):
@@ -259,21 +250,16 @@ def _merge_index(small_indices_folder: str) -> faiss.Index:
 
 
 def _get_chunk_sizes(
-    embed_paths: List[str],
-    embedding_column_name: str,
-    id_columns: Optional[List[str]],
-    file_format: str
+    embed_paths: List[str], embedding_column_name: str, id_columns: Optional[List[str]], file_format: str
 ) -> List[int]:
     """Get chunk sizes from a list of embeddings files."""
+
     def _get_parquet_row_count(embed_path: str) -> int:
         with get_matrix_reader(
-                file_format,
-                _get_file_system(embed_path),
-                embed_path,
-                embedding_column_name,
-                id_columns
+            file_format, _get_file_system(embed_path), embed_path, embedding_column_name, id_columns
         ) as matrix_reader:
             return matrix_reader.get_row_count()
+
     chunk_sizes = []
     # use ThreadPool instead of multiprocessing.Pool to avoid having problem in _get_parquet_row_count
     with ThreadPool(50) as pool:
@@ -291,7 +277,7 @@ def run(
     small_indices_folder="hdfs://root/tmp/distributed_autofaiss_indices",
     file_format: str = "npy",
     id_columns: Optional[List[str]] = None,
-    embedding_ids_df_handler: Optional[Callable[[pd.DataFrame, int], Any]] = None
+    embedding_ids_df_handler: Optional[Callable[[pd.DataFrame, int], Any]] = None,
 ) -> faiss.Index:
     """
     Create indices by pyspark.
@@ -346,7 +332,8 @@ def run(
                 small_indices_folder=small_indices_folder,
                 num_cores=num_cores_per_executor,
                 embedding_ids_df_handler=embedding_ids_df_handler,
-                file_format=file_format)
+                file_format=file_format,
+            )
         )
 
     with Timeit("-> Merging indices", indent=2):

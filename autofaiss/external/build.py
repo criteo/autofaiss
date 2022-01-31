@@ -24,7 +24,7 @@ from autofaiss.utils.cast import (
     to_readable_time,
 )
 from autofaiss.utils.decorators import Timeit
-from distributed import run
+from autofaiss.external.distributed import run
 
 
 def estimate_memory_required_for_index_creation(
@@ -102,7 +102,7 @@ def create_index(
     embedding_ids_df_handler: Optional[Callable[[pd.DataFrame, int], Any]] = None,
     use_gpu: bool = False,
     make_direct_map: bool = False,
-    distributed: Optional[str] = None
+    distributed: Optional[str] = None,
 ):
     """
     Function that returns an index on the numpy arrays stored on disk in the embeddings_path path.

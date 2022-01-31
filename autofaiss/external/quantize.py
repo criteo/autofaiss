@@ -50,7 +50,7 @@ def build_index(
     nb_cores: Optional[int] = None,
     make_direct_map: bool = False,
     should_be_memory_mappable: bool = False,
-    distributed: Optional[str] = None
+    distributed: Optional[str] = None,
 ) -> Tuple[Optional[Any], Optional[Dict[str, Union[str, float, int]]]]:
     """
     Reads embeddings and creates a quantized index from them.
@@ -209,7 +209,7 @@ def build_index(
                 id_columns=id_columns,
                 embedding_ids_df_handler=write_ids_df_to_parquet if ids_path and id_columns else None,
                 make_direct_map=make_direct_map,
-                distributed=distributed
+                distributed=distributed,
             )
 
         if index_param is None:
