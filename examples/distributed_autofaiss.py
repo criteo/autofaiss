@@ -11,5 +11,6 @@ from autofaiss import build_index
 index, index_infos = build_index(
     embeddings="hdfs://root/path/to/your/embeddings/folder",
     distributed="pyspark",
-    file_format="parquet"
+    file_format="parquet",
+    temporary_indices_folder="hdfs://root/tmp/distributed_autofaiss_indices",
 )

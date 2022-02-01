@@ -4,10 +4,9 @@ Building the index with pyspark.
 import math
 import multiprocessing
 import os
-import shutil
 from functools import partial
 from multiprocessing.pool import ThreadPool
-from tempfile import NamedTemporaryFile
+from tempfile import NamedTemporaryFile, TemporaryDirectory
 from typing import List, Optional, Union, Iterator, Tuple, Callable, Any
 
 import faiss
@@ -256,18 +255,14 @@ def _merge_index(small_indices_folder: str, max_size_on_disk: str = "100GB") -> 
     merged_index = None
     n = len(small_indices_files)
     nb_iterations = max(math.ceil(n / nb_files_each_time), 1)
-    local_indices_folder = "/tmp/distributed_autofaiss_indices"
     with Timeit("-> Download small indices from remote to local", indent=4):
-        for i in range(nb_iterations):
-            to_downloads = small_indices_files[i * nb_files_each_time : max(n, (i + 1) * nb_files_each_time)]
-            _parallel_download_indices_from_remote(
-                fs=fs, indices_file_paths=to_downloads, dst_folder=local_indices_folder
-            )
-            try:
+        with TemporaryDirectory() as local_indices_folder:
+            for i in range(nb_iterations):
+                to_downloads = small_indices_files[i * nb_files_each_time : max(n, (i + 1) * nb_files_each_time)]
+                _parallel_download_indices_from_remote(
+                    fs=fs, indices_file_paths=to_downloads, dst_folder=local_indices_folder
+                )
                 merged_index = _merge_from_local(merged_index)
-            finally:
-                if os.path.exists(local_indices_folder):
-                    shutil.rmtree(local_indices_folder)
     return merged_index
 
 
