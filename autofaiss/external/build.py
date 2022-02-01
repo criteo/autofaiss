@@ -24,7 +24,7 @@ from autofaiss.utils.cast import (
     to_readable_time,
 )
 from autofaiss.utils.decorators import Timeit
-from autofaiss.external.distributed import run
+from autofaiss.indices.distributed import run
 
 
 def estimate_memory_required_for_index_creation(
@@ -230,7 +230,7 @@ def create_index(
                 temporary_indices_folder=temporary_indices_folder,
             )
         else:
-            raise ValueError(f"Distributed by {distributed} is not supported")
+            raise ValueError(f'Distributed by {distributed} is not supported, only "pyspark" is supported')
     # Give standard values for index hyperparameters if possible.
     if any(re.findall(r"OPQ\d+_\d+,IVF\d+_HNSW\d+,PQ\d+", index_key)):
         set_search_hyperparameters(index, f"nprobe={64},efSearch={128},ht={2048}", use_gpu)

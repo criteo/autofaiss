@@ -6,8 +6,8 @@ import multiprocessing
 import os
 from functools import partial
 from multiprocessing.pool import ThreadPool
-from tempfile import NamedTemporaryFile, TemporaryDirectory
-from typing import List, Optional, Union, Iterator, Tuple, Callable, Any
+from tempfile import TemporaryDirectory
+from typing import List, Optional, Iterator, Tuple, Callable, Any
 
 import faiss
 import fsspec
@@ -17,6 +17,7 @@ from fsspec import get_filesystem_class
 from fsspec.implementations.hdfs import PyArrowHDFS
 from tqdm import tqdm
 
+from autofaiss.indices.index_utils import _get_index_from_bytes, _get_bytes_from_index
 from autofaiss.readers.embeddings_iterators import get_file_list, get_matrix_reader
 from autofaiss.utils.cast import cast_memory_to_bytes
 from autofaiss.utils.decorators import Timeit
@@ -50,36 +51,11 @@ def _yield_embeddings_batch(
         cur_start += chunk_size
 
 
-def _get_index_from_bytes(index_bytes: Union[bytearray, bytes]) -> faiss.Index:
-    """Transforms a bytearray containing a faiss index into the corresponding object."""
-
-    with NamedTemporaryFile(delete=False) as output_file:
-        output_file.write(index_bytes)
-        tmp_name = output_file.name
-
-    b = faiss.read_index(tmp_name)
-    os.remove(tmp_name)
-    return b
-
-
-def _get_bytes_from_index(index: faiss.Index) -> bytearray:
-    """Transforms a faiss index into a bytearray."""
-
-    with NamedTemporaryFile(delete=False) as output_file:
-        faiss.write_index(index, output_file.name)
-        tmp_name = output_file.name
-
-    with open(tmp_name, "rb") as index_file:
-        b = index_file.read()
-        os.remove(tmp_name)
-        return bytearray(b)
-
-
 def _generate_small_index_file_name(batch_id: int) -> str:
     return f"index_{batch_id}"
 
 
-def _save_small_index(index: faiss.Index, batch_id: int, small_indices_folder: str):
+def _save_small_index(index: faiss.Index, batch_id: int, small_indices_folder: str) -> None:
     """Save index for one batch."""
     fs = _get_file_system(small_indices_folder)
     fs.mkdirs(small_indices_folder, exist_ok=True)
@@ -135,22 +111,27 @@ def _add_index(
     embedding_ids_df_handler: Optional[Callable[[pd.DataFrame, int], Any]]
         The function that handles the embeddings Ids when id_columns is given
     """
-    if end > sum(chunk_sizes):
-        end = sum(chunk_sizes)
+    total_chunk_sizes = sum(chunk_sizes)
+    if end > total_chunk_sizes:
+        end = total_chunk_sizes
     if len(chunk_sizes) != len(embeddings_file_paths):
-        raise ValueError("The length of chunk_sizes should be equal to the number of embeddings_file_paths")
-    batch_vectors_gen, batch_ids_gen = iter(
-        zip(
-            *_yield_embeddings_batch(
-                embeddings_paths=embeddings_file_paths,
-                chunk_sizes=chunk_sizes,
-                file_system=file_system,
-                start=start,
-                end=end,
-                embedding_column_name=embedding_column_name,
-                id_columns=id_columns,
-                file_format=file_format,
-            )
+        raise ValueError(
+            f"The length of chunk_sizes should be equal to the number of embeddings_file_paths.\n"
+            f"Got len(chunk_sizes)={len(chunk_sizes)},"
+            f"len(embeddings_file_paths)={len(embeddings_file_paths)}.\n"
+            f"chunk_sizes={chunk_sizes}\n"
+            f"embeddings_file_paths={embeddings_file_paths}"
+        )
+    batch_vectors_gen, batch_ids_gen = zip(
+        *_yield_embeddings_batch(
+            embeddings_paths=embeddings_file_paths,
+            chunk_sizes=chunk_sizes,
+            file_system=file_system,
+            start=start,
+            end=end,
+            embedding_column_name=embedding_column_name,
+            id_columns=id_columns,
+            file_format=file_format,
         )
     )
 
@@ -186,6 +167,7 @@ def _get_pyspark_active_session():
             pyspark.sql.SparkSession.builder.config("spark.driver.memory", "16G")
             .master("local[1]")
             .appName("Distributed autofaiss")
+            .config("spark.submit.deployMode", "client")
             .getOrCreate()
         )
     return ss
@@ -215,7 +197,7 @@ def _parallel_download_indices_from_remote(
     dst_paths = [os.path.join(dst_folder, os.path.split(p)[-1]) for p in indices_file_paths]
     src_dest_paths = zip(indices_file_paths, dst_paths)
     with tqdm(total=nb_files) as pbar:
-        with ThreadPool(min(50, len(indices_file_paths))) as pool:
+        with ThreadPool(min(16, len(indices_file_paths))) as pool:
             for _ in pool.imap_unordered(partial(_download_one, fs=fs), src_dest_paths):
                 pbar.update(1)
 
@@ -279,7 +261,7 @@ def _get_chunk_sizes(
 
     chunk_sizes = []
     # use ThreadPool instead of multiprocessing.Pool to avoid having problem in _get_parquet_row_count
-    with ThreadPool(50) as pool:
+    with ThreadPool(16) as pool:
         for row_count in pool.imap(_get_parquet_row_count, embed_paths):
             chunk_sizes.append(row_count)
     return chunk_sizes

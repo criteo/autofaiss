@@ -169,7 +169,7 @@ The `autofaiss build_index` command takes the following parameters:
 | --nb_cores                   |   None       | (Optional) The number of cores to use, by default will use all cores                                                                                                                                         |
 | --make_direct_map            |   False      | (Optional) Create a direct map allowing reconstruction of embeddings. This is only needed for IVF indices. Note that might increase the RAM usage (approximately 8GB for 1 billion embeddings).                                                                                                                                         |
 | --should_be_memory_mappable  |   False      | (Optional) Boolean used to force the index to be selected among indices having an on-disk memory-mapping implementation.                                                                                                                                             |
-| --distributed                |   None       | (Optional) If "pyspark", create the indices using pyspark.|
+| --distributed                |   None       | (Optional) If "pyspark", create the index using pyspark. Otherwise, the index is created on your local machine.|
 | --temporary_indices_folder   |   "hdfs://root/tmp/distributed_autofaiss_indices"       | (Optional) Folder to save the temporary small indices, only used when distributed = "pyspark" |
 
 ## Install from source
