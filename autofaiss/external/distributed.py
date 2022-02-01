@@ -5,7 +5,7 @@ import math
 import multiprocessing
 import os
 import shutil
-from itertools import repeat
+from functools import partial
 from multiprocessing.pool import ThreadPool
 from tempfile import NamedTemporaryFile
 from typing import List, Optional, Union, Iterator, Tuple, Callable, Any
@@ -15,15 +15,18 @@ import fsspec
 import numpy as np
 import pandas as pd
 from fsspec import get_filesystem_class
+from fsspec.implementations.hdfs import PyArrowHDFS
 from tqdm import tqdm
 
 from autofaiss.readers.embeddings_iterators import get_file_list, get_matrix_reader
+from autofaiss.utils.cast import cast_memory_to_bytes
 from autofaiss.utils.decorators import Timeit
 
 
 def _yield_embeddings_batch(
     embeddings_paths: List[str],
     chunk_sizes: List[int],
+    file_system: fsspec.AbstractFileSystem,
     start: int,
     end: int,
     embedding_column_name: str,
@@ -31,6 +34,8 @@ def _yield_embeddings_batch(
     id_columns: Optional[List[str]] = None,
 ):
     """Lazy load a batch of embeddings."""
+    if isinstance(file_system, PyArrowHDFS):
+        file_system = get_filesystem_class("hdfs")()
     cur_start = cur_end = 0
     for chunk_size, file_path in zip(chunk_sizes, embeddings_paths):
         cur_end += chunk_size
@@ -39,9 +44,7 @@ def _yield_embeddings_batch(
             continue
         slice_start = max(0, start - cur_start)
         slice_end = min(chunk_size, end - cur_start)
-        with get_matrix_reader(
-            file_format, get_filesystem_class("hdfs")(), file_path, embedding_column_name, id_columns
-        ) as matrix_reader:
+        with get_matrix_reader(file_format, file_system, file_path, embedding_column_name, id_columns) as matrix_reader:
             yield matrix_reader.get_lazy_array().get_rows(start=slice_start, end=slice_end)
         if cur_end > end:
             break
@@ -92,6 +95,7 @@ def _add_index(
     start: int,
     end: int,
     broadcast_trained_index_bytes,
+    file_system: fsspec.AbstractFileSystem,
     chunk_sizes: List[int],
     embeddings_file_paths: List[str],
     embedding_column_name: str,
@@ -141,6 +145,7 @@ def _add_index(
             *_yield_embeddings_batch(
                 embeddings_paths=embeddings_file_paths,
                 chunk_sizes=chunk_sizes,
+                file_system=file_system,
                 start=start,
                 end=end,
                 embedding_column_name=embedding_column_name,
@@ -195,26 +200,28 @@ def _batch_loader(batch_size: int, nb_batches: int) -> Iterator[Tuple[int, int, 
         yield batch_id, start, end
 
 
-def _download_one(src_dst_path: Tuple[str, str]):
+def _download_one(src_dst_path: Tuple[str, str], fs: fsspec.AbstractFileSystem):
     src_path, dst_path = src_dst_path
-    os.system(f"hdfs dfs -copyToLocal {src_path} {dst_path}")
+    fs.get(src_path, dst_path)
 
 
-def _parallel_download_indices_from_hdfs(indices_file_paths: List[str], dst_folder: str):
+def _parallel_download_indices_from_remote(
+    fs: fsspec.AbstractFileSystem, indices_file_paths: List[str], dst_folder: str
+):
     """Download small indices in parallel."""
     if len(indices_file_paths) == 0:
         return
     os.makedirs(dst_folder, exist_ok=True)
     nb_files = len(indices_file_paths)
-    src_paths = ("hdfs://root" + filepath for filepath in indices_file_paths)
-    src_dest_paths = zip(src_paths, repeat(dst_folder))
+    dst_paths = [os.path.join(dst_folder, os.path.split(p)[-1]) for p in indices_file_paths]
+    src_dest_paths = zip(indices_file_paths, dst_paths)
     with tqdm(total=nb_files) as pbar:
-        with multiprocessing.Pool(processes=min(8, multiprocessing.cpu_count())) as pool:
-            for _ in pool.imap_unordered(_download_one, src_dest_paths):
+        with ThreadPool(min(50, len(indices_file_paths))) as pool:
+            for _ in pool.imap_unordered(partial(_download_one, fs=fs), src_dest_paths):
                 pbar.update(1)
 
 
-def _merge_index(small_indices_folder: str) -> faiss.Index:
+def _merge_index(small_indices_folder: str, max_size_on_disk: str = "100GB") -> faiss.Index:
     """Merge all the indices in `small_indices_folder` into single one return the merged index."""
     fs = _get_file_system(small_indices_folder)
     small_indices_files = fs.ls(small_indices_folder, detail=False)
@@ -226,26 +233,41 @@ def _merge_index(small_indices_folder: str) -> faiss.Index:
             index_bytes = f.read()
         return _get_index_from_bytes(index_bytes)
 
-    def _merge_from_local() -> faiss.Index:
+    def _merge_from_local(merged: Optional[faiss.Index] = None) -> faiss.Index:
         local_file_paths = [
             os.path.join(local_indices_folder, filename) for filename in os.listdir(local_indices_folder)
         ]
-        with Timeit("-> Load first index", indent=4):
+        if merged is None:
             merged = _get_index_from_file(local_file_paths[0])
-        with Timeit("-> Merge the rest of indices", indent=4):
-            for rest_index_file in tqdm(local_file_paths[1:]):
-                index = _get_index_from_file(rest_index_file)
-                faiss.merge_into(merged, index, shift_ids=True)
+            start_index = 1
+        else:
+            start_index = 0
+
+        for rest_index_file in tqdm(local_file_paths[start_index:]):
+            index = _get_index_from_file(rest_index_file)
+            faiss.merge_into(merged, index, shift_ids=True)
         return merged
 
+    # estimate index size by taking the first index
+    first_index_file = small_indices_files[0]
+    first_index_size = fs.size(first_index_file)
+    max_sizes_in_bytes = cast_memory_to_bytes(max_size_on_disk)
+    nb_files_each_time = math.floor(max_sizes_in_bytes / first_index_size)
+    merged_index = None
+    n = len(small_indices_files)
+    nb_iterations = max(math.ceil(n / nb_files_each_time), 1)
     local_indices_folder = "/tmp/distributed_autofaiss_indices"
-    with Timeit("-> Download small indices from HDFS to local", indent=4):
-        _parallel_download_indices_from_hdfs(indices_file_paths=small_indices_files, dst_folder=local_indices_folder)
-    try:
-        merged_index = _merge_from_local()
-    finally:
-        if os.path.exists(local_indices_folder):
-            shutil.rmtree(local_indices_folder)
+    with Timeit("-> Download small indices from remote to local", indent=4):
+        for i in range(nb_iterations):
+            to_downloads = small_indices_files[i * nb_files_each_time : max(n, (i + 1) * nb_files_each_time)]
+            _parallel_download_indices_from_remote(
+                fs=fs, indices_file_paths=to_downloads, dst_folder=local_indices_folder
+            )
+            try:
+                merged_index = _merge_from_local(merged_index)
+            finally:
+                if os.path.exists(local_indices_folder):
+                    shutil.rmtree(local_indices_folder)
     return merged_index
 
 
@@ -274,7 +296,7 @@ def run(
     batch_size: int,
     embedding_column_name: str = "embedding",
     num_cores_per_executor: Optional[int] = None,
-    small_indices_folder="hdfs://root/tmp/distributed_autofaiss_indices",
+    temporary_indices_folder="hdfs://root/tmp/distributed_autofaiss_indices",
     file_format: str = "npy",
     id_columns: Optional[List[str]] = None,
     embedding_ids_df_handler: Optional[Callable[[pd.DataFrame, int], Any]] = None,
@@ -294,16 +316,17 @@ def run(
         Embeddings column name for parquet; default "embedding"
     num_cores_per_executor: int
         Number of CPU cores per executor
-    small_indices_folder: str
+    temporary_indices_folder: str
         Folder to save the temporary small indices
     file_format: str
         Embeddings file format; default "npy"
         "npy" or "parquet"
     id_columns: Optional[List[str]]
+        Names of the columns containing the Ids of the vectors, only used when file_format is "parquet"
     embedding_ids_df_handler: Optional[Callable[[pd.DataFrame, int], Any]]
+        The function that handles the embeddings Ids when id_columns is given
     """
     ss = _get_pyspark_active_session()
-
     # broadcast the index bytes
     trained_index_bytes = _get_bytes_from_index(faiss_index)
     broadcast_trained_index_bytes = ss.sparkContext.broadcast(trained_index_bytes)
@@ -312,12 +335,11 @@ def run(
 
     embed_paths = [os.path.join(embeddings_path, filename) for filename in filenames]
     chunk_sizes = _get_chunk_sizes(embed_paths, embedding_column_name, id_columns=id_columns, file_format=file_format)
-
     nb_vectors = sum(chunk_sizes)
     nb_batches = math.ceil(nb_vectors / batch_size)  # use math.ceil to make sure that we cover every vector
     batches = _batch_loader(batch_size=batch_size, nb_batches=nb_batches)
     rdd = ss.sparkContext.parallelize(batches, nb_batches)
-
+    file_system = _get_file_system(embed_paths[0])
     with Timeit("-> Adding indices", indent=2):
         rdd.foreach(
             lambda x: _add_index(
@@ -326,10 +348,11 @@ def run(
                 end=x[2],
                 broadcast_trained_index_bytes=broadcast_trained_index_bytes,
                 embeddings_file_paths=embed_paths,
+                file_system=file_system,
                 chunk_sizes=chunk_sizes,
                 embedding_column_name=embedding_column_name,
                 id_columns=id_columns,
-                small_indices_folder=small_indices_folder,
+                small_indices_folder=temporary_indices_folder,
                 num_cores=num_cores_per_executor,
                 embedding_ids_df_handler=embedding_ids_df_handler,
                 file_format=file_format,
@@ -337,10 +360,10 @@ def run(
         )
 
     with Timeit("-> Merging indices", indent=2):
-        merged_index = _merge_index(small_indices_folder)
+        merged_index = _merge_index(temporary_indices_folder)
 
-        fs = _get_file_system(small_indices_folder)
-        fs.rm(small_indices_folder, recursive=True)
+        fs = _get_file_system(temporary_indices_folder)
+        fs.rm(temporary_indices_folder, recursive=True)
 
     return merged_index
 

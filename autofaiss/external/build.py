@@ -103,6 +103,7 @@ def create_index(
     use_gpu: bool = False,
     make_direct_map: bool = False,
     distributed: Optional[str] = None,
+    temporary_indices_folder: str = "hdfs://root/tmp/distributed_autofaiss_indices",
 ):
     """
     Function that returns an index on the numpy arrays stored on disk in the embeddings_path path.
@@ -226,6 +227,7 @@ def create_index(
                 embeddings_path=str(embeddings_path),
                 batch_size=batch_size,
                 embedding_ids_df_handler=embedding_ids_df_handler,
+                temporary_indices_folder=temporary_indices_folder,
             )
         else:
             raise ValueError(f"Distributed by {distributed} is not supported")

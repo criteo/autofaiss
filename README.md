@@ -90,8 +90,8 @@ numpy array and then call .reconstruct_from_offset() with your custom direct_map
 ## Using autofaiss with pyspark
 Autofaiss allows users to build indices in Spark, you need to do the following steps:
 
-1. Install pyspark by `pip install pyspark`
-2. Prepare your embeddings file *on HDFS*
+1. Install pyspark by `pip install pyspark`.
+2. Prepare your embeddings files.
 3. Create a spark session before using `build_index` (optional), if you don't create it, a default session would
     be created with the least configuration.
 
@@ -170,6 +170,7 @@ The `autofaiss build_index` command takes the following parameters:
 | --make_direct_map            |   False      | (Optional) Create a direct map allowing reconstruction of embeddings. This is only needed for IVF indices. Note that might increase the RAM usage (approximately 8GB for 1 billion embeddings).                                                                                                                                         |
 | --should_be_memory_mappable  |   False      | (Optional) Boolean used to force the index to be selected among indices having an on-disk memory-mapping implementation.                                                                                                                                             |
 | --distributed                |   None       | (Optional) If "pyspark", create the indices using pyspark.|
+| --temporary_indices_folder   |   "hdfs://root/tmp/distributed_autofaiss_indices"       | (Optional) Folder to save the temporary small indices, only used when distributed = "pyspark" |
 
 ## Install from source
 
