@@ -91,7 +91,7 @@ def get_estimated_construction_time_infos(nb_vectors: int, vec_dim: int, indent:
 
 
 def create_index(
-    embeddings_path: str,
+    embeddings_path: Union[str, List[str]],
     index_key: str,
     metric_type: Union[str, int],
     nb_vectors: int,
@@ -224,7 +224,7 @@ def create_index(
                 embedding_column_name=embedding_column_name,
                 id_columns=id_columns,
                 file_format=file_format,
-                embeddings_path=str(embeddings_path),
+                embeddings_path=embeddings_path,
                 batch_size=batch_size,
                 embedding_ids_df_handler=embedding_ids_df_handler,
                 temporary_indices_folder=temporary_indices_folder,

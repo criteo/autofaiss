@@ -7,7 +7,7 @@ import os
 from functools import partial
 from multiprocessing.pool import ThreadPool
 from tempfile import TemporaryDirectory
-from typing import List, Optional, Iterator, Tuple, Callable, Any
+from typing import List, Optional, Iterator, Tuple, Callable, Any, Union
 
 import faiss
 import fsspec
@@ -269,7 +269,7 @@ def _get_chunk_sizes(
 
 def run(
     faiss_index: faiss.Index,
-    embeddings_path: str,
+    embeddings_path: Union[str, List[str]],
     batch_size: int,
     embedding_column_name: str = "embedding",
     num_cores_per_executor: Optional[int] = None,
@@ -307,10 +307,7 @@ def run(
     # broadcast the index bytes
     trained_index_bytes = _get_bytes_from_index(faiss_index)
     broadcast_trained_index_bytes = ss.sparkContext.broadcast(trained_index_bytes)
-
-    _, filenames = get_file_list(path=embeddings_path, file_format=file_format)
-
-    embed_paths = [os.path.join(embeddings_path, filename) for filename in filenames]
+    _, embed_paths = get_file_list(path=embeddings_path, file_format=file_format)
     chunk_sizes = _get_chunk_sizes(embed_paths, embedding_column_name, id_columns=id_columns, file_format=file_format)
     nb_vectors = sum(chunk_sizes)
     nb_batches = math.ceil(nb_vectors / batch_size)  # use math.ceil to make sure that we cover every vector
