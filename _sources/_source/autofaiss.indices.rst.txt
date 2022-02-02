@@ -4,6 +4,14 @@ autofaiss.indices package
 Submodules
 ----------
 
+autofaiss.indices.distributed module
+------------------------------------
+
+.. automodule:: autofaiss.indices.distributed
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 autofaiss.indices.faiss\_index\_wrapper module
 ----------------------------------------------
 

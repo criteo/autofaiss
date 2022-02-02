@@ -88,6 +88,7 @@
 <span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">chain</span><span class="p">,</span> <span class="n">repeat</span>
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span> <span class="nn">tempfile</span> <span class="kn">import</span> <span class="n">NamedTemporaryFile</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
 <span class="kn">import</span> <span class="nn">random</span>
 
@@ -194,6 +195,31 @@
     <span class="c1"># depends on installed faiss version # pylint: disable=no-member</span>
     <span class="n">params</span> <span class="o">=</span> <span class="n">faiss</span><span class="o">.</span><span class="n">ParameterSpace</span><span class="p">()</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">use_gpu</span> <span class="k">else</span> <span class="n">faiss</span><span class="o">.</span><span class="n">GpuParameterSpace</span><span class="p">()</span>
     <span class="n">params</span><span class="o">.</span><span class="n">set_index_parameters</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">param_str</span><span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">_get_index_from_bytes</span><span class="p">(</span><span class="n">index_bytes</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">bytearray</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">faiss</span><span class="o">.</span><span class="n">Index</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Transforms a bytearray containing a faiss index into the corresponding object.&quot;&quot;&quot;</span>
+
+    <span class="k">with</span> <span class="n">NamedTemporaryFile</span><span class="p">(</span><span class="n">delete</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="k">as</span> <span class="n">output_file</span><span class="p">:</span>
+        <span class="n">output_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">index_bytes</span><span class="p">)</span>
+        <span class="n">tmp_name</span> <span class="o">=</span> <span class="n">output_file</span><span class="o">.</span><span class="n">name</span>
+
+    <span class="n">b</span> <span class="o">=</span> <span class="n">faiss</span><span class="o">.</span><span class="n">read_index</span><span class="p">(</span><span class="n">tmp_name</span><span class="p">)</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">tmp_name</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">b</span>
+
+
+<span class="k">def</span> <span class="nf">_get_bytes_from_index</span><span class="p">(</span><span class="n">index</span><span class="p">:</span> <span class="n">faiss</span><span class="o">.</span><span class="n">Index</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytearray</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Transforms a faiss index into a bytearray.&quot;&quot;&quot;</span>
+
+    <span class="k">with</span> <span class="n">NamedTemporaryFile</span><span class="p">(</span><span class="n">delete</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="k">as</span> <span class="n">output_file</span><span class="p">:</span>
+        <span class="n">faiss</span><span class="o">.</span><span class="n">write_index</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">output_file</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">tmp_name</span> <span class="o">=</span> <span class="n">output_file</span><span class="o">.</span><span class="n">name</span>
+
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">tmp_name</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">index_file</span><span class="p">:</span>
+        <span class="n">b</span> <span class="o">=</span> <span class="n">index_file</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">tmp_name</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">bytearray</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
 </pre></div>
 
            </div>
