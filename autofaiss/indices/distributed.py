@@ -193,13 +193,11 @@ def _parallel_download_indices_from_remote(
     if len(indices_file_paths) == 0:
         return
     os.makedirs(dst_folder, exist_ok=True)
-    nb_files = len(indices_file_paths)
     dst_paths = [os.path.join(dst_folder, os.path.split(p)[-1]) for p in indices_file_paths]
     src_dest_paths = zip(indices_file_paths, dst_paths)
-    with tqdm(total=nb_files) as pbar:
-        with ThreadPool(min(16, len(indices_file_paths))) as pool:
-            for _ in pool.imap_unordered(partial(_download_one, fs=fs), src_dest_paths):
-                pbar.update(1)
+    with ThreadPool(min(16, len(indices_file_paths))) as pool:
+        for _ in pool.imap_unordered(partial(_download_one, fs=fs), src_dest_paths):
+            pass
 
 
 def _merge_index(small_indices_folder: str, max_size_on_disk: str = "100GB") -> faiss.Index:
@@ -237,14 +235,16 @@ def _merge_index(small_indices_folder: str, max_size_on_disk: str = "100GB") -> 
     merged_index = None
     n = len(small_indices_files)
     nb_iterations = max(math.ceil(n / nb_files_each_time), 1)
-    with Timeit("-> Download small indices from remote to local", indent=4):
-        with TemporaryDirectory() as local_indices_folder:
+    with Timeit("-> Merging small indices", indent=4):
+        with tqdm(total=nb_iterations) as pbar:
             for i in range(nb_iterations):
-                to_downloads = small_indices_files[i * nb_files_each_time : max(n, (i + 1) * nb_files_each_time)]
-                _parallel_download_indices_from_remote(
-                    fs=fs, indices_file_paths=to_downloads, dst_folder=local_indices_folder
-                )
-                merged_index = _merge_from_local(merged_index)
+                to_downloads = small_indices_files[i * nb_files_each_time : min(n, (i + 1) * nb_files_each_time)]
+                with TemporaryDirectory() as local_indices_folder:
+                    _parallel_download_indices_from_remote(
+                        fs=fs, indices_file_paths=to_downloads, dst_folder=local_indices_folder
+                    )
+                    merged_index = _merge_from_local(merged_index)
+                pbar.update(1)
     return merged_index
 
 
