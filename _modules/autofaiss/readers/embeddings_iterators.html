@@ -84,7 +84,6 @@
   <h1>Source code for autofaiss.readers.embeddings_iterators</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot; Functions that read efficiently files stored on disk &quot;&quot;&quot;</span>
 <span class="kn">import</span> <span class="nn">logging</span>
-<span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">from</span> <span class="nn">multiprocessing.pool</span> <span class="kn">import</span> <span class="n">ThreadPool</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Iterator</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Union</span>
 <span class="kn">import</span> <span class="nn">re</span>
@@ -254,30 +253,65 @@
     <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">fs</span><span class="p">,</span> <span class="n">file_path</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="get_file_list"><a class="viewcode-back" href="../../../_source/autofaiss.readers.html#autofaiss.readers.embeddings_iterators.get_file_list">[docs]</a><span class="k">def</span> <span class="nf">get_file_list</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">file_format</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">fsspec</span><span class="o">.</span><span class="n">AbstractFileSystem</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+<div class="viewcode-block" id="get_file_list"><a class="viewcode-back" href="../../../_source/autofaiss.readers.html#autofaiss.readers.embeddings_iterators.get_file_list">[docs]</a><span class="k">def</span> <span class="nf">get_file_list</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]],</span> <span class="n">file_format</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">fsspec</span><span class="o">.</span><span class="n">AbstractFileSystem</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get the file system and all the file paths that matches `file_format` under the given `path`.</span>
+<span class="sd">    The `path` could a single folder or multiple folders.</span>
+
+<span class="sd">    :raises ValueError: if file system is inconsistent under different folders.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">_get_file_list</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">file_format</span><span class="p">)</span>
+    <span class="n">all_file_paths</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">fs</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">path</span><span class="p">:</span>
+        <span class="n">cur_fs</span><span class="p">,</span> <span class="n">file_paths</span> <span class="o">=</span> <span class="n">_get_file_list</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">file_format</span><span class="p">,</span> <span class="n">sort_result</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">fs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">fs</span> <span class="o">=</span> <span class="n">cur_fs</span>
+        <span class="k">elif</span> <span class="n">fs</span> <span class="o">!=</span> <span class="n">cur_fs</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;The file system in different folder are inconsistent.</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="sa">f</span><span class="s2">&quot;Got one </span><span class="si">{</span><span class="n">fs</span><span class="si">}</span><span class="s2"> and the other </span><span class="si">{</span><span class="n">cur_fs</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+        <span class="n">all_file_paths</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">file_paths</span><span class="p">)</span>
+    <span class="n">all_file_paths</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">fs</span><span class="p">,</span> <span class="n">all_file_paths</span></div>
+
+
+<span class="k">def</span> <span class="nf">_get_file_list</span><span class="p">(</span>
+    <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">file_format</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">sort_result</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">fsspec</span><span class="o">.</span><span class="n">AbstractFileSystem</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+    <span class="sd">&quot;&quot;&quot;Get the file system and all the file paths that matches `file_format` given a single path.&quot;&quot;&quot;</span>
     <span class="n">fs</span><span class="p">,</span> <span class="n">path_in_fs</span> <span class="o">=</span> <span class="n">fsspec</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">url_to_fs</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
-    <span class="n">filenames</span> <span class="o">=</span> <span class="n">fs</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="n">path_in_fs</span><span class="p">)</span><span class="o">.</span><span class="fm">__next__</span><span class="p">()[</span><span class="mi">2</span><span class="p">]</span>
-    <span class="n">filenames</span> <span class="o">=</span> <span class="p">[</span><span class="n">filename</span> <span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="n">filenames</span> <span class="k">if</span> <span class="n">filename</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;.</span><span class="si">{</span><span class="n">file_format</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)]</span>
-    <span class="n">filenames</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
-    <span class="k">return</span> <span class="n">fs</span><span class="p">,</span> <span class="n">filenames</span></div>
+    <span class="n">prefix</span> <span class="o">=</span> <span class="n">path</span><span class="p">[:</span> <span class="n">path</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">path_in_fs</span><span class="p">)]</span>
+    <span class="n">glob_pattern</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;**/*.</span><span class="si">{</span><span class="n">file_format</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="n">file_paths</span> <span class="o">=</span> <span class="n">fs</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">glob_pattern</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">sort_result</span><span class="p">:</span>
+        <span class="n">file_paths</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+    <span class="n">file_paths_with_prefix</span> <span class="o">=</span> <span class="p">[</span><span class="n">prefix</span> <span class="o">+</span> <span class="n">file_path</span> <span class="k">for</span> <span class="n">file_path</span> <span class="ow">in</span> <span class="n">file_paths</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">fs</span><span class="p">,</span> <span class="n">file_paths_with_prefix</span>
 
 
 <div class="viewcode-block" id="read_first_file_shape"><a class="viewcode-back" href="../../../_source/autofaiss.readers.html#autofaiss.readers.embeddings_iterators.read_first_file_shape">[docs]</a><span class="k">def</span> <span class="nf">read_first_file_shape</span><span class="p">(</span>
-    <span class="n">embeddings_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">file_format</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">embedding_column_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">embeddings_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]],</span> <span class="n">file_format</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">embedding_column_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Read the shape of the first file in the embeddings directory.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">fs</span><span class="p">,</span> <span class="n">filenames</span> <span class="o">=</span> <span class="n">get_file_list</span><span class="p">(</span><span class="n">embeddings_path</span><span class="p">,</span> <span class="n">file_format</span><span class="p">)</span>
+    <span class="n">fs</span><span class="p">,</span> <span class="n">file_paths</span> <span class="o">=</span> <span class="n">get_file_list</span><span class="p">(</span><span class="n">embeddings_path</span><span class="p">,</span> <span class="n">file_format</span><span class="p">)</span>
 
-    <span class="n">first_file</span> <span class="o">=</span> <span class="n">filenames</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="n">first_file_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">embeddings_path</span><span class="p">,</span> <span class="n">first_file</span><span class="p">)</span>
-    <span class="k">with</span> <span class="n">get_matrix_reader</span><span class="p">(</span><span class="n">file_format</span><span class="p">,</span> <span class="n">fs</span><span class="p">,</span> <span class="n">first_file_path</span><span class="p">,</span> <span class="n">embedding_column_name</span><span class="p">)</span> <span class="k">as</span> <span class="n">matrix_reader</span><span class="p">:</span>
+    <span class="n">first_file_path</span> <span class="o">=</span> <span class="n">file_paths</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">get_file_shape</span><span class="p">(</span><span class="n">first_file_path</span><span class="p">,</span> <span class="n">file_format</span><span class="p">,</span> <span class="n">embedding_column_name</span><span class="p">,</span> <span class="n">fs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_file_shape"><a class="viewcode-back" href="../../../_source/autofaiss.readers.html#autofaiss.readers.embeddings_iterators.get_file_shape">[docs]</a><span class="k">def</span> <span class="nf">get_file_shape</span><span class="p">(</span>
+    <span class="n">file_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">file_format</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">embedding_column_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">fs</span><span class="p">:</span> <span class="n">fsspec</span><span class="o">.</span><span class="n">AbstractFileSystem</span>
+<span class="p">):</span>
+    <span class="k">with</span> <span class="n">get_matrix_reader</span><span class="p">(</span><span class="n">file_format</span><span class="p">,</span> <span class="n">fs</span><span class="p">,</span> <span class="n">file_path</span><span class="p">,</span> <span class="n">embedding_column_name</span><span class="p">)</span> <span class="k">as</span> <span class="n">matrix_reader</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">matrix_reader</span><span class="o">.</span><span class="n">get_shape</span><span class="p">()</span></div>
 
 
 <div class="viewcode-block" id="read_total_nb_vectors_and_dim"><a class="viewcode-back" href="../../../_source/autofaiss.readers.html#autofaiss.readers.embeddings_iterators.read_total_nb_vectors_and_dim">[docs]</a><span class="k">def</span> <span class="nf">read_total_nb_vectors_and_dim</span><span class="p">(</span>
-    <span class="n">embeddings_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">file_format</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;npy&quot;</span><span class="p">,</span> <span class="n">embedding_column_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;embeddings&quot;</span>
+    <span class="n">embeddings_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]],</span> <span class="n">file_format</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;npy&quot;</span><span class="p">,</span> <span class="n">embedding_column_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;embeddings&quot;</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get the count and dim of embeddings.</span>
@@ -293,30 +327,28 @@
 <span class="sd">            count: total number of vectors in the dataset.</span>
 <span class="sd">            dim: embedding dimension</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-    <span class="n">fs</span><span class="p">,</span> <span class="n">filenames</span> <span class="o">=</span> <span class="n">get_file_list</span><span class="p">(</span><span class="n">embeddings_path</span><span class="p">,</span> <span class="n">file_format</span><span class="p">)</span>
+    <span class="n">fs</span><span class="p">,</span> <span class="n">file_paths</span> <span class="o">=</span> <span class="n">get_file_list</span><span class="p">(</span><span class="n">embeddings_path</span><span class="p">,</span> <span class="n">file_format</span><span class="p">)</span>
 
-    <span class="n">_</span><span class="p">,</span> <span class="n">dim</span> <span class="o">=</span> <span class="n">read_first_file_shape</span><span class="p">(</span>
-        <span class="n">embeddings_path</span><span class="p">,</span> <span class="n">file_format</span><span class="o">=</span><span class="n">file_format</span><span class="p">,</span> <span class="n">embedding_column_name</span><span class="o">=</span><span class="n">embedding_column_name</span>
-    <span class="p">)</span>
+    <span class="n">_</span><span class="p">,</span> <span class="n">dim</span> <span class="o">=</span> <span class="n">get_file_shape</span><span class="p">(</span><span class="n">file_paths</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">file_format</span><span class="o">=</span><span class="n">file_format</span><span class="p">,</span> <span class="n">embedding_column_name</span><span class="o">=</span><span class="n">embedding_column_name</span><span class="p">,</span> <span class="n">fs</span><span class="o">=</span><span class="n">fs</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">file_to_line_count</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
-        <span class="k">with</span> <span class="n">get_matrix_reader</span><span class="p">(</span>
-            <span class="n">file_format</span><span class="p">,</span> <span class="n">fs</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">embeddings_path</span><span class="p">,</span> <span class="n">f</span><span class="p">),</span> <span class="n">embedding_column_name</span>
-        <span class="p">)</span> <span class="k">as</span> <span class="n">matrix_reader</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">get_matrix_reader</span><span class="p">(</span><span class="n">file_format</span><span class="p">,</span> <span class="n">fs</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">embedding_column_name</span><span class="p">)</span> <span class="k">as</span> <span class="n">matrix_reader</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">matrix_reader</span><span class="o">.</span><span class="n">get_row_count</span><span class="p">()</span>
 
     <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="k">with</span> <span class="n">ThreadPool</span><span class="p">(</span><span class="mi">50</span><span class="p">)</span> <span class="k">as</span> <span class="n">p</span><span class="p">:</span>
-        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">p</span><span class="o">.</span><span class="n">imap_unordered</span><span class="p">(</span><span class="n">file_to_line_count</span><span class="p">,</span> <span class="n">filenames</span><span class="p">):</span>
-            <span class="n">count</span> <span class="o">+=</span> <span class="n">c</span>
-            <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">with</span> <span class="n">tq</span><span class="p">(</span><span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">file_paths</span><span class="p">))</span> <span class="k">as</span> <span class="n">pbar</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">ThreadPool</span><span class="p">(</span><span class="mi">50</span><span class="p">)</span> <span class="k">as</span> <span class="n">p</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">p</span><span class="o">.</span><span class="n">imap_unordered</span><span class="p">(</span><span class="n">file_to_line_count</span><span class="p">,</span> <span class="n">file_paths</span><span class="p">):</span>
+                <span class="n">count</span> <span class="o">+=</span> <span class="n">c</span>
+                <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">pbar</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">count</span><span class="p">,</span> <span class="n">dim</span></div>
 
 
 <div class="viewcode-block" id="read_embeddings"><a class="viewcode-back" href="../../../_source/autofaiss.readers.html#autofaiss.readers.embeddings_iterators.read_embeddings">[docs]</a><span class="k">def</span> <span class="nf">read_embeddings</span><span class="p">(</span>
-    <span class="n">embeddings_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">embeddings_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]],</span>
     <span class="n">batch_size</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="n">file_format</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;npy&quot;</span><span class="p">,</span>
@@ -369,18 +401,17 @@
     <span class="k">if</span> <span class="n">batch_size</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">batch_size</span> <span class="o">=</span> <span class="n">first_vector_count</span>
 
-    <span class="n">fs</span><span class="p">,</span> <span class="n">filenames</span> <span class="o">=</span> <span class="n">get_file_list</span><span class="p">(</span><span class="n">embeddings_path</span><span class="p">,</span> <span class="n">file_format</span><span class="p">)</span>
+    <span class="n">fs</span><span class="p">,</span> <span class="n">file_paths</span> <span class="o">=</span> <span class="n">get_file_list</span><span class="p">(</span><span class="n">embeddings_path</span><span class="p">,</span> <span class="n">file_format</span><span class="p">)</span>
     <span class="n">embeddings_batch</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">ids_batch</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">nb_emb_in_batch</span> <span class="o">=</span> <span class="mi">0</span>
 
-    <span class="n">iterator</span> <span class="o">=</span> <span class="n">filenames</span>
+    <span class="n">iterator</span> <span class="o">=</span> <span class="n">file_paths</span>
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
         <span class="n">iterator</span> <span class="o">=</span> <span class="n">tq</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">iterator</span><span class="p">))</span>
 
     <span class="n">total_embeddings_processed</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="n">iterator</span><span class="p">:</span>
-        <span class="n">file_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">embeddings_path</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">file_path</span> <span class="ow">in</span> <span class="n">iterator</span><span class="p">:</span>
         <span class="k">with</span> <span class="n">get_matrix_reader</span><span class="p">(</span><span class="n">file_format</span><span class="p">,</span> <span class="n">fs</span><span class="p">,</span> <span class="n">file_path</span><span class="p">,</span> <span class="n">embedding_column_name</span><span class="p">,</span> <span class="n">id_columns</span><span class="p">)</span> <span class="k">as</span> <span class="n">matrix_reader</span><span class="p">:</span>
             <span class="n">array</span> <span class="o">=</span> <span class="n">matrix_reader</span><span class="o">.</span><span class="n">get_lazy_array</span><span class="p">()</span>
             <span class="n">vec_size</span> <span class="o">=</span> <span class="n">array</span><span class="o">.</span><span class="n">num_rows</span>

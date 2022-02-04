@@ -492,7 +492,8 @@ The index is stored on the current machine at the given ouput path.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>embeddings</strong> (<em>Union</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>, </em><em>np.ndarray</em><em>]</em>) – Local path containing all preprocessed vectors and cached files.
+<li><p><strong>embeddings</strong> (<em>Union</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>, </em><em>np.ndarray</em><em>, </em><em>List</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>]</em><em>]</em>) – Local path containing all preprocessed vectors and cached files.
+This could be a single directory or multiple directories.
 Files will be added if empty.
 Or directly the Numpy array of embeddings</p></li>
 <li><p><strong>index_path</strong> (<em>Optional</em><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>)</em>) – Destination path of the quantized model.</p></li>

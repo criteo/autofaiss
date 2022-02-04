@@ -175,7 +175,7 @@
 
 
 <div class="viewcode-block" id="create_index"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.build.create_index">[docs]</a><span class="k">def</span> <span class="nf">create_index</span><span class="p">(</span>
-    <span class="n">embeddings_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">embeddings_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]],</span>
     <span class="n">index_key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">metric_type</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
     <span class="n">nb_vectors</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
@@ -308,7 +308,7 @@
                 <span class="n">embedding_column_name</span><span class="o">=</span><span class="n">embedding_column_name</span><span class="p">,</span>
                 <span class="n">id_columns</span><span class="o">=</span><span class="n">id_columns</span><span class="p">,</span>
                 <span class="n">file_format</span><span class="o">=</span><span class="n">file_format</span><span class="p">,</span>
-                <span class="n">embeddings_path</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">embeddings_path</span><span class="p">),</span>
+                <span class="n">embeddings_path</span><span class="o">=</span><span class="n">embeddings_path</span><span class="p">,</span>
                 <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span>
                 <span class="n">embedding_ids_df_handler</span><span class="o">=</span><span class="n">embedding_ids_df_handler</span><span class="p">,</span>
                 <span class="n">temporary_indices_folder</span><span class="o">=</span><span class="n">temporary_indices_folder</span><span class="p">,</span>

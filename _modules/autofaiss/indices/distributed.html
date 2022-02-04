@@ -91,7 +91,7 @@
 <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
 <span class="kn">from</span> <span class="nn">multiprocessing.pool</span> <span class="kn">import</span> <span class="n">ThreadPool</span>
 <span class="kn">from</span> <span class="nn">tempfile</span> <span class="kn">import</span> <span class="n">TemporaryDirectory</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Iterator</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Any</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Iterator</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Union</span>
 
 <span class="kn">import</span> <span class="nn">faiss</span>
 <span class="kn">import</span> <span class="nn">fsspec</span>
@@ -353,7 +353,7 @@
 
 <div class="viewcode-block" id="run"><a class="viewcode-back" href="../../../_source/autofaiss.indices.html#autofaiss.indices.distributed.run">[docs]</a><span class="k">def</span> <span class="nf">run</span><span class="p">(</span>
     <span class="n">faiss_index</span><span class="p">:</span> <span class="n">faiss</span><span class="o">.</span><span class="n">Index</span><span class="p">,</span>
-    <span class="n">embeddings_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">embeddings_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]],</span>
     <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="n">embedding_column_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;embedding&quot;</span><span class="p">,</span>
     <span class="n">num_cores_per_executor</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -391,10 +391,7 @@
     <span class="c1"># broadcast the index bytes</span>
     <span class="n">trained_index_bytes</span> <span class="o">=</span> <span class="n">_get_bytes_from_index</span><span class="p">(</span><span class="n">faiss_index</span><span class="p">)</span>
     <span class="n">broadcast_trained_index_bytes</span> <span class="o">=</span> <span class="n">ss</span><span class="o">.</span><span class="n">sparkContext</span><span class="o">.</span><span class="n">broadcast</span><span class="p">(</span><span class="n">trained_index_bytes</span><span class="p">)</span>
-
-    <span class="n">_</span><span class="p">,</span> <span class="n">filenames</span> <span class="o">=</span> <span class="n">get_file_list</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">embeddings_path</span><span class="p">,</span> <span class="n">file_format</span><span class="o">=</span><span class="n">file_format</span><span class="p">)</span>
-
-    <span class="n">embed_paths</span> <span class="o">=</span> <span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">embeddings_path</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span> <span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="n">filenames</span><span class="p">]</span>
+    <span class="n">_</span><span class="p">,</span> <span class="n">embed_paths</span> <span class="o">=</span> <span class="n">get_file_list</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">embeddings_path</span><span class="p">,</span> <span class="n">file_format</span><span class="o">=</span><span class="n">file_format</span><span class="p">)</span>
     <span class="n">chunk_sizes</span> <span class="o">=</span> <span class="n">_get_chunk_sizes</span><span class="p">(</span><span class="n">embed_paths</span><span class="p">,</span> <span class="n">embedding_column_name</span><span class="p">,</span> <span class="n">id_columns</span><span class="o">=</span><span class="n">id_columns</span><span class="p">,</span> <span class="n">file_format</span><span class="o">=</span><span class="n">file_format</span><span class="p">)</span>
     <span class="n">nb_vectors</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">chunk_sizes</span><span class="p">)</span>
     <span class="n">nb_batches</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">nb_vectors</span> <span class="o">/</span> <span class="n">batch_size</span><span class="p">)</span>  <span class="c1"># use math.ceil to make sure that we cover every vector</span>

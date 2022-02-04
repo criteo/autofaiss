@@ -116,7 +116,7 @@
 
 
 <div class="viewcode-block" id="build_index"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.quantize.build_index">[docs]</a><span class="k">def</span> <span class="nf">build_index</span><span class="p">(</span>
-    <span class="n">embeddings</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span>
+    <span class="n">embeddings</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]],</span>
     <span class="n">index_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;knn.index&quot;</span><span class="p">,</span>
     <span class="n">index_infos_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;index_infos.json&quot;</span><span class="p">,</span>
     <span class="n">ids_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -143,8 +143,9 @@
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    embeddings : Union[str, np.ndarray]</span>
+<span class="sd">    embeddings : Union[str, np.ndarray, List[str]]</span>
 <span class="sd">        Local path containing all preprocessed vectors and cached files.</span>
+<span class="sd">        This could be a single directory or multiple directories.</span>
 <span class="sd">        Files will be added if empty.</span>
 <span class="sd">        Or directly the Numpy array of embeddings</span>
 <span class="sd">    index_path: Optional(str)</span>
@@ -219,14 +220,14 @@
         <span class="n">np</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmp_dir_embeddings</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot;emb.npy&quot;</span><span class="p">),</span> <span class="n">embeddings</span><span class="p">)</span>
         <span class="n">embeddings_path</span> <span class="o">=</span> <span class="n">tmp_dir_embeddings</span><span class="o">.</span><span class="n">name</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">embeddings_path</span> <span class="o">=</span> <span class="n">embeddings</span>
+        <span class="n">embeddings_path</span> <span class="o">=</span> <span class="n">embeddings</span>  <span class="c1"># type: ignore</span>
 
     <span class="k">with</span> <span class="n">Timeit</span><span class="p">(</span><span class="s2">&quot;Launching the whole pipeline&quot;</span><span class="p">):</span>
-
-        <span class="n">nb_vectors</span><span class="p">,</span> <span class="n">vec_dim</span> <span class="o">=</span> <span class="n">read_total_nb_vectors_and_dim</span><span class="p">(</span>
-            <span class="n">embeddings_path</span><span class="p">,</span> <span class="n">file_format</span><span class="o">=</span><span class="n">file_format</span><span class="p">,</span> <span class="n">embedding_column_name</span><span class="o">=</span><span class="n">embedding_column_name</span>
-        <span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;There are </span><span class="si">{</span><span class="n">nb_vectors</span><span class="si">}</span><span class="s2"> embeddings of dim </span><span class="si">{</span><span class="n">vec_dim</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">with</span> <span class="n">Timeit</span><span class="p">(</span><span class="s2">&quot;Reading total number of vectors and dimension&quot;</span><span class="p">):</span>
+            <span class="n">nb_vectors</span><span class="p">,</span> <span class="n">vec_dim</span> <span class="o">=</span> <span class="n">read_total_nb_vectors_and_dim</span><span class="p">(</span>
+                <span class="n">embeddings_path</span><span class="p">,</span> <span class="n">file_format</span><span class="o">=</span><span class="n">file_format</span><span class="p">,</span> <span class="n">embedding_column_name</span><span class="o">=</span><span class="n">embedding_column_name</span>
+            <span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;There are </span><span class="si">{</span><span class="n">nb_vectors</span><span class="si">}</span><span class="s2"> embeddings of dim </span><span class="si">{</span><span class="n">vec_dim</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
         <span class="k">with</span> <span class="n">Timeit</span><span class="p">(</span><span class="s2">&quot;Compute estimated construction time of the index&quot;</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
             <span class="nb">print</span><span class="p">(</span><span class="n">get_estimated_construction_time_infos</span><span class="p">(</span><span class="n">nb_vectors</span><span class="p">,</span> <span class="n">vec_dim</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">))</span>
