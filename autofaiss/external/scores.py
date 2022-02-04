@@ -35,6 +35,14 @@ def compute_fast_metrics(
                 embeddings_path, file_format=file_format, embedding_column_name=embedding_column_name, verbose=False
             )
         )
+    elif isinstance(embeddings_path, list):
+        if len(embeddings_path) == 0:
+            raise ValueError("embeddings_path is an empty list")
+        query_embeddings, _ = next(
+            read_embeddings(
+                embeddings_path[0], file_format=file_format, embedding_column_name=embedding_column_name, verbose=False
+            )
+        )
     else:
         query_embeddings = embeddings_path
 

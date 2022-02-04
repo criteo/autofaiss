@@ -1,6 +1,5 @@
 """ Functions that read efficiently files stored on disk """
 import logging
-import os
 from multiprocessing.pool import ThreadPool
 from typing import Iterator, Optional, Tuple, List, Union
 import re
@@ -170,30 +169,65 @@ def get_matrix_reader(file_format: str, fs: fsspec.AbstractFileSystem, file_path
     return cls(fs, file_path, *args)
 
 
-def get_file_list(path: str, file_format: str) -> Tuple[fsspec.AbstractFileSystem, List[str]]:
+def get_file_list(path: Union[str, List[str]], file_format: str) -> Tuple[fsspec.AbstractFileSystem, List[str]]:
+    """
+    Get the file system and all the file paths that matches `file_format` under the given `path`.
+    The `path` could a single folder or multiple folders.
+
+    :raises ValueError: if file system is inconsistent under different folders.
+    """
+    if isinstance(path, str):
+        return _get_file_list(path, file_format)
+    all_file_paths = []
+    fs = None
+    for p in path:
+        cur_fs, file_paths = _get_file_list(p, file_format, sort_result=False)
+        if fs is None:
+            fs = cur_fs
+        elif fs != cur_fs:
+            raise ValueError(
+                f"The file system in different folder are inconsistent.\n" f"Got one {fs} and the other {cur_fs}"
+            )
+        all_file_paths.extend(file_paths)
+    all_file_paths.sort()
+    return fs, all_file_paths
+
+
+def _get_file_list(
+    path: str, file_format: str, sort_result: bool = True
+) -> Tuple[fsspec.AbstractFileSystem, List[str]]:
+    """Get the file system and all the file paths that matches `file_format` given a single path."""
     fs, path_in_fs = fsspec.core.url_to_fs(path)
-    filenames = fs.walk(path_in_fs).__next__()[2]
-    filenames = [filename for filename in filenames if filename.endswith(f".{file_format}")]
-    filenames.sort()
-    return fs, filenames
+    prefix = path[: path.index(path_in_fs)]
+    glob_pattern = path.rstrip("/") + f"**/*.{file_format}"
+    file_paths = fs.glob(glob_pattern)
+    if sort_result:
+        file_paths.sort()
+    file_paths_with_prefix = [prefix + file_path for file_path in file_paths]
+    return fs, file_paths_with_prefix
 
 
 def read_first_file_shape(
-    embeddings_path: str, file_format: str, embedding_column_name: Optional[str] = None
+    embeddings_path: Union[str, List[str]], file_format: str, embedding_column_name: Optional[str] = None
 ) -> Tuple[int, int]:
     """
     Read the shape of the first file in the embeddings directory.
     """
-    fs, filenames = get_file_list(embeddings_path, file_format)
+    fs, file_paths = get_file_list(embeddings_path, file_format)
 
-    first_file = filenames[0]
-    first_file_path = os.path.join(embeddings_path, first_file)
-    with get_matrix_reader(file_format, fs, first_file_path, embedding_column_name) as matrix_reader:
+    first_file_path = file_paths[0]
+    return get_file_shape(first_file_path, file_format, embedding_column_name, fs)
+
+
+def get_file_shape(
+    file_path: str, file_format: str, embedding_column_name: Optional[str], fs: fsspec.AbstractFileSystem
+):
+    with get_matrix_reader(file_format, fs, file_path, embedding_column_name) as matrix_reader:
         return matrix_reader.get_shape()
 
 
 def read_total_nb_vectors_and_dim(
-    embeddings_path: str, file_format: str = "npy", embedding_column_name: str = "embeddings"
+    embeddings_path: Union[str, List[str]], file_format: str = "npy", embedding_column_name: str = "embeddings"
 ) -> Tuple[int, int]:
     """
         Get the count and dim of embeddings.
@@ -209,30 +243,28 @@ def read_total_nb_vectors_and_dim(
             count: total number of vectors in the dataset.
             dim: embedding dimension
         """
-    fs, filenames = get_file_list(embeddings_path, file_format)
+    fs, file_paths = get_file_list(embeddings_path, file_format)
 
-    _, dim = read_first_file_shape(
-        embeddings_path, file_format=file_format, embedding_column_name=embedding_column_name
-    )
+    _, dim = get_file_shape(file_paths[0], file_format=file_format, embedding_column_name=embedding_column_name, fs=fs)
 
     def file_to_line_count(f):
-        with get_matrix_reader(
-            file_format, fs, os.path.join(embeddings_path, f), embedding_column_name
-        ) as matrix_reader:
+        with get_matrix_reader(file_format, fs, f, embedding_column_name) as matrix_reader:
             return matrix_reader.get_row_count()
 
     count = 0
     i = 0
-    with ThreadPool(50) as p:
-        for c in p.imap_unordered(file_to_line_count, filenames):
-            count += c
-            i += 1
+    with tq(total=len(file_paths)) as pbar:
+        with ThreadPool(50) as p:
+            for c in p.imap_unordered(file_to_line_count, file_paths):
+                count += c
+                i += 1
+                pbar.update(1)
 
     return count, dim
 
 
 def read_embeddings(
-    embeddings_path: str,
+    embeddings_path: Union[str, List[str]],
     batch_size: Optional[int] = None,
     verbose: bool = True,
     file_format: str = "npy",
@@ -285,18 +317,17 @@ def read_embeddings(
     if batch_size is None:
         batch_size = first_vector_count
 
-    fs, filenames = get_file_list(embeddings_path, file_format)
+    fs, file_paths = get_file_list(embeddings_path, file_format)
     embeddings_batch = None
     ids_batch = None
     nb_emb_in_batch = 0
 
-    iterator = filenames
+    iterator = file_paths
     if verbose:
         iterator = tq(list(iterator))
 
     total_embeddings_processed = 0
-    for filename in iterator:
-        file_path = os.path.join(embeddings_path, filename)
+    for file_path in iterator:
         with get_matrix_reader(file_format, fs, file_path, embedding_column_name, id_columns) as matrix_reader:
             array = matrix_reader.get_lazy_array()
             vec_size = array.num_rows

@@ -3,7 +3,15 @@ import os
 import random
 import shutil
 
-from autofaiss.readers.embeddings_iterators import read_first_file_shape, read_embeddings, read_total_nb_vectors_and_dim
+import pytest
+from fsspec.implementations.local import LocalFileSystem
+
+from autofaiss.readers.embeddings_iterators import (
+    read_first_file_shape,
+    read_embeddings,
+    read_total_nb_vectors_and_dim,
+    get_file_list,
+)
 import numpy as np
 import pandas as pd
 import py
@@ -24,8 +32,10 @@ def build_test_collection_numpy(tmpdir: py.path, min_size=2, max_size=10000, dim
     return str(tmp_path), sizes, dim, all_arrays
 
 
-def build_test_collection_parquet(tmpdir: py.path, min_size=2, max_size=10000, dim=512, nb_files=5):
-    tmp_path = tmpdir.mkdir("autofaiss_parquet")
+def build_test_collection_parquet(
+    tmpdir: py.path, min_size=2, max_size=10000, dim=512, nb_files=5, tmpdir_name: str = "autofaiss_parquet"
+):
+    tmp_path = tmpdir.mkdir(tmpdir_name)
     print(tmp_path)
     sizes = [random.randint(min_size, max_size) for _ in range(nb_files)]
     dim = dim
@@ -144,3 +154,27 @@ def test_read_total_nb_vectors(tmpdir):
 
     assert actual_count == expected_count
     assert actual_dim == dim
+
+
+def test_get_file_list_with_single_input(tmpdir):
+    tmp_dir, _, _, _ = build_test_collection_parquet(tmpdir, tmpdir_name="a", nb_files=2)
+    fs, paths = get_file_list(path=tmp_dir, file_format="parquet")
+    assert isinstance(fs, LocalFileSystem)
+    assert len(paths) == 2
+
+
+def test_get_file_list_with_multiple_inputs(tmpdir):
+    tmp_dir1, _, _, _ = build_test_collection_parquet(tmpdir, tmpdir_name="a", nb_files=2)
+    tmp_dir2, _, _, _ = build_test_collection_parquet(tmpdir, tmpdir_name="b", nb_files=2)
+    fs, paths = get_file_list(path=[tmp_dir1, tmp_dir2], file_format="parquet")
+    assert isinstance(fs, LocalFileSystem)
+    assert len(paths) == 4
+
+
+def test_get_file_list_with_multiple_multiple_levels_input(tmpdir):
+    tmp_dir1, _, _, _ = build_test_collection_parquet(tmpdir, tmpdir_name="a", nb_files=2)
+    _, _, _, _ = build_test_collection_parquet(tmpdir, tmpdir_name="a/1", nb_files=2)
+    _, _, _, _ = build_test_collection_parquet(tmpdir, tmpdir_name="a/1/2", nb_files=2)
+    fs, paths = get_file_list(path=tmp_dir1, file_format="parquet")
+    assert isinstance(fs, LocalFileSystem)
+    assert len(paths) == 6

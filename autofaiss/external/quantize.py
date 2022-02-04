@@ -32,7 +32,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 def build_index(
-    embeddings: Union[str, np.ndarray],
+    embeddings: Union[str, np.ndarray, List[str]],
     index_path: str = "knn.index",
     index_infos_path: str = "index_infos.json",
     ids_path: Optional[str] = None,
@@ -59,8 +59,9 @@ def build_index(
 
     Parameters
     ----------
-    embeddings : Union[str, np.ndarray]
+    embeddings : Union[str, np.ndarray, List[str]]
         Local path containing all preprocessed vectors and cached files.
+        This could be a single directory or multiple directories.
         Files will be added if empty.
         Or directly the Numpy array of embeddings
     index_path: Optional(str)
@@ -135,14 +136,14 @@ def build_index(
         np.save(os.path.join(tmp_dir_embeddings.name, "emb.npy"), embeddings)
         embeddings_path = tmp_dir_embeddings.name
     else:
-        embeddings_path = embeddings
+        embeddings_path = embeddings  # type: ignore
 
     with Timeit("Launching the whole pipeline"):
-
-        nb_vectors, vec_dim = read_total_nb_vectors_and_dim(
-            embeddings_path, file_format=file_format, embedding_column_name=embedding_column_name
-        )
-        print(f"There are {nb_vectors} embeddings of dim {vec_dim}")
+        with Timeit("Reading total number of vectors and dimension"):
+            nb_vectors, vec_dim = read_total_nb_vectors_and_dim(
+                embeddings_path, file_format=file_format, embedding_column_name=embedding_column_name
+            )
+            print(f"There are {nb_vectors} embeddings of dim {vec_dim}")
 
         with Timeit("Compute estimated construction time of the index", indent=1):
             print(get_estimated_construction_time_infos(nb_vectors, vec_dim, indent=2))

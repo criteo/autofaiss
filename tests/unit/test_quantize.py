@@ -151,3 +151,31 @@ def test_quantize_with_pyspark(tmpdir):
 
     output_numpy_index_faiss = faiss.read_index(output_numpy_index)
     assert output_numpy_index_faiss.ntotal == len(expected_array)
+
+
+def test_quantize_with_multiple_inputs(tmpdir):
+    min_size = random.randint(1, 100)
+    max_size = random.randint(min_size, 10240)
+    dim = random.randint(1, 100)
+    nb_files = random.randint(1, 5)
+    tmp_dir1, _, _, expected_df1 = build_test_collection_parquet(
+        tmpdir, min_size=min_size, max_size=max_size, dim=dim, nb_files=nb_files, tmpdir_name="autofaiss_parquet1"
+    )
+    tmp_dir2, _, _, expected_df2 = build_test_collection_parquet(
+        tmpdir, min_size=min_size, max_size=max_size, dim=dim, nb_files=nb_files, tmpdir_name="autofaiss_parquet2"
+    )
+    expected_df = pd.concat([expected_df1, expected_df2])
+    index_parquet_path = os.path.join(tmpdir.strpath, "parquet_knn.index")
+    output_parquet_index_infos = os.path.join(tmpdir.strpath, "infos.json")
+    build_index(
+        embeddings=[tmp_dir1, tmp_dir2],
+        file_format="parquet",
+        embedding_column_name="embedding",
+        index_path=index_parquet_path,
+        index_infos_path=output_parquet_index_infos,
+        max_index_query_time_ms=10.0,
+        max_index_memory_usage="1G",
+        current_memory_available="2G",
+    )
+    output_parquet_index_faiss = faiss.read_index(index_parquet_path)
+    assert output_parquet_index_faiss.ntotal == len(expected_df)
