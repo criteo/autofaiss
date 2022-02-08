@@ -194,7 +194,7 @@ def get_file_list(path: Union[str, List[str]], file_format: str) -> Tuple[fsspec
     return fs, all_file_paths
 
 
-def make_path_absolute(path):
+def make_path_absolute(path: str) -> str:
     fs, p = fsspec.core.url_to_fs(path)
     if fs.protocol == "file":
         return os.path.abspath(p)
