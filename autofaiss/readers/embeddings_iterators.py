@@ -9,6 +9,7 @@ import pandas as pd
 import numpy as np
 from tqdm import tqdm as tq
 import fsspec
+import os
 import pyarrow.parquet as pq
 
 
@@ -193,10 +194,18 @@ def get_file_list(path: Union[str, List[str]], file_format: str) -> Tuple[fsspec
     return fs, all_file_paths
 
 
+def make_path_absolute(path):
+    fs, p = fsspec.core.url_to_fs(path)
+    if fs.protocol == "file":
+        return os.path.abspath(p)
+    return path
+
+
 def _get_file_list(
     path: str, file_format: str, sort_result: bool = True
 ) -> Tuple[fsspec.AbstractFileSystem, List[str]]:
     """Get the file system and all the file paths that matches `file_format` given a single path."""
+    path = make_path_absolute(path)
     fs, path_in_fs = fsspec.core.url_to_fs(path)
     prefix = path[: path.index(path_in_fs)]
     glob_pattern = path.rstrip("/") + f"**/*.{file_format}"
