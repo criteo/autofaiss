@@ -3,6 +3,7 @@ import re
 from typing import Optional, Tuple, Union, Callable, Any, List
 
 import faiss
+import numpy as np
 import pandas as pd
 from faiss import extract_index_ivf
 
@@ -144,7 +145,7 @@ def create_index(
             train_size = get_optimal_train_size(nb_vectors, index_key, memory_available_for_training, vec_dim)
             memory_needed_for_training = compute_memory_necessary_for_training(train_size, index_key, vec_dim)
             print(
-                f"Will use {train_size} vectors to train the index, "
+                f"\t\tWill use {train_size} vectors to train the index, "
                 f"that will use {cast_bytes_to_memory_string(memory_needed_for_training)} of memory"
             )
 
@@ -158,6 +159,19 @@ def create_index(
                     verbose=True,
                 )
             )
+
+            # Create mask for vectors with NaN or Inf values
+            to_remove_mask = np.any(np.isnan(train_vectors) | np.isinf(train_vectors), axis=1)
+
+            # Remove faulty vectors for training step
+            if np.any(to_remove_mask):
+                train_vectors = train_vectors[~to_remove_mask]
+                print(
+                    "\t\t[Warning] Some vectors are containing NaN or Inf values. "
+                    "These vectors won't be searchable, please fiter them out before using autofaiss."
+                    f"\t\t{len(np.sum(to_remove_mask))} vector(s) out of {train_size} were removed for "
+                    "the training step because there were containing NaN or Inf values"
+                )
 
         # Instanciate the index and train it
         # pylint: disable=no-member
