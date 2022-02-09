@@ -18,7 +18,7 @@ from fsspec.implementations.hdfs import PyArrowHDFS
 from tqdm import tqdm
 
 from autofaiss.indices.index_utils import _get_index_from_bytes, _get_bytes_from_index
-from autofaiss.readers.embeddings_iterators import get_file_list, get_matrix_reader
+from autofaiss.readers.embeddings_iterators import get_file_list, get_matrix_reader, make_path_absolute
 from autofaiss.utils.cast import cast_memory_to_bytes
 from autofaiss.utils.decorators import Timeit
 
@@ -343,4 +343,5 @@ def run(
 
 
 def _get_file_system(path: str) -> fsspec.AbstractFileSystem:
+    path = make_path_absolute(path)
     return fsspec.core.url_to_fs(path)[0]
