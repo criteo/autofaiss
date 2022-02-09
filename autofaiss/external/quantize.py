@@ -34,7 +34,7 @@ LOGGER = logging.getLogger(__name__)
 def build_index(
     embeddings: Union[str, np.ndarray, List[str]],
     index_path: Optional[str] = "knn.index",
-    index_infos_path: str = "index_infos.json",
+    index_infos_path: Optional[str] = "index_infos.json",
     ids_path: Optional[str] = None,
     save_on_disk: bool = True,
     file_format: str = "npy",
@@ -119,7 +119,11 @@ def build_index(
     elif save_on_disk:
         print("Please specify a index_path if you set save_on_disk as True")
         return None, None
-    index_infos_path = make_path_absolute(index_infos_path)
+    if index_infos_path is not None:
+        index_infos_path = make_path_absolute(index_infos_path)
+    elif save_on_disk:
+        print("Please specify a index_infos_path if you set save_on_disk as True")
+        return None, None
     if ids_path is not None:
         ids_path = make_path_absolute(ids_path)
 
