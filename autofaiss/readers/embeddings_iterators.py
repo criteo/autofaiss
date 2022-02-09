@@ -1,17 +1,16 @@
 """ Functions that read efficiently files stored on disk """
 import logging
-from multiprocessing.pool import ThreadPool
-from typing import Iterator, Optional, Tuple, List, Union
+import os
 import re
 from abc import ABC
+from multiprocessing.pool import ThreadPool
+from typing import Iterator, List, Optional, Tuple, Union
 
-import pandas as pd
-import numpy as np
-from tqdm import tqdm as tq
 import fsspec
-import os
+import numpy as np
+import pandas as pd
 import pyarrow.parquet as pq
-
+from tqdm import tqdm as tq
 
 LOGGER = logging.getLogger(__name__)
 
@@ -58,13 +57,19 @@ class NumpyEagerNdArray(AbstractArray):
         return self.n[start:end, :], None
 
 
-def read_numpy_header(f):
+def read_numpy_header(f: fsspec.spec.AbstractBufferedFile) -> Tuple[Tuple[int, int], str, int]:
+    """ Read the header of a numpy file to extract the shape, dtype, and the header_offset """
     f.seek(0)
     file_size = f.size if isinstance(f.size, int) else f.size()
     first_line = f.read(min(file_size, 300)).split(b"\n")[0]
     result = re.search(r"'shape': \(([0-9]+), ([0-9]+)\)", str(first_line))
+    if result is None:
+        raise ValueError(f"Could not find shape in the header of the numpy file {f.name}")
     shape = (int(result.group(1)), int(result.group(2)))
-    dtype = re.search(r"'descr': '([<f0-9]+)'", str(first_line)).group(1)
+    result = re.search(r"'descr': '([<f0-9]+)'", str(first_line))
+    if result is None:
+        raise ValueError(f"Could not find dtype in the header of the numpy file {f.name}")
+    dtype = result.group(1)
     end = len(first_line) + 1  # the first line content and the endline
     f.seek(0)
     return (shape, dtype, end)
@@ -129,7 +134,7 @@ class ParquetLazyNdArray(AbstractArray):
         self.embedding_column_name = embedding_column_name
         self.id_columns = id_columns
 
-    def get_rows(self, start, end) -> Tuple[np.ndarray, Optional[pd.DataFrame]]:
+    def get_rows(self, start: int, end: int) -> Tuple[np.ndarray, Optional[pd.DataFrame]]:
         table_slice = self.table.slice(start, end - start)
         embeddings_raw = table_slice[self.embedding_column_name].to_numpy()
         ids = table_slice.select(self.id_columns).to_pandas() if self.id_columns else None
@@ -139,7 +144,7 @@ class ParquetLazyNdArray(AbstractArray):
 class ParquetMatrixReader(AbstractMatrixReader):
     """Read a parquet file and provide its shape, row count and ndarray. Behaves as a context manager"""
 
-    def __init__(self, fs, file_path, embedding_column_name, id_columns=None):
+    def __init__(self, fs, file_path: str, embedding_column_name: str, id_columns: Optional[List[str]] = None):
         super().__init__(fs, file_path)
         self.embedding_column_name = embedding_column_name
         self.id_columns = id_columns
@@ -230,7 +235,7 @@ def read_first_file_shape(
 
 def get_file_shape(
     file_path: str, file_format: str, embedding_column_name: Optional[str], fs: fsspec.AbstractFileSystem
-):
+) -> Tuple[int, int]:
     with get_matrix_reader(file_format, fs, file_path, embedding_column_name) as matrix_reader:
         return matrix_reader.get_shape()
 
