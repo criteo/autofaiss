@@ -303,6 +303,12 @@ def run(
     embedding_ids_df_handler: Optional[Callable[[pd.DataFrame, int], Any]]
         The function that handles the embeddings Ids when id_columns is given
     """
+    if isinstance(embeddings_path, str):
+        embeddings_path = make_path_absolute(embeddings_path)
+    else:
+        embeddings_path = list(map(make_path_absolute, embeddings_path))
+    temporary_indices_folder = make_path_absolute(temporary_indices_folder)
+
     ss = _get_pyspark_active_session()
     # broadcast the index bytes
     trained_index_bytes = _get_bytes_from_index(faiss_index)
@@ -343,5 +349,4 @@ def run(
 
 
 def _get_file_system(path: str) -> fsspec.AbstractFileSystem:
-    path = make_path_absolute(path)
     return fsspec.core.url_to_fs(path)[0]
