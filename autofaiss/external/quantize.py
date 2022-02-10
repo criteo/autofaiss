@@ -15,7 +15,7 @@ import fire
 import fsspec
 import pandas as pd
 
-from autofaiss.readers.embeddings_iterators import read_total_nb_vectors_and_dim, make_path_absolute
+from autofaiss.readers.embeddings_iterators import read_total_nb_vectors_and_dim, make_path_absolute, get_file_list
 from autofaiss.external.build import (
     create_index,
     estimate_memory_required_for_index_creation,
@@ -152,9 +152,11 @@ def build_index(
 
     with Timeit("Launching the whole pipeline"):
         with Timeit("Reading total number of vectors and dimension"):
-            nb_vectors, vec_dim = read_total_nb_vectors_and_dim(
-                embeddings_path, file_format=file_format, embedding_column_name=embedding_column_name
+            _, embeddings_file_paths = get_file_list(path=embeddings_path, file_format=file_format)
+            nb_vectors, vec_dim, file_counts = read_total_nb_vectors_and_dim(
+                embeddings_file_paths, file_format=file_format, embedding_column_name=embedding_column_name
             )
+            embeddings_file_paths = [fp for fp, count in zip(embeddings_file_paths, file_counts) if count > 0]
             print(f"There are {nb_vectors} embeddings of dim {vec_dim}")
 
         with Timeit("Compute estimated construction time of the index", indent=1):
@@ -215,7 +217,7 @@ def build_index(
 
         with Timeit("Creating the index", indent=1):
             index = create_index(
-                embeddings_path,
+                embeddings_file_paths,
                 index_key,
                 metric_type,
                 nb_vectors,
@@ -228,6 +230,7 @@ def build_index(
                 make_direct_map=make_direct_map,
                 distributed=distributed,
                 temporary_indices_folder=temporary_indices_folder,
+                file_counts=file_counts if distributed is not None else None,
             )
 
         if index_param is None:
@@ -245,7 +248,7 @@ def build_index(
         with Timeit("Compute fast metrics", indent=1):
             metric_infos.update(
                 compute_fast_metrics(
-                    embeddings_path, index, file_format=file_format, embedding_column_name=embedding_column_name
+                    embeddings_file_paths, index, file_format=file_format, embedding_column_name=embedding_column_name
                 )
             )
 
@@ -384,7 +387,7 @@ def score_index(
 
     if memory_left < current_in_bytes * 0.1:
         print(
-            f"Not enough memory, at least {cast_bytes_to_memory_string(index_memory*1.1)}"
+            f"Not enough memory, at least {cast_bytes_to_memory_string(index_memory * 1.1)}"
             "is needed, please increase current_memory_available"
         )
         return None

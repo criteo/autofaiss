@@ -1,6 +1,6 @@
 """ Functions to compute metrics on an index """
 import os
-from typing import Dict, Union, Optional
+from typing import Dict, Union, Optional, List
 
 import numpy as np
 import faiss
@@ -15,7 +15,7 @@ from autofaiss.utils.decorators import Timeit
 
 
 def compute_fast_metrics(
-    embeddings_path: Union[np.ndarray, str],
+    embeddings_path: Union[np.ndarray, str, List[str]],
     index: faiss.Index,
     file_format: str = "npy",
     embedding_column_name: str = "embeddings",
@@ -28,19 +28,11 @@ def compute_fast_metrics(
     size_bytes = get_index_size(index)
     infos["size in bytes"] = size_bytes
 
-    if isinstance(embeddings_path, str):
+    if isinstance(embeddings_path, (list, str)):
         # pylint: disable=bare-except
         query_embeddings, _ = next(
             read_embeddings(
                 embeddings_path, file_format=file_format, embedding_column_name=embedding_column_name, verbose=False
-            )
-        )
-    elif isinstance(embeddings_path, list):
-        if len(embeddings_path) == 0:
-            raise ValueError("embeddings_path is an empty list")
-        query_embeddings, _ = next(
-            read_embeddings(
-                embeddings_path[0], file_format=file_format, embedding_column_name=embedding_column_name, verbose=False
             )
         )
     else:

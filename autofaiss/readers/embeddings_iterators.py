@@ -47,6 +47,9 @@ class AbstractMatrixReader(ABC):
     def get_eager_array(self) -> AbstractArray:
         pass
 
+    def is_empty(self) -> bool:
+        pass
+
 
 class NumpyEagerNdArray(AbstractArray):
     def __init__(self, f: Union[str, fsspec.core.OpenFile]):
@@ -107,6 +110,9 @@ class NumpyMatrixReader(AbstractMatrixReader):
     def get_lazy_array(self) -> NumpyLazyNdArray:
         return NumpyLazyNdArray(self.f)
 
+    def is_empty(self) -> bool:
+        return self.get_row_count() == 0
+
 
 class ParquetEagerNdArray(AbstractArray):
     def __init__(self, f, embedding_column_name: str, id_columns: Optional[List[str]] = None):
@@ -148,8 +154,11 @@ class ParquetMatrixReader(AbstractMatrixReader):
         parquet_file = pq.ParquetFile(self.f, memory_map=True)
         num_rows = parquet_file.metadata.num_rows
         batches = parquet_file.iter_batches(batch_size=1, columns=[self.embedding_column_name])
-        dimension = next(batches).to_pandas()[self.embedding_column_name].to_numpy()[0].shape[0]
-        return (num_rows, dimension)
+        try:
+            dimension = next(batches).to_pandas()[self.embedding_column_name].to_numpy()[0].shape[0]
+        except StopIteration:
+            return 0, None  # type: ignore
+        return num_rows, dimension
 
     def get_row_count(self) -> int:
         parquet_file = pq.ParquetFile(self.f, memory_map=True)
@@ -160,6 +169,9 @@ class ParquetMatrixReader(AbstractMatrixReader):
 
     def get_lazy_array(self) -> ParquetLazyNdArray:
         return ParquetLazyNdArray(self.f, self.embedding_column_name, self.id_columns)
+
+    def is_empty(self) -> bool:
+        return self.get_row_count() == 0
 
 
 matrix_readers_registry = {"parquet": ParquetMatrixReader, "npy": NumpyMatrixReader}
@@ -217,14 +229,13 @@ def _get_file_list(
 
 
 def read_first_file_shape(
-    embeddings_path: Union[str, List[str]], file_format: str, embedding_column_name: Optional[str] = None
+    embeddings_file_paths: List[str], file_format: str, embedding_column_name: Optional[str] = None
 ) -> Tuple[int, int]:
     """
     Read the shape of the first file in the embeddings directory.
     """
-    fs, file_paths = get_file_list(embeddings_path, file_format)
-
-    first_file_path = file_paths[0]
+    first_file_path = embeddings_file_paths[0]
+    fs, _ = fsspec.core.url_to_fs(first_file_path)
     return get_file_shape(first_file_path, file_format, embedding_column_name, fs)
 
 
@@ -236,14 +247,14 @@ def get_file_shape(
 
 
 def read_total_nb_vectors_and_dim(
-    embeddings_path: Union[str, List[str]], file_format: str = "npy", embedding_column_name: str = "embeddings"
-) -> Tuple[int, int]:
+    embeddings_file_paths: List[str], file_format: str = "npy", embedding_column_name: str = "embeddings"
+) -> Tuple[int, int, List[int]]:
     """
         Get the count and dim of embeddings.
         Parameters
         ----------
-        embeddings_path : str
-            Path of the embedding in numpy or parquet format.
+        embeddings_file_paths : str
+            List of embeddings file in numpy or parquet format.
         file_format : str (default "npy")
 
         Returns
@@ -252,28 +263,33 @@ def read_total_nb_vectors_and_dim(
             count: total number of vectors in the dataset.
             dim: embedding dimension
         """
-    fs, file_paths = get_file_list(embeddings_path, file_format)
-
-    _, dim = get_file_shape(file_paths[0], file_format=file_format, embedding_column_name=embedding_column_name, fs=fs)
+    if len(embeddings_file_paths) == 0:
+        raise ValueError("No file was found")
+    fs, _ = fsspec.core.url_to_fs(embeddings_file_paths[0])
+    _, dim = get_file_shape(
+        embeddings_file_paths[0], file_format=file_format, embedding_column_name=embedding_column_name, fs=fs
+    )
 
     def file_to_line_count(f):
         with get_matrix_reader(file_format, fs, f, embedding_column_name) as matrix_reader:
             return matrix_reader.get_row_count()
 
-    count = 0
+    total_count = 0
+    file_counts = []
     i = 0
-    with tq(total=len(file_paths)) as pbar:
+    with tq(total=len(embeddings_file_paths)) as pbar:
         with ThreadPool(50) as p:
-            for c in p.imap_unordered(file_to_line_count, file_paths):
-                count += c
+            for c in p.imap(file_to_line_count, embeddings_file_paths):
+                total_count += c
+                file_counts.append(c)
                 i += 1
                 pbar.update(1)
 
-    return count, dim
+    return total_count, dim, file_counts
 
 
 def read_embeddings(
-    embeddings_path: Union[str, List[str]],
+    embeddings_file_paths: Union[List[str], str],
     batch_size: Optional[int] = None,
     verbose: bool = True,
     file_format: str = "npy",
@@ -293,8 +309,8 @@ def read_embeddings(
 
     Parameters
     ----------
-    embeddings_path : str
-        Path on local disk of the embedding in numpy format.
+    embeddings_file_paths : List[str]
+        List of embeddings file in numpy or parquet format.
     batch_size : int (default None)
         Outputs a maximum of batch_size vectors, the default is the size of the first file
         This parameter is useful when working with many small files.
@@ -316,9 +332,13 @@ def read_embeddings(
         and (optionally) a DataFrame containing the mapping between id columns
         and an index in [0, total_nb_embeddings-1] store in a column "i"
     """
+    if isinstance(embeddings_file_paths, list) and len(embeddings_file_paths) == 0:
+        raise ValueError("embeddings_file_paths is an empty list")
+    if isinstance(embeddings_file_paths, str):
+        embeddings_file_paths = [embeddings_file_paths]
     try:
         first_vector_count, dim = read_first_file_shape(
-            embeddings_path, file_format, embedding_column_name=embedding_column_name
+            embeddings_file_paths, file_format, embedding_column_name=embedding_column_name
         )
     except StopIteration as err:
         raise Exception("no files to read from") from err
@@ -326,12 +346,12 @@ def read_embeddings(
     if batch_size is None:
         batch_size = first_vector_count
 
-    fs, file_paths = get_file_list(embeddings_path, file_format)
+    fs, _ = fsspec.core.url_to_fs(embeddings_file_paths[0])
     embeddings_batch = None
     ids_batch = None
     nb_emb_in_batch = 0
 
-    iterator = file_paths
+    iterator = embeddings_file_paths
     if verbose:
         iterator = tq(list(iterator))
 

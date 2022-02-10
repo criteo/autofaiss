@@ -91,7 +91,7 @@ def get_estimated_construction_time_infos(nb_vectors: int, vec_dim: int, indent:
 
 
 def create_index(
-    embeddings_path: Union[str, List[str]],
+    embeddings_file_paths: List[str],
     index_key: str,
     metric_type: Union[str, int],
     nb_vectors: int,
@@ -104,6 +104,7 @@ def create_index(
     make_direct_map: bool = False,
     distributed: Optional[str] = None,
     temporary_indices_folder: str = "hdfs://root/tmp/distributed_autofaiss_indices",
+    file_counts: List[int] = None,
 ):
     """
     Function that returns an index on the numpy arrays stored on disk in the embeddings_path path.
@@ -117,7 +118,7 @@ def create_index(
 
         # Get information for one partition
         _, vec_dim = read_first_file_shape(
-            embeddings_path, file_format=file_format, embedding_column_name=embedding_column_name
+            embeddings_file_paths, file_format=file_format, embedding_column_name=embedding_column_name
         )
 
         # Instanciate the index
@@ -151,7 +152,7 @@ def create_index(
             # Extract training vectors
             train_vectors, _ = next(
                 read_embeddings(
-                    embeddings_path,
+                    embeddings_file_paths,
                     file_format=file_format,
                     embedding_column_name=embedding_column_name,
                     batch_size=train_size,
@@ -207,7 +208,7 @@ def create_index(
         if distributed is None:
             for batch_id, (vec_batch, ids_batch) in enumerate(
                 read_embeddings(
-                    embeddings_path,
+                    embeddings_file_paths,
                     file_format=file_format,
                     embedding_column_name=embedding_column_name,
                     id_columns=id_columns,
@@ -222,9 +223,10 @@ def create_index(
             index = run(
                 faiss_index=index,
                 embedding_column_name=embedding_column_name,
+                file_counts=file_counts,  # type: ignore
                 id_columns=id_columns,
                 file_format=file_format,
-                embeddings_path=embeddings_path,
+                embeddings_file_paths=embeddings_file_paths,
                 batch_size=batch_size,
                 embedding_ids_df_handler=embedding_ids_df_handler,
                 temporary_indices_folder=temporary_indices_folder,

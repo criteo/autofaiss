@@ -7,7 +7,7 @@ import os
 from functools import partial
 from multiprocessing.pool import ThreadPool
 from tempfile import TemporaryDirectory
-from typing import List, Optional, Iterator, Tuple, Callable, Any, Union
+from typing import List, Optional, Iterator, Tuple, Callable, Any
 
 import faiss
 import fsspec
@@ -18,7 +18,7 @@ from fsspec.implementations.hdfs import PyArrowHDFS
 from tqdm import tqdm
 
 from autofaiss.indices.index_utils import _get_index_from_bytes, _get_bytes_from_index
-from autofaiss.readers.embeddings_iterators import get_file_list, get_matrix_reader, make_path_absolute
+from autofaiss.readers.embeddings_iterators import get_matrix_reader, make_path_absolute
 from autofaiss.utils.cast import cast_memory_to_bytes
 from autofaiss.utils.decorators import Timeit
 
@@ -260,32 +260,14 @@ def _merge_index(
     return merged_index
 
 
-def _get_chunk_sizes(
-    embed_paths: List[str], embedding_column_name: str, id_columns: Optional[List[str]], file_format: str
-) -> List[int]:
-    """Get chunk sizes from a list of embeddings files."""
-
-    def _get_parquet_row_count(embed_path: str) -> int:
-        with get_matrix_reader(
-            file_format, _get_file_system(embed_path), embed_path, embedding_column_name, id_columns
-        ) as matrix_reader:
-            return matrix_reader.get_row_count()
-
-    chunk_sizes = []
-    # use ThreadPool instead of multiprocessing.Pool to avoid having problem in _get_parquet_row_count
-    with ThreadPool(16) as pool:
-        for row_count in pool.imap(_get_parquet_row_count, embed_paths):
-            chunk_sizes.append(row_count)
-    return chunk_sizes
-
-
 def _get_file_system(path: str) -> fsspec.AbstractFileSystem:
     return fsspec.core.url_to_fs(path)[0]
 
 
 def run(
     faiss_index: faiss.Index,
-    embeddings_path: Union[str, List[str]],
+    embeddings_file_paths: List[str],
+    file_counts: List[int],
     batch_size: int,
     embedding_column_name: str = "embedding",
     num_cores_per_executor: Optional[int] = None,
@@ -301,8 +283,10 @@ def run(
     ----------
     faiss_index: faiss.Index
         Trained faiss index
-    embeddings_path: str
-        Embeddings folder
+    embeddings_file_paths: List[str]
+        List of embeddings file in numpy or parquet format.
+    file_counts: List[str]
+        Number of lines for each file
     batch_size: int
         Number of vectors handled per worker
     embedding_column_name: str
@@ -319,23 +303,17 @@ def run(
     embedding_ids_df_handler: Optional[Callable[[pd.DataFrame, int], Any]]
         The function that handles the embeddings Ids when id_columns is given
     """
-    if isinstance(embeddings_path, str):
-        embeddings_path = make_path_absolute(embeddings_path)
-    else:
-        embeddings_path = list(map(make_path_absolute, embeddings_path))
     temporary_indices_folder = make_path_absolute(temporary_indices_folder)
 
     ss = _get_pyspark_active_session()
     # broadcast the index bytes
     trained_index_bytes = _get_bytes_from_index(faiss_index)
     broadcast_trained_index_bytes = ss.sparkContext.broadcast(trained_index_bytes)
-    _, embed_paths = get_file_list(path=embeddings_path, file_format=file_format)
-    chunk_sizes = _get_chunk_sizes(embed_paths, embedding_column_name, id_columns=id_columns, file_format=file_format)
-    nb_vectors = sum(chunk_sizes)
+    nb_vectors = sum(file_counts)
     nb_batches = math.ceil(nb_vectors / batch_size)  # use math.ceil to make sure that we cover every vector
     batches = _batch_loader(batch_size=batch_size, nb_batches=nb_batches)
     rdd = ss.sparkContext.parallelize(batches, nb_batches)
-    file_system = _get_file_system(embed_paths[0])
+    file_system = _get_file_system(embeddings_file_paths[0])
     with Timeit("-> Adding indices", indent=2):
         rdd.foreach(
             lambda x: _add_index(
@@ -343,9 +321,9 @@ def run(
                 start=x[1],
                 end=x[2],
                 broadcast_trained_index_bytes=broadcast_trained_index_bytes,
-                embeddings_file_paths=embed_paths,
+                embeddings_file_paths=embeddings_file_paths,
                 file_system=file_system,
-                chunk_sizes=chunk_sizes,
+                chunk_sizes=file_counts,
                 embedding_column_name=embedding_column_name,
                 id_columns=id_columns,
                 small_indices_folder=temporary_indices_folder,
