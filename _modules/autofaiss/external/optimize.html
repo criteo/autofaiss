@@ -345,8 +345,11 @@
             <span class="k">for</span> <span class="n">nb_clusters</span> <span class="ow">in</span> <span class="n">nb_clusters_list</span><span class="p">:</span>
 
                 <span class="c1"># Compute quantized vector size</span>
-                <span class="n">cluster_size_byte</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">+</span> <span class="p">(</span><span class="n">log2</span><span class="p">(</span><span class="n">nb_clusters</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="mi">8</span>
-                <span class="n">vector_size_byte</span> <span class="o">=</span> <span class="n">pq</span> <span class="o">+</span> <span class="n">cluster_size_byte</span>
+
+                <span class="c1"># https://github.com/facebookresearch/faiss/blob/main/faiss/invlists/InvertedLists.h#L193</span>
+                <span class="n">embedding_id_byte</span> <span class="o">=</span> <span class="mi">8</span>
+
+                <span class="n">vector_size_byte</span> <span class="o">=</span> <span class="n">pq</span> <span class="o">+</span> <span class="n">embedding_id_byte</span>
 
                 <span class="c1"># Compute compression ratio with quantization PQx</span>
                 <span class="n">compression_ratio</span> <span class="o">=</span> <span class="p">(</span><span class="mi">4</span> <span class="o">*</span> <span class="n">dim_vector</span><span class="p">)</span> <span class="o">/</span> <span class="n">vector_size_byte</span>

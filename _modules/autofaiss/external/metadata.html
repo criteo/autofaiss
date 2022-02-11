@@ -88,7 +88,7 @@
 
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">from</span> <span class="nn">enum</span> <span class="kn">import</span> <span class="n">Enum</span>
-<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">ceil</span><span class="p">,</span> <span class="n">log2</span>
+<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">ceil</span>
 
 <span class="kn">from</span> <span class="nn">autofaiss.utils.cast</span> <span class="kn">import</span> <span class="n">cast_bytes_to_memory_string</span>
 <span class="kn">from</span> <span class="nn">autofaiss.external.descriptions</span> <span class="kn">import</span> <span class="p">(</span>
@@ -221,8 +221,11 @@
 
             <span class="c1"># We neglict the size of the OPQ table for the moment.</span>
             <span class="n">code_size</span> <span class="o">=</span> <span class="n">ceil</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;pq&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;nbits&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="mi">8</span><span class="p">)</span>
-            <span class="n">cluster_size_byte</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">+</span> <span class="nb">int</span><span class="p">((</span><span class="n">log2</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;ncentroids&quot;</span><span class="p">])</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="mi">8</span><span class="p">)</span>
-            <span class="n">vector_size_byte</span> <span class="o">=</span> <span class="n">code_size</span> <span class="o">+</span> <span class="n">cluster_size_byte</span>
+
+            <span class="c1"># https://github.com/facebookresearch/faiss/blob/main/faiss/invlists/InvertedLists.h#L193</span>
+            <span class="n">embedding_id_byte</span> <span class="o">=</span> <span class="mi">8</span>
+
+            <span class="n">vector_size_byte</span> <span class="o">=</span> <span class="n">code_size</span> <span class="o">+</span> <span class="n">embedding_id_byte</span>
 
             <span class="n">vectors_size_in_bytes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nb_vectors</span> <span class="o">*</span> <span class="n">vector_size_byte</span>
             <span class="n">centroid_size_in_bytes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;ncentroids&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim_vector</span> <span class="o">*</span> <span class="mi">4</span>
