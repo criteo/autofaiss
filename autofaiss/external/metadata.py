@@ -4,7 +4,7 @@ Index metadata for Faiss indices.
 
 import re
 from enum import Enum
-from math import ceil, log2
+from math import ceil
 
 from autofaiss.utils.cast import cast_bytes_to_memory_string
 from autofaiss.external.descriptions import (
@@ -137,8 +137,11 @@ class IndexMetadata:
 
             # We neglict the size of the OPQ table for the moment.
             code_size = ceil(self.params["pq"] * self.params["nbits"] / 8)
-            cluster_size_byte = 1 + int((log2(self.params["ncentroids"]) - 1) // 8)
-            vector_size_byte = code_size + cluster_size_byte
+
+            # https://github.com/facebookresearch/faiss/blob/main/faiss/invlists/InvertedLists.h#L193
+            embedding_id_byte = 8
+
+            vector_size_byte = code_size + embedding_id_byte
 
             vectors_size_in_bytes = self.nb_vectors * vector_size_byte
             centroid_size_in_bytes = self.params["ncentroids"] * self.dim_vector * 4
