@@ -200,30 +200,38 @@ def _parallel_download_indices_from_remote(
             pass
 
 
-def _merge_index(small_indices_folder: str, max_size_on_disk: str = "100GB") -> faiss.Index:
+def _get_stage2_folder(tmp_folder: str) -> str:
+    """Get the temporary folder path used for the 2nd stage of merging"""
+    return tmp_folder.rstrip("/") + "/stage-2/"
+
+
+def _merge_index(
+    small_indices_folder: str,
+    batch_id: Optional[int] = None,
+    start: Optional[int] = None,
+    end: Optional[int] = None,
+    max_size_on_disk: str = "100GB",
+) -> faiss.Index:
     """Merge all the indices in `small_indices_folder` into single one return the merged index."""
     fs = _get_file_system(small_indices_folder)
     small_indices_files = fs.ls(small_indices_folder, detail=False)
+    small_indices_files = small_indices_files[start:end]
+
     if len(small_indices_files) == 0:
         raise ValueError(f"No small index is saved in {small_indices_folder}")
-
-    def _get_index_from_file(filepath: str) -> faiss.Index:
-        with open(filepath, "rb") as f:
-            index_bytes = f.read()
-        return _get_index_from_bytes(index_bytes)
 
     def _merge_from_local(merged: Optional[faiss.Index] = None) -> faiss.Index:
         local_file_paths = [
             os.path.join(local_indices_folder, filename) for filename in os.listdir(local_indices_folder)
         ]
         if merged is None:
-            merged = _get_index_from_file(local_file_paths[0])
+            merged = faiss.read_index(local_file_paths[0])
             start_index = 1
         else:
             start_index = 0
 
         for rest_index_file in tqdm(local_file_paths[start_index:]):
-            index = _get_index_from_file(rest_index_file)
+            index = faiss.read_index(rest_index_file)
             faiss.merge_into(merged, index, shift_ids=True)
         return merged
 
@@ -245,6 +253,10 @@ def _merge_index(small_indices_folder: str, max_size_on_disk: str = "100GB") -> 
                     )
                     merged_index = _merge_from_local(merged_index)
                 pbar.update(1)
+
+    tmp_stage2 = _get_stage2_folder(small_indices_folder)
+    if batch_id is not None:
+        _save_small_index(index=merged_index, batch_id=batch_id, small_indices_folder=tmp_stage2)
     return merged_index
 
 
@@ -265,6 +277,10 @@ def _get_chunk_sizes(
         for row_count in pool.imap(_get_parquet_row_count, embed_paths):
             chunk_sizes.append(row_count)
     return chunk_sizes
+
+
+def _get_file_system(path: str) -> fsspec.AbstractFileSystem:
+    return fsspec.core.url_to_fs(path)[0]
 
 
 def run(
@@ -340,13 +356,19 @@ def run(
         )
 
     with Timeit("-> Merging indices", indent=2):
-        merged_index = _merge_index(temporary_indices_folder)
-
         fs = _get_file_system(temporary_indices_folder)
+        small_indices_files = fs.ls(temporary_indices_folder, detail=False)
+        batch_size = 100
+        nb_batches = math.ceil(len(small_indices_files) / batch_size)
+        merge_batches = _batch_loader(batch_size=batch_size, nb_batches=nb_batches)
+        rdd = ss.sparkContext.parallelize(merge_batches, nb_batches)
+        # Merge indices in two stages
+        # stage1: each executor merges a batch of indices and saves the merged index to stage2 folder
+        rdd.foreach(
+            lambda x: _merge_index(small_indices_folder=temporary_indices_folder, batch_id=x[0], start=x[1], end=x[2],)  # type: ignore
+        )
+        # stage2: driver merges the indices generated from stage1
+        merged_index = _merge_index(_get_stage2_folder(temporary_indices_folder))
         fs.rm(temporary_indices_folder, recursive=True)
 
     return merged_index
-
-
-def _get_file_system(path: str) -> fsspec.AbstractFileSystem:
-    return fsspec.core.url_to_fs(path)[0]
