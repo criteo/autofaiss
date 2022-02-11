@@ -261,8 +261,11 @@ def get_optimal_quantization(
             for nb_clusters in nb_clusters_list:
 
                 # Compute quantized vector size
-                cluster_size_byte = 1 + (log2(nb_clusters) - 1) // 8
-                vector_size_byte = pq + cluster_size_byte
+
+                # https://github.com/facebookresearch/faiss/blob/main/faiss/invlists/InvertedLists.h#L193
+                embedding_id_byte = 8
+
+                vector_size_byte = pq + embedding_id_byte
 
                 # Compute compression ratio with quantization PQx
                 compression_ratio = (4 * dim_vector) / vector_size_byte
