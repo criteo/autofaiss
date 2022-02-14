@@ -25,7 +25,7 @@ def test_quantize(tmpdir):
     dim = random.randint(1, 100)
     nb_files = random.randint(1, 5)
 
-    tmp_dir, sizes, dim, expected_array = build_test_collection_numpy(
+    tmp_dir, sizes, dim, expected_array, _ = build_test_collection_numpy(
         tmpdir, min_size=min_size, max_size=max_size, dim=dim, nb_files=nb_files
     )
 
@@ -44,7 +44,7 @@ def test_quantize(tmpdir):
     output_numpy_index_faiss = faiss.read_index(output_numpy_index)
     assert output_numpy_index_faiss.ntotal == len(expected_array)
 
-    tmp_dir, sizes, dim, expected_df = build_test_collection_parquet(
+    tmp_dir, sizes, dim, expected_df, _ = build_test_collection_parquet(
         tmpdir, min_size=min_size, max_size=max_size, dim=dim, nb_files=nb_files
     )
 
@@ -71,7 +71,7 @@ def test_quantize_with_ids(tmpdir):
     dim = random.randint(1, 100)
     nb_files = random.randint(1, 5)
 
-    tmp_dir, sizes, dim, expected_df = build_test_collection_parquet(
+    tmp_dir, sizes, dim, expected_df, _ = build_test_collection_parquet(
         tmpdir, min_size=min_size, max_size=max_size, dim=dim, nb_files=nb_files
     )
 
@@ -106,7 +106,7 @@ def test_quantize_with_pyspark(tmpdir):
     max_size = random.randint(min_size, 10240)
     dim = random.randint(1, 100)
     nb_files = random.randint(1, 5)
-    tmp_dir, _, _, expected_df = build_test_collection_parquet(
+    tmp_dir, _, _, expected_df, _ = build_test_collection_parquet(
         tmpdir, min_size=min_size, max_size=max_size, dim=dim, nb_files=nb_files
     )
     index_parquet_path = os.path.join(tmpdir.strpath, "parquet_knn.index")
@@ -131,7 +131,7 @@ def test_quantize_with_pyspark(tmpdir):
     assert output_parquet_index_faiss.ntotal == len(expected_df)
     pd.testing.assert_frame_equal(output_parquet_ids.reset_index(drop=True), expected_df[["id"]].reset_index(drop=True))
 
-    tmp_dir, _, _, expected_array = build_test_collection_numpy(
+    tmp_dir, _, _, expected_array, _ = build_test_collection_numpy(
         tmpdir, min_size=min_size, max_size=max_size, dim=dim, nb_files=nb_files
     )
     output_numpy_index = os.path.join(tmpdir.strpath, "numpy_knn.index")
@@ -158,10 +158,10 @@ def test_quantize_with_multiple_inputs(tmpdir):
     max_size = random.randint(min_size, 10240)
     dim = random.randint(1, 100)
     nb_files = random.randint(1, 5)
-    tmp_dir1, _, _, expected_df1 = build_test_collection_parquet(
+    tmp_dir1, _, _, expected_df1, _ = build_test_collection_parquet(
         tmpdir, min_size=min_size, max_size=max_size, dim=dim, nb_files=nb_files, tmpdir_name="autofaiss_parquet1"
     )
-    tmp_dir2, _, _, expected_df2 = build_test_collection_parquet(
+    tmp_dir2, _, _, expected_df2, _ = build_test_collection_parquet(
         tmpdir, min_size=min_size, max_size=max_size, dim=dim, nb_files=nb_files, tmpdir_name="autofaiss_parquet2"
     )
     expected_df = pd.concat([expected_df1, expected_df2])
