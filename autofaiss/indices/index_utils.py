@@ -7,6 +7,7 @@ from pathlib import Path
 from tempfile import NamedTemporaryFile
 from typing import Dict, Optional, Union
 import random
+from autofaiss import logger
 
 import faiss
 import numpy as np
@@ -83,7 +84,7 @@ def search_speed_test(
             break
 
     speed_list_ms = np.array(speed_list_ms)
-    print(len(speed_list_ms))
+    logger.info(len(speed_list_ms))
 
     # avg2 = 1000 * (time.perf_counter() - test_start_time_s) / len(speed_list_ms)
 

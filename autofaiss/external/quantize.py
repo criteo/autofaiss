@@ -4,7 +4,7 @@ import logging
 from typing import Any, Tuple, Dict, Optional, Union, List
 import os
 import uuid
-from pprint import pprint as pp
+from pprint import pformat
 import multiprocessing
 import tempfile
 
@@ -15,6 +15,7 @@ import fire
 import fsspec
 import pandas as pd
 
+from autofaiss import logger
 from autofaiss.readers.embeddings_iterators import read_total_nb_vectors_and_dim, make_path_absolute, get_file_list
 from autofaiss.external.build import (
     create_index,
@@ -27,8 +28,6 @@ from autofaiss.indices.index_utils import set_search_hyperparameters
 from autofaiss.utils.decorators import Timeit
 from autofaiss.utils.cast import cast_memory_to_bytes, cast_bytes_to_memory_string
 import numpy as np
-
-LOGGER = logging.getLogger(__name__)
 
 
 def build_index(
@@ -117,12 +116,12 @@ def build_index(
     if index_path is not None:
         index_path = make_path_absolute(index_path)
     elif save_on_disk:
-        print("Please specify a index_path if you set save_on_disk as True")
+        logger.error("Please specify a index_path if you set save_on_disk as True")
         return None, None
     if index_infos_path is not None:
         index_infos_path = make_path_absolute(index_infos_path)
     elif save_on_disk:
-        print("Please specify a index_infos_path if you set save_on_disk as True")
+        logger.error("Please specify a index_infos_path if you set save_on_disk as True")
         return None, None
     if ids_path is not None:
         ids_path = make_path_absolute(ids_path)
@@ -132,7 +131,7 @@ def build_index(
     memory_left = current_bytes - max_index_bytes
 
     if memory_left < current_bytes * 0.1:
-        print(
+        logger.error(
             "You do not have enough memory to build this index"
             "please increase current_memory_available or decrease max_index_memory_usage"
         )
@@ -140,7 +139,7 @@ def build_index(
 
     if nb_cores is None:
         nb_cores = multiprocessing.cpu_count()
-    print(f"Using {nb_cores} omp threads (processes), consider increasing --nb_cores if you have more")
+    logger.info(f"Using {nb_cores} omp threads (processes), consider increasing --nb_cores if you have more")
     faiss.omp_set_num_threads(nb_cores)
 
     if isinstance(embeddings, np.ndarray):
@@ -157,16 +156,18 @@ def build_index(
                 embeddings_file_paths, file_format=file_format, embedding_column_name=embedding_column_name
             )
             embeddings_file_paths = [fp for fp, count in zip(embeddings_file_paths, file_counts) if count > 0]
-            print(f"There are {nb_vectors} embeddings of dim {vec_dim}")
+            logger.info(f"There are {nb_vectors} embeddings of dim {vec_dim}")
 
         with Timeit("Compute estimated construction time of the index", indent=1):
-            print(get_estimated_construction_time_infos(nb_vectors, vec_dim, indent=2))
+            # keep indents by printing per line
+            for line in get_estimated_construction_time_infos(nb_vectors, vec_dim, indent=2).split("\n"):
+                logger.info(line)
 
         with Timeit("Checking that your have enough memory available to create the index", indent=1):
             necessary_mem, index_key_used = estimate_memory_required_for_index_creation(
                 nb_vectors, vec_dim, index_key, max_index_memory_usage, make_direct_map
             )
-            print(
+            logger.info(
                 f"{cast_bytes_to_memory_string(necessary_mem)} of memory "
                 "will be needed to build the index (more might be used if you have more)"
             )
@@ -182,7 +183,7 @@ def build_index(
                     "used for clusterisation is responsible for this high memory usage."
                     "Consider increasing the options current_memory_available or decreasing max_index_memory_usage"
                 )
-                print(r)
+                logger.error(r)
                 return None, None
 
         if index_key is None:
@@ -199,20 +200,20 @@ def build_index(
                 index_key = best_index_keys[0]
 
         if id_columns is not None:
-            print(f"Id columns provided {id_columns} - will be reading the corresponding columns")
+            logger.info(f"Id columns provided {id_columns} - will be reading the corresponding columns")
             if ids_path is not None:
-                print(f"\tWill be writing the Ids DataFrame in parquet format to {ids_path}")
+                logger.info(f"\tWill be writing the Ids DataFrame in parquet format to {ids_path}")
                 fs, _ = fsspec.core.url_to_fs(ids_path)
                 fs.mkdirs(ids_path, exist_ok=True)
             else:
-                print("\tAs ids_path=None - the Ids DataFrame will not be written and will be ignored subsequently")
-                print("\tPlease provide a value ids_path for the Ids to be written")
+                logger.error("\tAs ids_path=None - the Ids DataFrame will not be written and will be ignored subsequently")
+                logger.error("\tPlease provide a value ids_path for the Ids to be written")
 
         def write_ids_df_to_parquet(ids: pd.DataFrame, batch_id: int):
             filename = f"part-{batch_id:08d}-{uuid.uuid1()}.parquet"
             output_file = os.path.join(ids_path, filename)  # type: ignore
             with fsspec.open(output_file, "wb") as f:
-                LOGGER.debug(f"Writing id DataFrame to file {output_file}")
+                logger.debug(f"Writing id DataFrame to file {output_file}")
                 ids.to_parquet(f)
 
         with Timeit("Creating the index", indent=1):
@@ -239,7 +240,7 @@ def build_index(
 
         # Set search hyperparameters for the index
         set_search_hyperparameters(index, index_param, use_gpu)
-        print(f"The best hyperparameters are: {index_param}")
+        logger.info(f"The best hyperparameters are: {index_param}")
 
         metric_infos: Dict[str, Union[str, float, int]] = {}
         metric_infos["index_key"] = index_key
@@ -259,8 +260,8 @@ def build_index(
                 with fsspec.open(index_infos_path, "w").open() as f:
                     json.dump(metric_infos, f)
 
-        print("Recap:")
-        pp(metric_infos)
+        logger.info("Recap:")
+        logger.info(pformat(metric_infos))
 
     return index, metric_infos
 
@@ -323,7 +324,7 @@ def tune_index(
         with fsspec.open(output_index_path, "wb").open() as f:
             faiss.write_index(index, faiss.PyCallbackIOWriter(f.write))
 
-    print(f"The optimal hyperparameters are {index_param}, the index with these parameters has been saved.")
+    logger.info(f"The optimal hyperparameters are {index_param}, the index with these parameters has been saved.")
 
     return index
 
@@ -379,14 +380,14 @@ def score_index(
     with Timeit("Compute fast metrics"):
         infos.update(compute_fast_metrics(embeddings_path, index))
 
-    print("Intermediate recap:")
-    pp(infos)
+    logger.info("Intermediate recap:")
+    logger.info(pformat(infos))
 
     current_in_bytes = cast_memory_to_bytes(current_memory_available)
     memory_left = current_in_bytes - index_memory
 
     if memory_left < current_in_bytes * 0.1:
-        print(
+        logger.info(
             f"Not enough memory, at least {cast_bytes_to_memory_string(index_memory * 1.1)}"
             "is needed, please increase current_memory_available"
         )
@@ -395,8 +396,8 @@ def score_index(
     with Timeit("Compute medium metrics"):
         infos.update(compute_medium_metrics(embeddings_path, index, memory_left))
 
-    print("Performances recap:")
-    pp(infos)
+    logger.info("Performances recap:")
+    logger.info(pformat(infos))
 
     if save_on_disk:
         with fsspec.open(output_index_info_path, "w").open() as f:

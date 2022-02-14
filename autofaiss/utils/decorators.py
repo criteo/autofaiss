@@ -5,6 +5,7 @@ import time
 from contextlib import ContextDecorator
 from datetime import datetime
 from typing import Optional
+from autofaiss import logger
 
 
 class Timeit(ContextDecorator):
@@ -21,7 +22,9 @@ class Timeit(ContextDecorator):
             if self.comment is not None:
                 space = "\t" * self.indent
                 start_date = datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
-                print(f"{space}{self.comment} {start_date}", flush=True)
+                logger.info(f"{space}{self.comment} {start_date}")
+                # previously used print had flush=True, this flushes all handlers
+                [h.flush() for h in logger.handlers]
             self.start_time = time.perf_counter()
 
     def __exit__(self, *exc):
@@ -29,7 +32,7 @@ class Timeit(ContextDecorator):
             end_time = time.perf_counter()
             run_time = end_time - self.start_time
             space = "\t" * self.indent
-            print(f'{space}>>> Finished "{self.comment}" in {run_time:.4f} secs')
+            logger.info(f'{space}>>> Finished "{self.comment}" in {run_time:.4f} secs')
 
 
 timeit = Timeit()
@@ -44,7 +47,7 @@ def timer(func):
         value = func(*args, **kwargs)
         end_time = time.perf_counter()
         run_time = end_time - start_time
-        print(f"Finished {func.__name__!r} in {run_time:.4f} secs")
+        logger.info(f"Finished {func.__name__!r} in {run_time:.4f} secs")
         return value
 
     return wrapper_timer
