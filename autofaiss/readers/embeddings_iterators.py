@@ -12,7 +12,6 @@ import fsspec
 import os
 import pyarrow.parquet as pq
 
-
 LOGGER = logging.getLogger(__name__)
 
 
@@ -335,7 +334,11 @@ def read_embeddings(
     if isinstance(embeddings_file_paths, list) and len(embeddings_file_paths) == 0:
         raise ValueError("embeddings_file_paths is an empty list")
     if isinstance(embeddings_file_paths, str):
-        embeddings_file_paths = [embeddings_file_paths]
+        fs, _ = fsspec.core.url_to_fs(embeddings_file_paths)
+        if fs.isdir(embeddings_file_paths):
+            _, embeddings_file_paths = get_file_list(embeddings_file_paths, file_format)
+        else:
+            embeddings_file_paths = [embeddings_file_paths]
     try:
         first_vector_count, dim = read_first_file_shape(
             embeddings_file_paths, file_format, embedding_column_name=embedding_column_name
