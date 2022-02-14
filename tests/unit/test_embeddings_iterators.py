@@ -1,9 +1,7 @@
 import logging
 import os
 import random
-import shutil
 
-import pytest
 from fsspec.implementations.local import LocalFileSystem
 
 from autofaiss.readers.embeddings_iterators import (
@@ -17,6 +15,10 @@ import pandas as pd
 import py
 
 logging.basicConfig(level=logging.DEBUG)
+
+
+def list_file_paths(dir_path):
+    return [os.path.join(dir_path, filename) for filename in os.listdir(dir_path)]
 
 
 def build_test_collection_numpy(tmpdir: py.path, min_size=2, max_size=10000, dim=512, nb_files=5):
@@ -56,14 +58,16 @@ def test_read_first_file_shape(tmpdir):
     tmp_dir, sizes, dim, _ = build_test_collection_numpy(
         tmpdir, min_size=expected_size, max_size=expected_size, dim=expected_dim, nb_files=5
     )
-    num_rows, dim = read_first_file_shape(tmp_dir, file_format="npy")
+    num_rows, dim = read_first_file_shape(list_file_paths(tmp_dir), file_format="npy")
     assert num_rows == expected_size
     assert dim == expected_dim
 
     tmp_dir, sizes, dim, _ = build_test_collection_parquet(
         tmpdir, min_size=expected_size, max_size=expected_size, dim=expected_dim, nb_files=5
     )
-    num_rows, dim = read_first_file_shape(tmp_dir, file_format="parquet", embedding_column_name="embedding")
+    num_rows, dim = read_first_file_shape(
+        list_file_paths(tmp_dir), file_format="parquet", embedding_column_name="embedding"
+    )
     assert num_rows == expected_size
     assert dim == expected_dim
 
@@ -78,7 +82,7 @@ def test_read_embeddings(tmpdir):
         tmpdir, min_size=min_size, max_size=max_size, dim=dim, nb_files=nb_files
     )
     batch_size = random.randint(min_size, max_size)
-    it = read_embeddings(tmp_dir, file_format="npy", batch_size=batch_size)
+    it = read_embeddings(list_file_paths(tmp_dir), file_format="npy", batch_size=batch_size)
     all_batches = list(it)
     all_shapes = [x[0].shape for x in all_batches]
     actual_array = np.vstack([x[0] for x in all_batches])
@@ -92,7 +96,9 @@ def test_read_embeddings(tmpdir):
     )
     expected_array = np.vstack(expected_df["embedding"])
     batch_size = random.randint(min_size, max_size)
-    it = read_embeddings(tmp_dir, file_format="parquet", batch_size=batch_size, embedding_column_name="embedding")
+    it = read_embeddings(
+        list_file_paths(tmp_dir), file_format="parquet", batch_size=batch_size, embedding_column_name="embedding"
+    )
     all_batches = list(it)
     all_shapes = [x[0].shape for x in all_batches]
     actual_array = np.vstack([x[0] for x in all_batches])
@@ -114,7 +120,11 @@ def test_read_embeddings_with_ids(tmpdir):
     expected_array = np.vstack(expected_df["embedding"])
     batch_size = random.randint(min_size, max_size)
     it = read_embeddings(
-        tmp_dir, file_format="parquet", batch_size=batch_size, embedding_column_name="embedding", id_columns=["id"]
+        list_file_paths(tmp_dir),
+        file_format="parquet",
+        batch_size=batch_size,
+        embedding_column_name="embedding",
+        id_columns=["id"],
     )
     all_batches = list(it)
     all_shapes = [x[0].shape for x in all_batches]
@@ -134,26 +144,27 @@ def test_read_total_nb_vectors(tmpdir):
     max_size = random.randint(min_size, 10240)
     dim = random.randint(1, 1000)
     nb_files = random.randint(1, 10)
-
     tmp_dir, sizes, dim, expected_array = build_test_collection_numpy(
         tmpdir, min_size=min_size, max_size=max_size, dim=dim, nb_files=nb_files
     )
     expected_count = len(expected_array)
-    actual_count, actual_dim = read_total_nb_vectors_and_dim(tmp_dir, file_format="npy")
+    actual_count, actual_dim, file_counts = read_total_nb_vectors_and_dim(list_file_paths(tmp_dir), file_format="npy")
 
     assert actual_count == expected_count
     assert actual_dim == dim
+    assert sum(file_counts) == actual_count
 
     tmp_dir, sizes, dim, expected_df = build_test_collection_parquet(
         tmpdir, min_size=min_size, max_size=max_size, dim=dim, nb_files=nb_files
     )
     expected_count = len(expected_df)
-    actual_count, actual_dim = read_total_nb_vectors_and_dim(
-        tmp_dir, file_format="parquet", embedding_column_name="embedding"
+    actual_count, actual_dim, file_counts = read_total_nb_vectors_and_dim(
+        list_file_paths(tmp_dir), file_format="parquet", embedding_column_name="embedding"
     )
 
     assert actual_count == expected_count
     assert actual_dim == dim
+    assert sum(file_counts) == actual_count
 
 
 def test_get_file_list_with_single_input(tmpdir):
