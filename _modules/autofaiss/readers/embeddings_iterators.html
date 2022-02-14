@@ -129,6 +129,9 @@
         <span class="k">pass</span></div>
 
 <div class="viewcode-block" id="AbstractMatrixReader.get_eager_array"><a class="viewcode-back" href="../../../_source/autofaiss.readers.html#autofaiss.readers.embeddings_iterators.AbstractMatrixReader.get_eager_array">[docs]</a>    <span class="k">def</span> <span class="nf">get_eager_array</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AbstractArray</span><span class="p">:</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="AbstractMatrixReader.is_empty"><a class="viewcode-back" href="../../../_source/autofaiss.readers.html#autofaiss.readers.embeddings_iterators.AbstractMatrixReader.is_empty">[docs]</a>    <span class="k">def</span> <span class="nf">is_empty</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="k">pass</span></div></div>
 
 
@@ -189,7 +192,10 @@
         <span class="k">return</span> <span class="n">NumpyEagerNdArray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">f</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="NumpyMatrixReader.get_lazy_array"><a class="viewcode-back" href="../../../_source/autofaiss.readers.html#autofaiss.readers.embeddings_iterators.NumpyMatrixReader.get_lazy_array">[docs]</a>    <span class="k">def</span> <span class="nf">get_lazy_array</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NumpyLazyNdArray</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">NumpyLazyNdArray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">f</span><span class="p">)</span></div></div>
+        <span class="k">return</span> <span class="n">NumpyLazyNdArray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">f</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="NumpyMatrixReader.is_empty"><a class="viewcode-back" href="../../../_source/autofaiss.readers.html#autofaiss.readers.embeddings_iterators.NumpyMatrixReader.is_empty">[docs]</a>    <span class="k">def</span> <span class="nf">is_empty</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_row_count</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span></div></div>
 
 
 <div class="viewcode-block" id="ParquetEagerNdArray"><a class="viewcode-back" href="../../../_source/autofaiss.readers.html#autofaiss.readers.embeddings_iterators.ParquetEagerNdArray">[docs]</a><span class="k">class</span> <span class="nc">ParquetEagerNdArray</span><span class="p">(</span><span class="n">AbstractArray</span><span class="p">):</span>
@@ -232,8 +238,11 @@
         <span class="n">parquet_file</span> <span class="o">=</span> <span class="n">pq</span><span class="o">.</span><span class="n">ParquetFile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">f</span><span class="p">,</span> <span class="n">memory_map</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">num_rows</span> <span class="o">=</span> <span class="n">parquet_file</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">num_rows</span>
         <span class="n">batches</span> <span class="o">=</span> <span class="n">parquet_file</span><span class="o">.</span><span class="n">iter_batches</span><span class="p">(</span><span class="n">batch_size</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">embedding_column_name</span><span class="p">])</span>
-        <span class="n">dimension</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">batches</span><span class="p">)</span><span class="o">.</span><span class="n">to_pandas</span><span class="p">()[</span><span class="bp">self</span><span class="o">.</span><span class="n">embedding_column_name</span><span class="p">]</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="k">return</span> <span class="p">(</span><span class="n">num_rows</span><span class="p">,</span> <span class="n">dimension</span><span class="p">)</span></div>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">dimension</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">batches</span><span class="p">)</span><span class="o">.</span><span class="n">to_pandas</span><span class="p">()[</span><span class="bp">self</span><span class="o">.</span><span class="n">embedding_column_name</span><span class="p">]</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">StopIteration</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">None</span>  <span class="c1"># type: ignore</span>
+        <span class="k">return</span> <span class="n">num_rows</span><span class="p">,</span> <span class="n">dimension</span></div>
 
 <div class="viewcode-block" id="ParquetMatrixReader.get_row_count"><a class="viewcode-back" href="../../../_source/autofaiss.readers.html#autofaiss.readers.embeddings_iterators.ParquetMatrixReader.get_row_count">[docs]</a>    <span class="k">def</span> <span class="nf">get_row_count</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
         <span class="n">parquet_file</span> <span class="o">=</span> <span class="n">pq</span><span class="o">.</span><span class="n">ParquetFile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">f</span><span class="p">,</span> <span class="n">memory_map</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -243,7 +252,10 @@
         <span class="k">return</span> <span class="n">ParquetEagerNdArray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">f</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">embedding_column_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">id_columns</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ParquetMatrixReader.get_lazy_array"><a class="viewcode-back" href="../../../_source/autofaiss.readers.html#autofaiss.readers.embeddings_iterators.ParquetMatrixReader.get_lazy_array">[docs]</a>    <span class="k">def</span> <span class="nf">get_lazy_array</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ParquetLazyNdArray</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">ParquetLazyNdArray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">f</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">embedding_column_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">id_columns</span><span class="p">)</span></div></div>
+        <span class="k">return</span> <span class="n">ParquetLazyNdArray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">f</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">embedding_column_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">id_columns</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ParquetMatrixReader.is_empty"><a class="viewcode-back" href="../../../_source/autofaiss.readers.html#autofaiss.readers.embeddings_iterators.ParquetMatrixReader.is_empty">[docs]</a>    <span class="k">def</span> <span class="nf">is_empty</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_row_count</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span></div></div>
 
 
 <span class="n">matrix_readers_registry</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;parquet&quot;</span><span class="p">:</span> <span class="n">ParquetMatrixReader</span><span class="p">,</span> <span class="s2">&quot;npy&quot;</span><span class="p">:</span> <span class="n">NumpyMatrixReader</span><span class="p">}</span>
@@ -301,14 +313,13 @@
 
 
 <div class="viewcode-block" id="read_first_file_shape"><a class="viewcode-back" href="../../../_source/autofaiss.readers.html#autofaiss.readers.embeddings_iterators.read_first_file_shape">[docs]</a><span class="k">def</span> <span class="nf">read_first_file_shape</span><span class="p">(</span>
-    <span class="n">embeddings_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]],</span> <span class="n">file_format</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">embedding_column_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">embeddings_file_paths</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">file_format</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">embedding_column_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Read the shape of the first file in the embeddings directory.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">fs</span><span class="p">,</span> <span class="n">file_paths</span> <span class="o">=</span> <span class="n">get_file_list</span><span class="p">(</span><span class="n">embeddings_path</span><span class="p">,</span> <span class="n">file_format</span><span class="p">)</span>
-
-    <span class="n">first_file_path</span> <span class="o">=</span> <span class="n">file_paths</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">first_file_path</span> <span class="o">=</span> <span class="n">embeddings_file_paths</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">fs</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">fsspec</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">url_to_fs</span><span class="p">(</span><span class="n">first_file_path</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">get_file_shape</span><span class="p">(</span><span class="n">first_file_path</span><span class="p">,</span> <span class="n">file_format</span><span class="p">,</span> <span class="n">embedding_column_name</span><span class="p">,</span> <span class="n">fs</span><span class="p">)</span></div>
 
 
@@ -320,14 +331,14 @@
 
 
 <div class="viewcode-block" id="read_total_nb_vectors_and_dim"><a class="viewcode-back" href="../../../_source/autofaiss.readers.html#autofaiss.readers.embeddings_iterators.read_total_nb_vectors_and_dim">[docs]</a><span class="k">def</span> <span class="nf">read_total_nb_vectors_and_dim</span><span class="p">(</span>
-    <span class="n">embeddings_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]],</span> <span class="n">file_format</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;npy&quot;</span><span class="p">,</span> <span class="n">embedding_column_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;embeddings&quot;</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+    <span class="n">embeddings_file_paths</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">file_format</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;npy&quot;</span><span class="p">,</span> <span class="n">embedding_column_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;embeddings&quot;</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get the count and dim of embeddings.</span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        embeddings_path : str</span>
-<span class="sd">            Path of the embedding in numpy or parquet format.</span>
+<span class="sd">        embeddings_file_paths : str</span>
+<span class="sd">            List of embeddings file in numpy or parquet format.</span>
 <span class="sd">        file_format : str (default &quot;npy&quot;)</span>
 
 <span class="sd">        Returns</span>
@@ -336,28 +347,33 @@
 <span class="sd">            count: total number of vectors in the dataset.</span>
 <span class="sd">            dim: embedding dimension</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-    <span class="n">fs</span><span class="p">,</span> <span class="n">file_paths</span> <span class="o">=</span> <span class="n">get_file_list</span><span class="p">(</span><span class="n">embeddings_path</span><span class="p">,</span> <span class="n">file_format</span><span class="p">)</span>
-
-    <span class="n">_</span><span class="p">,</span> <span class="n">dim</span> <span class="o">=</span> <span class="n">get_file_shape</span><span class="p">(</span><span class="n">file_paths</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">file_format</span><span class="o">=</span><span class="n">file_format</span><span class="p">,</span> <span class="n">embedding_column_name</span><span class="o">=</span><span class="n">embedding_column_name</span><span class="p">,</span> <span class="n">fs</span><span class="o">=</span><span class="n">fs</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">embeddings_file_paths</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No file was found&quot;</span><span class="p">)</span>
+    <span class="n">fs</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">fsspec</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">url_to_fs</span><span class="p">(</span><span class="n">embeddings_file_paths</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">_</span><span class="p">,</span> <span class="n">dim</span> <span class="o">=</span> <span class="n">get_file_shape</span><span class="p">(</span>
+        <span class="n">embeddings_file_paths</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">file_format</span><span class="o">=</span><span class="n">file_format</span><span class="p">,</span> <span class="n">embedding_column_name</span><span class="o">=</span><span class="n">embedding_column_name</span><span class="p">,</span> <span class="n">fs</span><span class="o">=</span><span class="n">fs</span>
+    <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">file_to_line_count</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
         <span class="k">with</span> <span class="n">get_matrix_reader</span><span class="p">(</span><span class="n">file_format</span><span class="p">,</span> <span class="n">fs</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">embedding_column_name</span><span class="p">)</span> <span class="k">as</span> <span class="n">matrix_reader</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">matrix_reader</span><span class="o">.</span><span class="n">get_row_count</span><span class="p">()</span>
 
-    <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">total_count</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">file_counts</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="k">with</span> <span class="n">tq</span><span class="p">(</span><span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">file_paths</span><span class="p">))</span> <span class="k">as</span> <span class="n">pbar</span><span class="p">:</span>
+    <span class="k">with</span> <span class="n">tq</span><span class="p">(</span><span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">embeddings_file_paths</span><span class="p">))</span> <span class="k">as</span> <span class="n">pbar</span><span class="p">:</span>
         <span class="k">with</span> <span class="n">ThreadPool</span><span class="p">(</span><span class="mi">50</span><span class="p">)</span> <span class="k">as</span> <span class="n">p</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">p</span><span class="o">.</span><span class="n">imap_unordered</span><span class="p">(</span><span class="n">file_to_line_count</span><span class="p">,</span> <span class="n">file_paths</span><span class="p">):</span>
-                <span class="n">count</span> <span class="o">+=</span> <span class="n">c</span>
+            <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">p</span><span class="o">.</span><span class="n">imap</span><span class="p">(</span><span class="n">file_to_line_count</span><span class="p">,</span> <span class="n">embeddings_file_paths</span><span class="p">):</span>
+                <span class="n">total_count</span> <span class="o">+=</span> <span class="n">c</span>
+                <span class="n">file_counts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
                 <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
                 <span class="n">pbar</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
 
-    <span class="k">return</span> <span class="n">count</span><span class="p">,</span> <span class="n">dim</span></div>
+    <span class="k">return</span> <span class="n">total_count</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">file_counts</span></div>
 
 
 <div class="viewcode-block" id="read_embeddings"><a class="viewcode-back" href="../../../_source/autofaiss.readers.html#autofaiss.readers.embeddings_iterators.read_embeddings">[docs]</a><span class="k">def</span> <span class="nf">read_embeddings</span><span class="p">(</span>
-    <span class="n">embeddings_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]],</span>
+    <span class="n">embeddings_file_paths</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">str</span><span class="p">],</span>
     <span class="n">batch_size</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="n">file_format</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;npy&quot;</span><span class="p">,</span>
@@ -377,8 +393,8 @@
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    embeddings_path : str</span>
-<span class="sd">        Path on local disk of the embedding in numpy format.</span>
+<span class="sd">    embeddings_file_paths : List[str]</span>
+<span class="sd">        List of embeddings file in numpy or parquet format.</span>
 <span class="sd">    batch_size : int (default None)</span>
 <span class="sd">        Outputs a maximum of batch_size vectors, the default is the size of the first file</span>
 <span class="sd">        This parameter is useful when working with many small files.</span>
@@ -400,9 +416,13 @@
 <span class="sd">        and (optionally) a DataFrame containing the mapping between id columns</span>
 <span class="sd">        and an index in [0, total_nb_embeddings-1] store in a column &quot;i&quot;</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">embeddings_file_paths</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">embeddings_file_paths</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;embeddings_file_paths is an empty list&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">embeddings_file_paths</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">embeddings_file_paths</span> <span class="o">=</span> <span class="p">[</span><span class="n">embeddings_file_paths</span><span class="p">]</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">first_vector_count</span><span class="p">,</span> <span class="n">dim</span> <span class="o">=</span> <span class="n">read_first_file_shape</span><span class="p">(</span>
-            <span class="n">embeddings_path</span><span class="p">,</span> <span class="n">file_format</span><span class="p">,</span> <span class="n">embedding_column_name</span><span class="o">=</span><span class="n">embedding_column_name</span>
+            <span class="n">embeddings_file_paths</span><span class="p">,</span> <span class="n">file_format</span><span class="p">,</span> <span class="n">embedding_column_name</span><span class="o">=</span><span class="n">embedding_column_name</span>
         <span class="p">)</span>
     <span class="k">except</span> <span class="ne">StopIteration</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;no files to read from&quot;</span><span class="p">)</span> <span class="kn">from</span> <span class="nn">err</span>
@@ -410,12 +430,12 @@
     <span class="k">if</span> <span class="n">batch_size</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">batch_size</span> <span class="o">=</span> <span class="n">first_vector_count</span>
 
-    <span class="n">fs</span><span class="p">,</span> <span class="n">file_paths</span> <span class="o">=</span> <span class="n">get_file_list</span><span class="p">(</span><span class="n">embeddings_path</span><span class="p">,</span> <span class="n">file_format</span><span class="p">)</span>
+    <span class="n">fs</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">fsspec</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">url_to_fs</span><span class="p">(</span><span class="n">embeddings_file_paths</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
     <span class="n">embeddings_batch</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">ids_batch</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">nb_emb_in_batch</span> <span class="o">=</span> <span class="mi">0</span>
 
-    <span class="n">iterator</span> <span class="o">=</span> <span class="n">file_paths</span>
+    <span class="n">iterator</span> <span class="o">=</span> <span class="n">embeddings_file_paths</span>
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
         <span class="n">iterator</span> <span class="o">=</span> <span class="n">tq</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">iterator</span><span class="p">))</span>
 

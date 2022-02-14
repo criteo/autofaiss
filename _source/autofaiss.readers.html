@@ -200,6 +200,16 @@
 </dl>
 </dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="autofaiss.readers.embeddings_iterators.AbstractMatrixReader.is_empty">
+<span class="sig-name descname"><span class="pre">is_empty</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/readers/embeddings_iterators.html#AbstractMatrixReader.is_empty"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.readers.embeddings_iterators.AbstractMatrixReader.is_empty" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
@@ -286,6 +296,16 @@
 <dd><dl class="field-list simple">
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.10)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autofaiss.readers.embeddings_iterators.NumpyMatrixReader.is_empty">
+<span class="sig-name descname"><span class="pre">is_empty</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/readers/embeddings_iterators.html#NumpyMatrixReader.is_empty"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.readers.embeddings_iterators.NumpyMatrixReader.is_empty" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -380,6 +400,16 @@
 </dl>
 </dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="autofaiss.readers.embeddings_iterators.ParquetMatrixReader.is_empty">
+<span class="sig-name descname"><span class="pre">is_empty</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/readers/embeddings_iterators.html#ParquetMatrixReader.is_empty"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.readers.embeddings_iterators.ParquetMatrixReader.is_empty" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py function">
@@ -424,7 +454,7 @@ The <cite>path</cite> could a single folder or multiple folders.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="autofaiss.readers.embeddings_iterators.read_embeddings">
-<span class="sig-prename descclassname"><span class="pre">autofaiss.readers.embeddings_iterators.</span></span><span class="sig-name descname"><span class="pre">read_embeddings</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">embeddings_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'npy'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embedding_column_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'embeddings'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_columns</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/readers/embeddings_iterators.html#read_embeddings"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.readers.embeddings_iterators.read_embeddings" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">autofaiss.readers.embeddings_iterators.</span></span><span class="sig-name descname"><span class="pre">read_embeddings</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">embeddings_file_paths</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'npy'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embedding_column_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'embeddings'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_columns</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/readers/embeddings_iterators.html#read_embeddings"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.readers.embeddings_iterators.read_embeddings" title="Permalink to this definition"></a></dt>
 <dd><p>Iterate over embeddings arrays.
 It is possible to iterate over batchs of files and yield stacked embeddings arrays.</p>
 <p>The implementation adopted here is chosen for memory concern: it is very important
@@ -436,7 +466,7 @@ The maximum memory usage is batch_size * dim * 4</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>embeddings_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – Path on local disk of the embedding in numpy format.</p></li>
+<li><p><strong>embeddings_file_paths</strong> (<em>List</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>]</em>) – List of embeddings file in numpy or parquet format.</p></li>
 <li><p><strong>batch_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a><em> (</em><em>default None</em><em>)</em>) – Outputs a maximum of batch_size vectors, the default is the size of the first file
 This parameter is useful when working with many small files.</p></li>
 <li><p><strong>file_format</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em> (</em><em>default &quot;npy&quot;</em><em>)</em>) – Format of the embedding files.
@@ -460,7 +490,7 @@ and an index in [0, total_nb_embeddings-1] store in a column “i”</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="autofaiss.readers.embeddings_iterators.read_first_file_shape">
-<span class="sig-prename descclassname"><span class="pre">autofaiss.readers.embeddings_iterators.</span></span><span class="sig-name descname"><span class="pre">read_first_file_shape</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">embeddings_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_format</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embedding_column_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/readers/embeddings_iterators.html#read_first_file_shape"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.readers.embeddings_iterators.read_first_file_shape" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">autofaiss.readers.embeddings_iterators.</span></span><span class="sig-name descname"><span class="pre">read_first_file_shape</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">embeddings_file_paths</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_format</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embedding_column_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/readers/embeddings_iterators.html#read_first_file_shape"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.readers.embeddings_iterators.read_first_file_shape" title="Permalink to this definition"></a></dt>
 <dd><p>Read the shape of the first file in the embeddings directory.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type</dt>
@@ -476,11 +506,11 @@ and an index in [0, total_nb_embeddings-1] store in a column “i”</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="autofaiss.readers.embeddings_iterators.read_total_nb_vectors_and_dim">
-<span class="sig-prename descclassname"><span class="pre">autofaiss.readers.embeddings_iterators.</span></span><span class="sig-name descname"><span class="pre">read_total_nb_vectors_and_dim</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">embeddings_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'npy'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embedding_column_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'embeddings'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/readers/embeddings_iterators.html#read_total_nb_vectors_and_dim"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.readers.embeddings_iterators.read_total_nb_vectors_and_dim" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">autofaiss.readers.embeddings_iterators.</span></span><span class="sig-name descname"><span class="pre">read_total_nb_vectors_and_dim</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">embeddings_file_paths</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'npy'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embedding_column_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'embeddings'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/readers/embeddings_iterators.html#read_total_nb_vectors_and_dim"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.readers.embeddings_iterators.read_total_nb_vectors_and_dim" title="Permalink to this definition"></a></dt>
 <dd><p>Get the count and dim of embeddings.
-:type embeddings_path: <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Union" title="(in Python v3.10)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]]
-:param embeddings_path: Path of the embedding in numpy or parquet format.
-:type embeddings_path: str
+:type embeddings_file_paths: <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]
+:param embeddings_file_paths: List of embeddings file in numpy or parquet format.
+:type embeddings_file_paths: str
 :type file_format: <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>
 :param file_format:
 :type file_format: str (default “npy”)</p>
