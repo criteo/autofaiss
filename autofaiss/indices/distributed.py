@@ -21,6 +21,7 @@ from autofaiss.indices.index_utils import _get_index_from_bytes, _get_bytes_from
 from autofaiss.readers.embeddings_iterators import get_matrix_reader, make_path_absolute
 from autofaiss.utils.cast import cast_memory_to_bytes
 from autofaiss.utils.decorators import Timeit
+from autofaiss import logger
 
 
 def _yield_embeddings_batch(
@@ -162,7 +163,7 @@ def _get_pyspark_active_session():
     # pylint: disable=protected-access
     ss: Optional[pyspark.sql.SparkSession] = pyspark.sql.SparkSession._instantiatedSession  # mypy: ignore
     if ss is None:
-        print("No pyspark session found, creating a new one!")
+        logger.info("No pyspark session found, creating a new one!")
         ss = (
             pyspark.sql.SparkSession.builder.config("spark.driver.memory", "16G")
             .master("local[1]")
