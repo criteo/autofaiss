@@ -96,7 +96,6 @@
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">pyarrow.parquet</span> <span class="k">as</span> <span class="nn">pq</span>
 
-
 <span class="n">LOGGER</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
@@ -419,7 +418,11 @@
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">embeddings_file_paths</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">embeddings_file_paths</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;embeddings_file_paths is an empty list&quot;</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">embeddings_file_paths</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-        <span class="n">embeddings_file_paths</span> <span class="o">=</span> <span class="p">[</span><span class="n">embeddings_file_paths</span><span class="p">]</span>
+        <span class="n">fs</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">fsspec</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">url_to_fs</span><span class="p">(</span><span class="n">embeddings_file_paths</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">fs</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">embeddings_file_paths</span><span class="p">):</span>
+            <span class="n">_</span><span class="p">,</span> <span class="n">embeddings_file_paths</span> <span class="o">=</span> <span class="n">get_file_list</span><span class="p">(</span><span class="n">embeddings_file_paths</span><span class="p">,</span> <span class="n">file_format</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">embeddings_file_paths</span> <span class="o">=</span> <span class="p">[</span><span class="n">embeddings_file_paths</span><span class="p">]</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">first_vector_count</span><span class="p">,</span> <span class="n">dim</span> <span class="o">=</span> <span class="n">read_first_file_shape</span><span class="p">(</span>
             <span class="n">embeddings_file_paths</span><span class="p">,</span> <span class="n">file_format</span><span class="p">,</span> <span class="n">embedding_column_name</span><span class="o">=</span><span class="n">embedding_column_name</span>
