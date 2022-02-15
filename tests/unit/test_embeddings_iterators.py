@@ -124,11 +124,7 @@ def test_read_embeddings_with_ids(tmpdir):
     expected_array = np.vstack(expected_df["embedding"])
     batch_size = random.randint(min_size, max_size)
     it = read_embeddings(
-        tmp_paths,
-        file_format="parquet",
-        batch_size=batch_size,
-        embedding_column_name="embedding",
-        id_columns=["id"],
+        tmp_paths, file_format="parquet", batch_size=batch_size, embedding_column_name="embedding", id_columns=["id"],
     )
     all_batches = list(it)
     all_shapes = [x[0].shape for x in all_batches]

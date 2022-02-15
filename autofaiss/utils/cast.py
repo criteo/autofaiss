@@ -17,7 +17,7 @@ def cast_memory_to_bytes(memory_string: str) -> float:
     True
     """
 
-    conversion = {unit: (2**10) ** i for i, unit in enumerate("BKMGTPEZ")}
+    conversion = {unit: (2 ** 10) ** i for i, unit in enumerate("BKMGTPEZ")}
 
     number_match = r"([0-9]*\.[0-9]+|[0-9]+)"
     unit_match = "("

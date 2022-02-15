@@ -347,10 +347,7 @@ def run(
         # stage1: each executor merges a batch of indices and saves the merged index to stage2 folder
         rdd.foreach(
             lambda x: _merge_index(
-                small_indices_folder=temporary_indices_folder,
-                batch_id=x[0],
-                start=x[1],
-                end=x[2],
+                small_indices_folder=temporary_indices_folder, batch_id=x[0], start=x[1], end=x[2],
             )  # type: ignore
         )
         # stage2: driver merges the indices generated from stage1

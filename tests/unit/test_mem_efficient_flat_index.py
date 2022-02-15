@@ -62,8 +62,8 @@ def test_memory_efficient_flat_index(prod_emb, user_emb, dataset_size, batch_siz
     mask = I_faiss == -1
 
     # Check that all the distances are equal and in the same order
-    assert np.all((np.abs(D_our - D_faiss) <= 2**-13) | mask)
-    assert np.all((np.abs(D_our_numpy - D_faiss) <= 2**-13) | mask)
+    assert np.all((np.abs(D_our - D_faiss) <= 2 ** -13) | mask)
+    assert np.all((np.abs(D_our_numpy - D_faiss) <= 2 ** -13) | mask)
 
     # Check the order is the same as Faiss -> it is not, but no big dead
     # since the computation always give the same results (repetability works)
