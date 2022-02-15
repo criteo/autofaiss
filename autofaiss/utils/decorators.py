@@ -25,7 +25,7 @@ class Timeit(ContextDecorator):
                 space = "\t" * self.indent
                 start_date = datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
                 logger.info(f"{space}{self.comment} {start_date}")
-                # previously used print had flush=True, this flushes all handlers
+                # flush to make sure we display log in stdout before entering in the wrapped function
                 for h in logger.handlers:
                     h.flush()
             self.start_time = time.perf_counter()
