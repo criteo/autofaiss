@@ -1,35 +1,41 @@
 """ main file to create an index from the the begining """
 
-import sys
+import json
 import logging
-from typing import Any, Tuple, Dict, Optional, Union, List
-import os
-import uuid
-from pprint import pformat
 import multiprocessing
+import os
+import sys
 import tempfile
+import uuid
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import faiss
-import json
-
 import fire
 import fsspec
-import pandas as pd
-
-from autofaiss.readers.embeddings_iterators import read_total_nb_vectors_and_dim, make_path_absolute, get_file_list
-from autofaiss.external.build import (
-    create_index,
-    estimate_memory_required_for_index_creation,
-    get_estimated_construction_time_infos,
-)
-from autofaiss.external.optimize import get_optimal_hyperparameters, get_optimal_index_keys_v2
-from autofaiss.external.scores import compute_fast_metrics, compute_medium_metrics
-from autofaiss.indices.index_utils import set_search_hyperparameters
-from autofaiss.utils.decorators import Timeit
-from autofaiss.utils.cast import cast_memory_to_bytes, cast_bytes_to_memory_string
 import numpy as np
+import pandas as pd
+from autofaiss.external.build import (
+    create_index, estimate_memory_required_for_index_creation,
+    get_estimated_construction_time_infos)
+from autofaiss.external.optimize import (get_optimal_hyperparameters,
+                                         get_optimal_index_keys_v2)
+from autofaiss.external.scores import (compute_fast_metrics,
+                                       compute_medium_metrics)
+from autofaiss.indices.index_utils import set_search_hyperparameters
+from autofaiss.readers.embeddings_iterators import (
+    get_file_list, make_path_absolute, read_total_nb_vectors_and_dim)
+from autofaiss.utils.cast import (cast_bytes_to_memory_string,
+                                  cast_memory_to_bytes)
+from autofaiss.utils.decorators import Timeit
 
 logger = logging.getLogger("autofaiss")
+
+
+def _log_output_dict(infos: Dict):
+    logger.info("{")
+    for key, value in infos.items():
+        logger.info(f"\t{key}: {value}")
+    logger.info("}")
 
 
 def build_index(
@@ -161,7 +167,8 @@ def build_index(
             logger.info(f"There are {nb_vectors} embeddings of dim {vec_dim}")
 
         with Timeit("Compute estimated construction time of the index", indent=1):
-            logger.info(get_estimated_construction_time_infos(nb_vectors, vec_dim, indent=2))
+            for log_lines in get_estimated_construction_time_infos(nb_vectors, vec_dim, indent=2).split("\n"):
+                logger.info(log_lines)
 
         with Timeit("Checking that your have enough memory available to create the index", indent=1):
             necessary_mem, index_key_used = estimate_memory_required_for_index_creation(
@@ -263,7 +270,7 @@ def build_index(
                     json.dump(metric_infos, f)
 
         logger.info("Recap:")
-        logger.info(pformat(metric_infos))
+        _log_output_dict(metric_infos)
 
     return index, metric_infos
 
@@ -383,7 +390,7 @@ def score_index(
         infos.update(compute_fast_metrics(embeddings_path, index))
 
     logger.info("Intermediate recap:")
-    logger.info(pformat(infos))
+    _log_output_dict(infos)
 
     current_in_bytes = cast_memory_to_bytes(current_memory_available)
     memory_left = current_in_bytes - index_memory
@@ -399,7 +406,7 @@ def score_index(
         infos.update(compute_medium_metrics(embeddings_path, index, memory_left))
 
     logger.info("Performances recap:")
-    logger.info(pformat(infos))
+    _log_output_dict(infos)
 
     if save_on_disk:
         with fsspec.open(output_index_info_path, "w").open() as f:
