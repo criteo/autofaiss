@@ -4,6 +4,7 @@ Building the index with pyspark.
 import math
 import multiprocessing
 import os
+import logging
 from functools import partial
 from multiprocessing.pool import ThreadPool
 from tempfile import TemporaryDirectory
@@ -21,7 +22,8 @@ from autofaiss.indices.index_utils import _get_index_from_bytes, _get_bytes_from
 from autofaiss.readers.embeddings_iterators import get_matrix_reader, make_path_absolute
 from autofaiss.utils.cast import cast_memory_to_bytes
 from autofaiss.utils.decorators import Timeit
-from autofaiss import logger
+
+logger = logging.getLogger("autofaiss")
 
 
 def _yield_embeddings_batch(
@@ -344,7 +346,12 @@ def run(
         # Merge indices in two stages
         # stage1: each executor merges a batch of indices and saves the merged index to stage2 folder
         rdd.foreach(
-            lambda x: _merge_index(small_indices_folder=temporary_indices_folder, batch_id=x[0], start=x[1], end=x[2],)  # type: ignore
+            lambda x: _merge_index(
+                small_indices_folder=temporary_indices_folder,
+                batch_id=x[0],
+                start=x[1],
+                end=x[2],
+            )  # type: ignore
         )
         # stage2: driver merges the indices generated from stage1
         merged_index = _merge_index(_get_stage2_folder(temporary_indices_folder))

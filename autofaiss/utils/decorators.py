@@ -2,10 +2,12 @@
 
 import functools
 import time
+import logging
 from contextlib import ContextDecorator
 from datetime import datetime
 from typing import Optional
-from autofaiss import logger
+
+logger = logging.getLogger("autofaiss")
 
 
 class Timeit(ContextDecorator):

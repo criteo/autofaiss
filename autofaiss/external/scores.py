@@ -140,7 +140,7 @@ def get_ground_truth(
 
     memory_available = cast_memory_to_bytes(memory_available) if isinstance(memory_available, str) else memory_available
 
-    batch_size = int(min(memory_available, 10 ** 9) / (dim * 4))  # at most 1GB of memory
+    batch_size = int(min(memory_available, 10**9) / (dim * 4))  # at most 1GB of memory
 
     if isinstance(embeddings_path, str):
         _, ground_truth = perfect_index.search_files(query_embeddings, k=40, batch_size=batch_size)

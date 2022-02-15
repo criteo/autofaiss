@@ -7,10 +7,12 @@ from pathlib import Path
 from tempfile import NamedTemporaryFile
 from typing import Dict, Optional, Union
 import random
-from autofaiss import logger
+import logging
 
 import faiss
 import numpy as np
+
+logger = logging.getLogger("autofaiss")
 
 
 def get_index_size(index: faiss.Index) -> int:

@@ -1,5 +1,6 @@
 """ main file to create an index from the the begining """
 
+import sys
 import logging
 from typing import Any, Tuple, Dict, Optional, Union, List
 import os
@@ -15,7 +16,6 @@ import fire
 import fsspec
 import pandas as pd
 
-from autofaiss import logger
 from autofaiss.readers.embeddings_iterators import read_total_nb_vectors_and_dim, make_path_absolute, get_file_list
 from autofaiss.external.build import (
     create_index,
@@ -28,6 +28,8 @@ from autofaiss.indices.index_utils import set_search_hyperparameters
 from autofaiss.utils.decorators import Timeit
 from autofaiss.utils.cast import cast_memory_to_bytes, cast_bytes_to_memory_string
 import numpy as np
+
+logger = logging.getLogger("autofaiss")
 
 
 def build_index(
@@ -159,9 +161,7 @@ def build_index(
             logger.info(f"There are {nb_vectors} embeddings of dim {vec_dim}")
 
         with Timeit("Compute estimated construction time of the index", indent=1):
-            # keep indents by printing per line
-            for line in get_estimated_construction_time_infos(nb_vectors, vec_dim, indent=2).split("\n"):
-                logger.info(line)
+            logger.info(get_estimated_construction_time_infos(nb_vectors, vec_dim, indent=2))
 
         with Timeit("Checking that your have enough memory available to create the index", indent=1):
             necessary_mem, index_key_used = estimate_memory_required_for_index_creation(
@@ -206,7 +206,9 @@ def build_index(
                 fs, _ = fsspec.core.url_to_fs(ids_path)
                 fs.mkdirs(ids_path, exist_ok=True)
             else:
-                logger.error("\tAs ids_path=None - the Ids DataFrame will not be written and will be ignored subsequently")
+                logger.error(
+                    "\tAs ids_path=None - the Ids DataFrame will not be written and will be ignored subsequently"
+                )
                 logger.error("\tPlease provide a value ids_path for the Ids to be written")
 
         def write_ids_df_to_parquet(ids: pd.DataFrame, batch_id: int):
@@ -409,6 +411,7 @@ def score_index(
 def main():
     """Main entry point"""
     logging.basicConfig(level=logging.INFO)
+    logger.addHandler(logging.StreamHandler(sys.stdout))
 
     fire.Fire({"build_index": build_index, "tune_index": tune_index, "score_index": score_index})
 

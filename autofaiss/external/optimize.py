@@ -96,7 +96,7 @@ def get_optimal_batch_size(vec_dim: int, current_memory_available: str) -> int:
 
     memory = cast_memory_to_bytes(current_memory_available)
 
-    batch_size = int(min(memory, 10 ** 9) / (vec_dim * 4))  # using more than 1GB of ram is not faster here
+    batch_size = int(min(memory, 10**9) / (vec_dim * 4))  # using more than 1GB of ram is not faster here
 
     return batch_size
 
@@ -123,13 +123,13 @@ def get_optimal_nb_clusters(nb_vectors: int) -> List[int]:
         nb_clusters_list.append(65_536)
     elif nb_vectors < 300_000_000:
         nb_clusters_list.append(65_536)
-        nb_clusters_list.append(2 ** 17)
-        nb_clusters_list.append(2 ** 18)  # slow training !
+        nb_clusters_list.append(2**17)
+        nb_clusters_list.append(2**18)  # slow training !
     else:
-        nb_clusters_list.append(2 ** 17)
-        nb_clusters_list.append(2 ** 18)  # slow training !
+        nb_clusters_list.append(2**17)
+        nb_clusters_list.append(2**18)  # slow training !
         nb_clusters_list.append(65_536)
-        nb_clusters_list.append(2 ** 20)  # very slow training !
+        nb_clusters_list.append(2**20)  # very slow training !
 
     nb_clusters_list = [int(x) for x in nb_clusters_list]
 
@@ -325,7 +325,10 @@ def binary_search_on_param(
     timout_s = 15 * max_speed_ms / 1000
 
     get_speed = partial(
-        speed_test_ms_per_query, query=query_vectors, ksearch=40, timout_s=min(max_timeout_per_iteration_s, timout_s),
+        speed_test_ms_per_query,
+        query=query_vectors,
+        ksearch=40,
+        timout_s=min(max_timeout_per_iteration_s, timout_s),
     )
 
     def is_not_acceptable_speed(rank: int) -> bool:
@@ -389,7 +392,7 @@ def get_optimal_hyperparameters(
     elif any(re.findall(r"HNSW\d+", index_key)):
 
         hyperparameter_str_from_param = lambda ef_search: f"efSearch={ef_search}"
-        parameter_range = list(range(16, 2 ** 14))
+        parameter_range = list(range(16, 2**14))
         timeout_boost_for_precision_search = 6.0
 
     elif any(re.findall(r"IVF\d+,Flat", index_key)):

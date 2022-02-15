@@ -50,7 +50,7 @@ def estimate_memory_required_for_index_creation(
     metadata = IndexMetadata(index_key, nb_vectors, vec_dim, make_direct_map)
 
     index_memory = metadata.estimated_index_size_in_bytes()
-    needed_for_adding = min(index_memory * 0.1, 10 ** 9)
+    needed_for_adding = min(index_memory * 0.1, 10**9)
     index_overhead = index_memory * 0.1
 
     index_needs_training = check_if_index_needs_training(index_key)
@@ -77,7 +77,7 @@ def get_estimated_construction_time_infos(nb_vectors: int, vec_dim: int, indent:
     size = 4 * nb_vectors * vec_dim
 
     train = 1000  # seconds, depends on the number of points for training
-    add = 450 * size / (150 * 1024 ** 3)  # seconds, Linear approx (450s for 150GB in classic conditions)
+    add = 450 * size / (150 * 1024**3)  # seconds, Linear approx (450s for 150GB in classic conditions)
 
     infos = (
         f"-> Train: {to_readable_time(train, rounding=True)}\n"

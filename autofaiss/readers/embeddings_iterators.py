@@ -249,19 +249,19 @@ def read_total_nb_vectors_and_dim(
     embeddings_file_paths: List[str], file_format: str = "npy", embedding_column_name: str = "embeddings"
 ) -> Tuple[int, int, List[int]]:
     """
-        Get the count and dim of embeddings.
-        Parameters
-        ----------
-        embeddings_file_paths : str
-            List of embeddings file in numpy or parquet format.
-        file_format : str (default "npy")
+    Get the count and dim of embeddings.
+    Parameters
+    ----------
+    embeddings_file_paths : str
+        List of embeddings file in numpy or parquet format.
+    file_format : str (default "npy")
 
-        Returns
-        -------
-        (count, dim) : (int, int)
-            count: total number of vectors in the dataset.
-            dim: embedding dimension
-        """
+    Returns
+    -------
+    (count, dim) : (int, int)
+        count: total number of vectors in the dataset.
+        dim: embedding dimension
+    """
     if len(embeddings_file_paths) == 0:
         raise ValueError("No file was found")
     fs, _ = fsspec.core.url_to_fs(embeddings_file_paths[0])
