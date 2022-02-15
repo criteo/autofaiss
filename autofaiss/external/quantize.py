@@ -15,17 +15,15 @@ import fsspec
 import numpy as np
 import pandas as pd
 from autofaiss.external.build import (
-    create_index, estimate_memory_required_for_index_creation,
-    get_estimated_construction_time_infos)
-from autofaiss.external.optimize import (get_optimal_hyperparameters,
-                                         get_optimal_index_keys_v2)
-from autofaiss.external.scores import (compute_fast_metrics,
-                                       compute_medium_metrics)
+    create_index,
+    estimate_memory_required_for_index_creation,
+    get_estimated_construction_time_infos,
+)
+from autofaiss.external.optimize import get_optimal_hyperparameters, get_optimal_index_keys_v2
+from autofaiss.external.scores import compute_fast_metrics, compute_medium_metrics
 from autofaiss.indices.index_utils import set_search_hyperparameters
-from autofaiss.readers.embeddings_iterators import (
-    get_file_list, make_path_absolute, read_total_nb_vectors_and_dim)
-from autofaiss.utils.cast import (cast_bytes_to_memory_string,
-                                  cast_memory_to_bytes)
+from autofaiss.readers.embeddings_iterators import get_file_list, make_path_absolute, read_total_nb_vectors_and_dim
+from autofaiss.utils.cast import cast_bytes_to_memory_string, cast_memory_to_bytes
 from autofaiss.utils.decorators import Timeit
 
 logger = logging.getLogger("autofaiss")
