@@ -26,7 +26,8 @@ class Timeit(ContextDecorator):
                 start_date = datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
                 logger.info(f"{space}{self.comment} {start_date}")
                 # previously used print had flush=True, this flushes all handlers
-                [h.flush() for h in logger.handlers]
+                for h in logger.handlers:
+                    h.flush()
             self.start_time = time.perf_counter()
 
     def __exit__(self, *exc):
