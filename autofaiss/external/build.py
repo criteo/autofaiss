@@ -1,5 +1,6 @@
 """ gather functions necessary to build an index """
 import re
+import logging
 from typing import Optional, Tuple, Union, Callable, Any, List
 
 import faiss
@@ -25,6 +26,8 @@ from autofaiss.utils.cast import (
 )
 from autofaiss.utils.decorators import Timeit
 from autofaiss.indices.distributed import run
+
+logger = logging.getLogger("autofaiss")
 
 
 def estimate_memory_required_for_index_creation(
@@ -126,7 +129,7 @@ def create_index(
 
     metadata = IndexMetadata(index_key, nb_vectors, vec_dim, make_direct_map)
 
-    print(
+    logger.info(
         f"The index size will be approximately {cast_bytes_to_memory_string(metadata.estimated_index_size_in_bytes())}"
     )
 
@@ -144,7 +147,7 @@ def create_index(
             # Determine the number of vectors necessary to train the index
             train_size = get_optimal_train_size(nb_vectors, index_key, memory_available_for_training, vec_dim)
             memory_needed_for_training = compute_memory_necessary_for_training(train_size, index_key, vec_dim)
-            print(
+            logger.info(
                 f"Will use {train_size} vectors to train the index, "
                 f"that will use {cast_bytes_to_memory_string(memory_needed_for_training)} of memory"
             )
@@ -183,15 +186,15 @@ def create_index(
         cast_memory_to_bytes(current_memory_available) - metadata.estimated_index_size_in_bytes()
     )
 
-    print(
+    logger.info(
         f"The memory available for adding the vectors is {memory_available_for_adding}"
         "(total available - used by the index)"
     )
-    print("Will be using at most 1GB of ram for adding")
+    logger.info("Will be using at most 1GB of ram for adding")
     # Add the vectors to the index.
     with Timeit("-> Adding the vectors to the index", indent=2):
         batch_size = get_optimal_batch_size(vec_dim, memory_available_for_adding)
-        print(
+        logger.info(
             f"Using a batch size of {batch_size} (memory overhead {cast_bytes_to_memory_string(batch_size*vec_dim*4)})"
         )
 
