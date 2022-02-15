@@ -5,7 +5,6 @@ import logging
 import logging.config
 import multiprocessing
 import os
-import sys
 import tempfile
 import uuid
 from typing import Any, Dict, List, Optional, Tuple, Union
@@ -293,7 +292,7 @@ def tune_index(
     save_on_disk: bool = True,
     max_index_query_time_ms: float = 10.0,
     use_gpu: bool = False,
-    verbose: int = logging.INFO
+    verbose: int = logging.INFO,
 ) -> Tuple[Optional[Any], Optional[Dict[str, Union[str, float, int]]]]:
     """
     Set hyperparameters to the given index.
@@ -358,7 +357,7 @@ def score_index(
     save_on_disk: bool = True,
     output_index_info_path: str = "infos.json",
     current_memory_available: str = "32G",
-    verbose: str = logging.INFO
+    verbose: int = logging.INFO,
 ) -> Optional[Dict[str, Union[str, float, int]]]:
     """
     Compute metrics on a given index, use cached ground truth for fast scoring the next times.
