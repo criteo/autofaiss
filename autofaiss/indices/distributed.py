@@ -307,6 +307,9 @@ def run(
         The function that handles the embeddings Ids when id_columns is given
     """
     temporary_indices_folder = make_path_absolute(temporary_indices_folder)
+    fs = _get_file_system(temporary_indices_folder)
+    if fs.exists(temporary_indices_folder):
+        fs.rm(temporary_indices_folder, recursive=True)
 
     ss = _get_pyspark_active_session()
     # broadcast the index bytes
@@ -337,7 +340,6 @@ def run(
         )
 
     with Timeit("-> Merging indices", indent=2):
-        fs = _get_file_system(temporary_indices_folder)
         small_indices_files = fs.ls(temporary_indices_folder, detail=False)
         batch_size = 100
         nb_batches = math.ceil(len(small_indices_files) / batch_size)

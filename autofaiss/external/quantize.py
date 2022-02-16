@@ -220,7 +220,9 @@ def build_index(
             if ids_path is not None:
                 logger.info(f"\tWill be writing the Ids DataFrame in parquet format to {ids_path}")
                 fs, _ = fsspec.core.url_to_fs(ids_path)
-                fs.mkdirs(ids_path, exist_ok=True)
+                if fs.exists(ids_path):
+                    fs.rm(ids_path, recursive=True)
+                fs.mkdirs(ids_path)
             else:
                 logger.error(
                     "\tAs ids_path=None - the Ids DataFrame will not be written and will be ignored subsequently"
