@@ -171,6 +171,7 @@ The `autofaiss build_index` command takes the following parameters:
 | --should_be_memory_mappable  |   False      | (Optional) Boolean used to force the index to be selected among indices having an on-disk memory-mapping implementation.                                                                                                                                             |
 | --distributed                |   None       | (Optional) If "pyspark", create the index using pyspark. Otherwise, the index is created on your local machine.|
 | --temporary_indices_folder   |   "hdfs://root/tmp/distributed_autofaiss_indices"       | (Optional) Folder to save the temporary small indices, only used when distributed = "pyspark" |
+| --verbose                    |   20         | (Optional) Set verbosity of logging output: DEBUG=10, INFO=20, WARN=30, ERROR=40, CRITICAL=50 |
 
 ## Install from source
 

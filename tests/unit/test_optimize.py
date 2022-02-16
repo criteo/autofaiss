@@ -25,7 +25,7 @@ def test_get_optimal_index_keys_v2(nb_vectors: int, dim_vector: int, max_index_m
 
 # @pytest.mark.skip(reason="This test takes too long to run (11m)")
 @pytest.mark.parametrize(
-    "index_key", ["OPQ64_128,IVF1024_HNSW32,PQ64x8", "OPQ64_128,IVF1024,PQ64x8", "IVF256,Flat", "HNSW15",]
+    "index_key", ["OPQ64_128,IVF1024_HNSW32,PQ64x8", "OPQ64_128,IVF1024,PQ64x8", "IVF256,Flat", "HNSW15",],
 )
 @pytest.mark.parametrize("d", [100])
 def test_get_optimal_hyperparameters(index_key: str, d: int) -> None:

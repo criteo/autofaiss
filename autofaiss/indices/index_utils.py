@@ -7,9 +7,12 @@ from pathlib import Path
 from tempfile import NamedTemporaryFile
 from typing import Dict, Optional, Union
 import random
+import logging
 
 import faiss
 import numpy as np
+
+logger = logging.getLogger("autofaiss")
 
 
 def get_index_size(index: faiss.Index) -> int:
@@ -83,7 +86,7 @@ def search_speed_test(
             break
 
     speed_list_ms = np.array(speed_list_ms)
-    print(len(speed_list_ms))
+    logger.info(len(speed_list_ms))
 
     # avg2 = 1000 * (time.perf_counter() - test_start_time_s) / len(speed_list_ms)
 
