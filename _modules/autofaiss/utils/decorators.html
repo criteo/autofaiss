@@ -86,9 +86,12 @@
 
 <span class="kn">import</span> <span class="nn">functools</span>
 <span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">from</span> <span class="nn">contextlib</span> <span class="kn">import</span> <span class="n">ContextDecorator</span>
 <span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;autofaiss&quot;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="Timeit"><a class="viewcode-back" href="../../../_source/autofaiss.utils.html#autofaiss.utils.decorators.Timeit">[docs]</a><span class="k">class</span> <span class="nc">Timeit</span><span class="p">(</span><span class="n">ContextDecorator</span><span class="p">):</span>
@@ -105,7 +108,10 @@
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">comment</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">space</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">indent</span>
                 <span class="n">start_date</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%m/</span><span class="si">%d</span><span class="s2">/%Y, %H:%M:%S&quot;</span><span class="p">)</span>
-                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">space</span><span class="si">}{</span><span class="bp">self</span><span class="o">.</span><span class="n">comment</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">start_date</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">space</span><span class="si">}{</span><span class="bp">self</span><span class="o">.</span><span class="n">comment</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">start_date</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="c1"># flush to make sure we display log in stdout before entering in the wrapped function</span>
+                <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">logger</span><span class="o">.</span><span class="n">handlers</span><span class="p">:</span>
+                    <span class="n">h</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">exc</span><span class="p">):</span>
@@ -113,7 +119,7 @@
             <span class="n">end_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
             <span class="n">run_time</span> <span class="o">=</span> <span class="n">end_time</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_time</span>
             <span class="n">space</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">indent</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">space</span><span class="si">}</span><span class="s1">&gt;&gt;&gt; Finished &quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">comment</span><span class="si">}</span><span class="s1">&quot; in </span><span class="si">{</span><span class="n">run_time</span><span class="si">:</span><span class="s1">.4f</span><span class="si">}</span><span class="s1"> secs&#39;</span><span class="p">)</span></div>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">space</span><span class="si">}</span><span class="s1">&gt;&gt;&gt; Finished &quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">comment</span><span class="si">}</span><span class="s1">&quot; in </span><span class="si">{</span><span class="n">run_time</span><span class="si">:</span><span class="s1">.4f</span><span class="si">}</span><span class="s1"> secs&#39;</span><span class="p">)</span></div>
 
 
 <span class="n">timeit</span> <span class="o">=</span> <span class="n">Timeit</span><span class="p">()</span>
@@ -128,7 +134,7 @@
         <span class="n">value</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="n">end_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
         <span class="n">run_time</span> <span class="o">=</span> <span class="n">end_time</span> <span class="o">-</span> <span class="n">start_time</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Finished </span><span class="si">{</span><span class="n">func</span><span class="o">.</span><span class="vm">__name__</span><span class="si">!r}</span><span class="s2"> in </span><span class="si">{</span><span class="n">run_time</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2"> secs&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Finished </span><span class="si">{</span><span class="n">func</span><span class="o">.</span><span class="vm">__name__</span><span class="si">!r}</span><span class="s2"> in </span><span class="si">{</span><span class="n">run_time</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2"> secs&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">value</span>
 
     <span class="k">return</span> <span class="n">wrapper_timer</span></div>

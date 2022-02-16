@@ -333,19 +333,19 @@
     <span class="n">embeddings_file_paths</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">file_format</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;npy&quot;</span><span class="p">,</span> <span class="n">embedding_column_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;embeddings&quot;</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]:</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Get the count and dim of embeddings.</span>
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        embeddings_file_paths : str</span>
-<span class="sd">            List of embeddings file in numpy or parquet format.</span>
-<span class="sd">        file_format : str (default &quot;npy&quot;)</span>
+<span class="sd">    Get the count and dim of embeddings.</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    embeddings_file_paths : str</span>
+<span class="sd">        List of embeddings file in numpy or parquet format.</span>
+<span class="sd">    file_format : str (default &quot;npy&quot;)</span>
 
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        (count, dim) : (int, int)</span>
-<span class="sd">            count: total number of vectors in the dataset.</span>
-<span class="sd">            dim: embedding dimension</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    (count, dim) : (int, int)</span>
+<span class="sd">        count: total number of vectors in the dataset.</span>
+<span class="sd">        dim: embedding dimension</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">embeddings_file_paths</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No file was found&quot;</span><span class="p">)</span>
     <span class="n">fs</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">fsspec</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">url_to_fs</span><span class="p">(</span><span class="n">embeddings_file_paths</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>

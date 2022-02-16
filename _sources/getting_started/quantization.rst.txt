@@ -75,6 +75,9 @@ The ``autofaiss build_index`` command takes the following parameters:
       - --should_be_memory_mappable
       - False
       - (Optional) If set to true, the created index will be selected only among the indices that can be memory-mapped on disk. This makes it possible to use 50GB indices on a machine with only 1GB of RAM.
+    * - --verbose
+      - 20
+      - (Optional) Set verbosity of logging output: DEBUG=10, INFO=20, WARN=30, ERROR=40, CRITICAL=50
 
 .. _Faiss documentation: https://github.com/facebookresearch/faiss/wiki/The-index-factory
 

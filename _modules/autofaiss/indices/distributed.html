@@ -88,6 +88,7 @@
 <span class="kn">import</span> <span class="nn">math</span>
 <span class="kn">import</span> <span class="nn">multiprocessing</span>
 <span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
 <span class="kn">from</span> <span class="nn">multiprocessing.pool</span> <span class="kn">import</span> <span class="n">ThreadPool</span>
 <span class="kn">from</span> <span class="nn">tempfile</span> <span class="kn">import</span> <span class="n">TemporaryDirectory</span>
@@ -105,6 +106,8 @@
 <span class="kn">from</span> <span class="nn">autofaiss.readers.embeddings_iterators</span> <span class="kn">import</span> <span class="n">get_matrix_reader</span><span class="p">,</span> <span class="n">make_path_absolute</span>
 <span class="kn">from</span> <span class="nn">autofaiss.utils.cast</span> <span class="kn">import</span> <span class="n">cast_memory_to_bytes</span>
 <span class="kn">from</span> <span class="nn">autofaiss.utils.decorators</span> <span class="kn">import</span> <span class="n">Timeit</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;autofaiss&quot;</span><span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">_yield_embeddings_batch</span><span class="p">(</span>
@@ -246,7 +249,7 @@
     <span class="c1"># pylint: disable=protected-access</span>
     <span class="n">ss</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">pyspark</span><span class="o">.</span><span class="n">sql</span><span class="o">.</span><span class="n">SparkSession</span><span class="p">]</span> <span class="o">=</span> <span class="n">pyspark</span><span class="o">.</span><span class="n">sql</span><span class="o">.</span><span class="n">SparkSession</span><span class="o">.</span><span class="n">_instantiatedSession</span>  <span class="c1"># mypy: ignore</span>
     <span class="k">if</span> <span class="n">ss</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;No pyspark session found, creating a new one!&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;No pyspark session found, creating a new one!&quot;</span><span class="p">)</span>
         <span class="n">ss</span> <span class="o">=</span> <span class="p">(</span>
             <span class="n">pyspark</span><span class="o">.</span><span class="n">sql</span><span class="o">.</span><span class="n">SparkSession</span><span class="o">.</span><span class="n">builder</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="s2">&quot;spark.driver.memory&quot;</span><span class="p">,</span> <span class="s2">&quot;16G&quot;</span><span class="p">)</span>
             <span class="o">.</span><span class="n">master</span><span class="p">(</span><span class="s2">&quot;local[1]&quot;</span><span class="p">)</span>
@@ -427,7 +430,9 @@
         <span class="c1"># Merge indices in two stages</span>
         <span class="c1"># stage1: each executor merges a batch of indices and saves the merged index to stage2 folder</span>
         <span class="n">rdd</span><span class="o">.</span><span class="n">foreach</span><span class="p">(</span>
-            <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">_merge_index</span><span class="p">(</span><span class="n">small_indices_folder</span><span class="o">=</span><span class="n">temporary_indices_folder</span><span class="p">,</span> <span class="n">batch_id</span><span class="o">=</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">start</span><span class="o">=</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">end</span><span class="o">=</span><span class="n">x</span><span class="p">[</span><span class="mi">2</span><span class="p">],)</span>  <span class="c1"># type: ignore</span>
+            <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">_merge_index</span><span class="p">(</span>
+                <span class="n">small_indices_folder</span><span class="o">=</span><span class="n">temporary_indices_folder</span><span class="p">,</span> <span class="n">batch_id</span><span class="o">=</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">start</span><span class="o">=</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">end</span><span class="o">=</span><span class="n">x</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+            <span class="p">)</span>  <span class="c1"># type: ignore</span>
         <span class="p">)</span>
         <span class="c1"># stage2: driver merges the indices generated from stage1</span>
         <span class="n">merged_index</span> <span class="o">=</span> <span class="n">_merge_index</span><span class="p">(</span><span class="n">_get_stage2_folder</span><span class="p">(</span><span class="n">temporary_indices_folder</span><span class="p">))</span>

@@ -84,22 +84,20 @@
   <h1>Source code for autofaiss.external.quantize</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot; main file to create an index from the the begining &quot;&quot;&quot;</span>
 
+<span class="kn">import</span> <span class="nn">json</span>
 <span class="kn">import</span> <span class="nn">logging</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">List</span>
-<span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">uuid</span>
-<span class="kn">from</span> <span class="nn">pprint</span> <span class="kn">import</span> <span class="n">pprint</span> <span class="k">as</span> <span class="n">pp</span>
+<span class="kn">import</span> <span class="nn">logging.config</span>
 <span class="kn">import</span> <span class="nn">multiprocessing</span>
+<span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">tempfile</span>
+<span class="kn">import</span> <span class="nn">uuid</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
 
 <span class="kn">import</span> <span class="nn">faiss</span>
-<span class="kn">import</span> <span class="nn">json</span>
-
 <span class="kn">import</span> <span class="nn">fire</span>
 <span class="kn">import</span> <span class="nn">fsspec</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
-
-<span class="kn">from</span> <span class="nn">autofaiss.readers.embeddings_iterators</span> <span class="kn">import</span> <span class="n">read_total_nb_vectors_and_dim</span><span class="p">,</span> <span class="n">make_path_absolute</span><span class="p">,</span> <span class="n">get_file_list</span>
 <span class="kn">from</span> <span class="nn">autofaiss.external.build</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">create_index</span><span class="p">,</span>
     <span class="n">estimate_memory_required_for_index_creation</span><span class="p">,</span>
@@ -108,11 +106,25 @@
 <span class="kn">from</span> <span class="nn">autofaiss.external.optimize</span> <span class="kn">import</span> <span class="n">get_optimal_hyperparameters</span><span class="p">,</span> <span class="n">get_optimal_index_keys_v2</span>
 <span class="kn">from</span> <span class="nn">autofaiss.external.scores</span> <span class="kn">import</span> <span class="n">compute_fast_metrics</span><span class="p">,</span> <span class="n">compute_medium_metrics</span>
 <span class="kn">from</span> <span class="nn">autofaiss.indices.index_utils</span> <span class="kn">import</span> <span class="n">set_search_hyperparameters</span>
+<span class="kn">from</span> <span class="nn">autofaiss.readers.embeddings_iterators</span> <span class="kn">import</span> <span class="n">get_file_list</span><span class="p">,</span> <span class="n">make_path_absolute</span><span class="p">,</span> <span class="n">read_total_nb_vectors_and_dim</span>
+<span class="kn">from</span> <span class="nn">autofaiss.utils.cast</span> <span class="kn">import</span> <span class="n">cast_bytes_to_memory_string</span><span class="p">,</span> <span class="n">cast_memory_to_bytes</span>
 <span class="kn">from</span> <span class="nn">autofaiss.utils.decorators</span> <span class="kn">import</span> <span class="n">Timeit</span>
-<span class="kn">from</span> <span class="nn">autofaiss.utils.cast</span> <span class="kn">import</span> <span class="n">cast_memory_to_bytes</span><span class="p">,</span> <span class="n">cast_bytes_to_memory_string</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
-<span class="n">LOGGER</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;autofaiss&quot;</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_log_output_dict</span><span class="p">(</span><span class="n">infos</span><span class="p">:</span> <span class="n">Dict</span><span class="p">):</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;{&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">infos</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;}&quot;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="setup_logging"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.quantize.setup_logging">[docs]</a><span class="k">def</span> <span class="nf">setup_logging</span><span class="p">(</span><span class="n">logging_level</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Setup the logging.&quot;&quot;&quot;</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">dictConfig</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">version</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">disable_existing_loggers</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+    <span class="n">logging_format</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%(asctime)s</span><span class="s2"> [</span><span class="si">%(levelname)s</span><span class="s2">]: </span><span class="si">%(message)s</span><span class="s2">&quot;</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">logging_level</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="n">logging_format</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="build_index"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.quantize.build_index">[docs]</a><span class="k">def</span> <span class="nf">build_index</span><span class="p">(</span>
@@ -136,6 +148,7 @@
     <span class="n">should_be_memory_mappable</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">distributed</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">temporary_indices_folder</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;hdfs://root/tmp/distributed_autofaiss_indices&quot;</span><span class="p">,</span>
+    <span class="n">verbose</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">],</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]]]:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Reads embeddings and creates a quantized index from them.</span>
@@ -197,16 +210,19 @@
 <span class="sd">    temporary_indices_folder: str</span>
 <span class="sd">        Folder to save the temporary small indices that are generated by each spark executor.</span>
 <span class="sd">        Only used when distributed = &quot;pyspark&quot;.</span>
+<span class="sd">    verbose: int</span>
+<span class="sd">        set verbosity of outputs via logging level, default is `logging.INFO`</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">setup_logging</span><span class="p">(</span><span class="n">verbose</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">index_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">index_path</span> <span class="o">=</span> <span class="n">make_path_absolute</span><span class="p">(</span><span class="n">index_path</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">save_on_disk</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Please specify a index_path if you set save_on_disk as True&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Please specify a index_path if you set save_on_disk as True&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
     <span class="k">if</span> <span class="n">index_infos_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">index_infos_path</span> <span class="o">=</span> <span class="n">make_path_absolute</span><span class="p">(</span><span class="n">index_infos_path</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">save_on_disk</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Please specify a index_infos_path if you set save_on_disk as True&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Please specify a index_infos_path if you set save_on_disk as True&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
     <span class="k">if</span> <span class="n">ids_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">ids_path</span> <span class="o">=</span> <span class="n">make_path_absolute</span><span class="p">(</span><span class="n">ids_path</span><span class="p">)</span>
@@ -216,7 +232,7 @@
     <span class="n">memory_left</span> <span class="o">=</span> <span class="n">current_bytes</span> <span class="o">-</span> <span class="n">max_index_bytes</span>
 
     <span class="k">if</span> <span class="n">memory_left</span> <span class="o">&lt;</span> <span class="n">current_bytes</span> <span class="o">*</span> <span class="mf">0.1</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
             <span class="s2">&quot;You do not have enough memory to build this index&quot;</span>
             <span class="s2">&quot;please increase current_memory_available or decrease max_index_memory_usage&quot;</span>
         <span class="p">)</span>
@@ -224,7 +240,7 @@
 
     <span class="k">if</span> <span class="n">nb_cores</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">nb_cores</span> <span class="o">=</span> <span class="n">multiprocessing</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">()</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Using </span><span class="si">{</span><span class="n">nb_cores</span><span class="si">}</span><span class="s2"> omp threads (processes), consider increasing --nb_cores if you have more&quot;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Using </span><span class="si">{</span><span class="n">nb_cores</span><span class="si">}</span><span class="s2"> omp threads (processes), consider increasing --nb_cores if you have more&quot;</span><span class="p">)</span>
     <span class="n">faiss</span><span class="o">.</span><span class="n">omp_set_num_threads</span><span class="p">(</span><span class="n">nb_cores</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">embeddings</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
@@ -241,16 +257,17 @@
                 <span class="n">embeddings_file_paths</span><span class="p">,</span> <span class="n">file_format</span><span class="o">=</span><span class="n">file_format</span><span class="p">,</span> <span class="n">embedding_column_name</span><span class="o">=</span><span class="n">embedding_column_name</span>
             <span class="p">)</span>
             <span class="n">embeddings_file_paths</span> <span class="o">=</span> <span class="p">[</span><span class="n">fp</span> <span class="k">for</span> <span class="n">fp</span><span class="p">,</span> <span class="n">count</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">embeddings_file_paths</span><span class="p">,</span> <span class="n">file_counts</span><span class="p">)</span> <span class="k">if</span> <span class="n">count</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;There are </span><span class="si">{</span><span class="n">nb_vectors</span><span class="si">}</span><span class="s2"> embeddings of dim </span><span class="si">{</span><span class="n">vec_dim</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;There are </span><span class="si">{</span><span class="n">nb_vectors</span><span class="si">}</span><span class="s2"> embeddings of dim </span><span class="si">{</span><span class="n">vec_dim</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
         <span class="k">with</span> <span class="n">Timeit</span><span class="p">(</span><span class="s2">&quot;Compute estimated construction time of the index&quot;</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
-            <span class="nb">print</span><span class="p">(</span><span class="n">get_estimated_construction_time_infos</span><span class="p">(</span><span class="n">nb_vectors</span><span class="p">,</span> <span class="n">vec_dim</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">log_lines</span> <span class="ow">in</span> <span class="n">get_estimated_construction_time_infos</span><span class="p">(</span><span class="n">nb_vectors</span><span class="p">,</span> <span class="n">vec_dim</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">):</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">log_lines</span><span class="p">)</span>
 
         <span class="k">with</span> <span class="n">Timeit</span><span class="p">(</span><span class="s2">&quot;Checking that your have enough memory available to create the index&quot;</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
             <span class="n">necessary_mem</span><span class="p">,</span> <span class="n">index_key_used</span> <span class="o">=</span> <span class="n">estimate_memory_required_for_index_creation</span><span class="p">(</span>
                 <span class="n">nb_vectors</span><span class="p">,</span> <span class="n">vec_dim</span><span class="p">,</span> <span class="n">index_key</span><span class="p">,</span> <span class="n">max_index_memory_usage</span><span class="p">,</span> <span class="n">make_direct_map</span>
             <span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cast_bytes_to_memory_string</span><span class="p">(</span><span class="n">necessary_mem</span><span class="p">)</span><span class="si">}</span><span class="s2"> of memory &quot;</span>
                 <span class="s2">&quot;will be needed to build the index (more might be used if you have more)&quot;</span>
             <span class="p">)</span>
@@ -266,7 +283,7 @@
                     <span class="s2">&quot;used for clusterisation is responsible for this high memory usage.&quot;</span>
                     <span class="s2">&quot;Consider increasing the options current_memory_available or decreasing max_index_memory_usage&quot;</span>
                 <span class="p">)</span>
-                <span class="nb">print</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
                 <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
 
         <span class="k">if</span> <span class="n">index_key</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -283,20 +300,22 @@
                 <span class="n">index_key</span> <span class="o">=</span> <span class="n">best_index_keys</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
         <span class="k">if</span> <span class="n">id_columns</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Id columns provided </span><span class="si">{</span><span class="n">id_columns</span><span class="si">}</span><span class="s2"> - will be reading the corresponding columns&quot;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Id columns provided </span><span class="si">{</span><span class="n">id_columns</span><span class="si">}</span><span class="s2"> - will be reading the corresponding columns&quot;</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">ids_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">Will be writing the Ids DataFrame in parquet format to </span><span class="si">{</span><span class="n">ids_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">Will be writing the Ids DataFrame in parquet format to </span><span class="si">{</span><span class="n">ids_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
                 <span class="n">fs</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">fsspec</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">url_to_fs</span><span class="p">(</span><span class="n">ids_path</span><span class="p">)</span>
                 <span class="n">fs</span><span class="o">.</span><span class="n">mkdirs</span><span class="p">(</span><span class="n">ids_path</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">As ids_path=None - the Ids DataFrame will not be written and will be ignored subsequently&quot;</span><span class="p">)</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">Please provide a value ids_path for the Ids to be written&quot;</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                    <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">As ids_path=None - the Ids DataFrame will not be written and will be ignored subsequently&quot;</span>
+                <span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">Please provide a value ids_path for the Ids to be written&quot;</span><span class="p">)</span>
 
         <span class="k">def</span> <span class="nf">write_ids_df_to_parquet</span><span class="p">(</span><span class="n">ids</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">batch_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
             <span class="n">filename</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;part-</span><span class="si">{</span><span class="n">batch_id</span><span class="si">:</span><span class="s2">08d</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid1</span><span class="p">()</span><span class="si">}</span><span class="s2">.parquet&quot;</span>
             <span class="n">output_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ids_path</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
             <span class="k">with</span> <span class="n">fsspec</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">output_file</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-                <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Writing id DataFrame to file </span><span class="si">{</span><span class="n">output_file</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Writing id DataFrame to file </span><span class="si">{</span><span class="n">output_file</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
                 <span class="n">ids</span><span class="o">.</span><span class="n">to_parquet</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
 
         <span class="k">with</span> <span class="n">Timeit</span><span class="p">(</span><span class="s2">&quot;Creating the index&quot;</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
@@ -323,7 +342,7 @@
 
         <span class="c1"># Set search hyperparameters for the index</span>
         <span class="n">set_search_hyperparameters</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">index_param</span><span class="p">,</span> <span class="n">use_gpu</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The best hyperparameters are: </span><span class="si">{</span><span class="n">index_param</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The best hyperparameters are: </span><span class="si">{</span><span class="n">index_param</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
         <span class="n">metric_infos</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">metric_infos</span><span class="p">[</span><span class="s2">&quot;index_key&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">index_key</span>
@@ -343,8 +362,8 @@
                 <span class="k">with</span> <span class="n">fsspec</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">index_infos_path</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">open</span><span class="p">()</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
                     <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">metric_infos</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
 
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Recap:&quot;</span><span class="p">)</span>
-        <span class="n">pp</span><span class="p">(</span><span class="n">metric_infos</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Recap:&quot;</span><span class="p">)</span>
+        <span class="n">_log_output_dict</span><span class="p">(</span><span class="n">metric_infos</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">index</span><span class="p">,</span> <span class="n">metric_infos</span></div>
 
@@ -357,6 +376,7 @@
     <span class="n">save_on_disk</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="n">max_index_query_time_ms</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">10.0</span><span class="p">,</span>
     <span class="n">use_gpu</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">verbose</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">],</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]]]:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Set hyperparameters to the given index.</span>
@@ -382,12 +402,15 @@
 <span class="sd">        Query speed constraint for the index to create.</span>
 <span class="sd">    use_gpu: bool</span>
 <span class="sd">        Experimental, gpu training is faster, not tested so far.</span>
+<span class="sd">    verbose: int</span>
+<span class="sd">        set verbosity of outputs via logging level, default is `logging.INFO`</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    index</span>
 <span class="sd">        The faiss index</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">setup_logging</span><span class="p">(</span><span class="n">verbose</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">index_path</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
         <span class="n">index_path</span> <span class="o">=</span> <span class="n">make_path_absolute</span><span class="p">(</span><span class="n">index_path</span><span class="p">)</span>
@@ -407,7 +430,7 @@
         <span class="k">with</span> <span class="n">fsspec</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">output_index_path</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">open</span><span class="p">()</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="n">faiss</span><span class="o">.</span><span class="n">write_index</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">faiss</span><span class="o">.</span><span class="n">PyCallbackIOWriter</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">))</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The optimal hyperparameters are </span><span class="si">{</span><span class="n">index_param</span><span class="si">}</span><span class="s2">, the index with these parameters has been saved.&quot;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The optimal hyperparameters are </span><span class="si">{</span><span class="n">index_param</span><span class="si">}</span><span class="s2">, the index with these parameters has been saved.&quot;</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">index</span></div>
 
@@ -418,6 +441,7 @@
     <span class="n">save_on_disk</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="n">output_index_info_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;infos.json&quot;</span><span class="p">,</span>
     <span class="n">current_memory_available</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;32G&quot;</span><span class="p">,</span>
+    <span class="n">verbose</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]]:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Compute metrics on a given index, use cached ground truth for fast scoring the next times.</span>
@@ -435,7 +459,10 @@
 <span class="sd">    current_memory_available: str</span>
 <span class="sd">        Memory available on the current machine, having more memory is a boost</span>
 <span class="sd">        because it reduces the swipe between RAM and disk.</span>
+<span class="sd">    verbose: int</span>
+<span class="sd">        set verbosity of outputs via logging level, default is `logging.INFO`</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">setup_logging</span><span class="p">(</span><span class="n">verbose</span><span class="p">)</span>
     <span class="n">faiss</span><span class="o">.</span><span class="n">omp_set_num_threads</span><span class="p">(</span><span class="n">multiprocessing</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">())</span>
 
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">index_path</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
@@ -463,14 +490,14 @@
     <span class="k">with</span> <span class="n">Timeit</span><span class="p">(</span><span class="s2">&quot;Compute fast metrics&quot;</span><span class="p">):</span>
         <span class="n">infos</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">compute_fast_metrics</span><span class="p">(</span><span class="n">embeddings_path</span><span class="p">,</span> <span class="n">index</span><span class="p">))</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Intermediate recap:&quot;</span><span class="p">)</span>
-    <span class="n">pp</span><span class="p">(</span><span class="n">infos</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Intermediate recap:&quot;</span><span class="p">)</span>
+    <span class="n">_log_output_dict</span><span class="p">(</span><span class="n">infos</span><span class="p">)</span>
 
     <span class="n">current_in_bytes</span> <span class="o">=</span> <span class="n">cast_memory_to_bytes</span><span class="p">(</span><span class="n">current_memory_available</span><span class="p">)</span>
     <span class="n">memory_left</span> <span class="o">=</span> <span class="n">current_in_bytes</span> <span class="o">-</span> <span class="n">index_memory</span>
 
     <span class="k">if</span> <span class="n">memory_left</span> <span class="o">&lt;</span> <span class="n">current_in_bytes</span> <span class="o">*</span> <span class="mf">0.1</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
             <span class="sa">f</span><span class="s2">&quot;Not enough memory, at least </span><span class="si">{</span><span class="n">cast_bytes_to_memory_string</span><span class="p">(</span><span class="n">index_memory</span> <span class="o">*</span> <span class="mf">1.1</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
             <span class="s2">&quot;is needed, please increase current_memory_available&quot;</span>
         <span class="p">)</span>
@@ -479,8 +506,8 @@
     <span class="k">with</span> <span class="n">Timeit</span><span class="p">(</span><span class="s2">&quot;Compute medium metrics&quot;</span><span class="p">):</span>
         <span class="n">infos</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">compute_medium_metrics</span><span class="p">(</span><span class="n">embeddings_path</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">memory_left</span><span class="p">))</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Performances recap:&quot;</span><span class="p">)</span>
-    <span class="n">pp</span><span class="p">(</span><span class="n">infos</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Performances recap:&quot;</span><span class="p">)</span>
+    <span class="n">_log_output_dict</span><span class="p">(</span><span class="n">infos</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">save_on_disk</span><span class="p">:</span>
         <span class="k">with</span> <span class="n">fsspec</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">output_index_info_path</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">open</span><span class="p">()</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
@@ -491,8 +518,6 @@
 
 <div class="viewcode-block" id="main"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.quantize.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
     <span class="sd">&quot;&quot;&quot;Main entry point&quot;&quot;&quot;</span>
-    <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
-
     <span class="n">fire</span><span class="o">.</span><span class="n">Fire</span><span class="p">({</span><span class="s2">&quot;build_index&quot;</span><span class="p">:</span> <span class="n">build_index</span><span class="p">,</span> <span class="s2">&quot;tune_index&quot;</span><span class="p">:</span> <span class="n">tune_index</span><span class="p">,</span> <span class="s2">&quot;score_index&quot;</span><span class="p">:</span> <span class="n">score_index</span><span class="p">})</span></div>
 
 
