@@ -172,7 +172,11 @@ def build_index(
             nb_vectors, vec_dim, file_counts = read_total_nb_vectors_and_dim(
                 embeddings_file_paths, file_format=file_format, embedding_column_name=embedding_column_name
             )
-            embeddings_file_paths = [fp for fp, count in zip(embeddings_file_paths, file_counts) if count > 0]
+            embeddings_file_paths, file_counts = zip(  # type: ignore
+                *((fp, count) for fp, count in zip(embeddings_file_paths, file_counts) if count > 0)
+            )
+            embeddings_file_paths = list(embeddings_file_paths)
+            file_counts = list(file_counts)
             logger.info(f"There are {nb_vectors} embeddings of dim {vec_dim}")
 
         with Timeit("Compute estimated construction time of the index", indent=1):
