@@ -1,11 +1,13 @@
 import logging
 import os
 import random
+from tempfile import TemporaryDirectory, NamedTemporaryFile
 
 import faiss
 import numpy as np
 import pandas as pd
 import pyarrow.parquet as pq
+import pytest
 
 LOGGER = logging.getLogger(__name__)
 
@@ -179,3 +181,47 @@ def test_quantize_with_multiple_inputs(tmpdir):
     )
     output_parquet_index_faiss = faiss.read_index(index_parquet_path)
     assert output_parquet_index_faiss.ntotal == len(expected_df)
+
+
+def test_quantize_with_empty_file():
+    with TemporaryDirectory() as tmp_dir:
+        with NamedTemporaryFile() as tmp_file:
+            df = pd.DataFrame({"embedding": [], "id": []})
+            df.to_parquet(os.path.join(tmp_dir, tmp_file.name))
+            with pytest.raises(ValueError):
+                build_index(
+                    embeddings=tmp_dir, file_format="parquet", embedding_column_name="embedding",
+                )
+
+
+def test_quantize_with_empty_and_non_empty_files(tmpdir):
+    with TemporaryDirectory() as tmp_empty_dir:
+        with NamedTemporaryFile() as tmp_file:
+            df = pd.DataFrame({"embedding": [], "id": []})
+            df.to_parquet(os.path.join(tmp_empty_dir, tmp_file.name))
+            min_size = random.randint(1, 100)
+            max_size = random.randint(min_size, 10240)
+            dim = random.randint(1, 100)
+            nb_files = random.randint(1, 5)
+            tmp_non_empty_dir, _, _, expected_df, _ = build_test_collection_parquet(
+                tmpdir,
+                min_size=min_size,
+                max_size=max_size,
+                dim=dim,
+                nb_files=nb_files,
+                tmpdir_name="autofaiss_parquet1",
+            )
+            index_parquet_path = os.path.join(tmpdir.strpath, "parquet_knn.index")
+            output_parquet_index_infos = os.path.join(tmpdir.strpath, "infos.json")
+            build_index(
+                embeddings=[tmp_empty_dir, tmp_non_empty_dir],
+                file_format="parquet",
+                embedding_column_name="embedding",
+                index_path=index_parquet_path,
+                index_infos_path=output_parquet_index_infos,
+                max_index_query_time_ms=10.0,
+                max_index_memory_usage="1G",
+                current_memory_available="2G",
+            )
+            output_parquet_index_faiss = faiss.read_index(index_parquet_path)
+            assert output_parquet_index_faiss.ntotal == len(expected_df)

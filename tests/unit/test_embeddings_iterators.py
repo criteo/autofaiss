@@ -1,6 +1,7 @@
 import logging
 import os
 import random
+from tempfile import TemporaryDirectory, NamedTemporaryFile
 
 from fsspec.implementations.local import LocalFileSystem
 
@@ -165,6 +166,20 @@ def test_read_total_nb_vectors(tmpdir):
     assert actual_count == expected_count
     assert actual_dim == dim
     assert sum(file_counts) == actual_count
+
+
+def test_test_read_total_nb_vectors_with_empty_file():
+    with TemporaryDirectory() as tmp_empty_dir:
+        with NamedTemporaryFile() as tmp_file:
+            df = pd.DataFrame({"embedding": [], "id": []})
+            tmp_path = os.path.join(tmp_empty_dir, tmp_file.name)
+            df.to_parquet(tmp_path)
+            actual_count, actual_dim, file_counts = read_total_nb_vectors_and_dim(
+                [tmp_path], file_format="parquet", embedding_column_name="embedding"
+            )
+            assert actual_count == 0
+            assert actual_dim is None
+            assert file_counts == [0]
 
 
 def test_get_file_list_with_single_input(tmpdir):
