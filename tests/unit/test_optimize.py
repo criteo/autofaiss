@@ -23,6 +23,28 @@ def test_get_optimal_index_keys_v2(nb_vectors: int, dim_vector: int, max_index_m
         assert "IVF" in index_key
 
 
+@pytest.mark.parametrize(
+    "nb_vectors, use_gpu, expected",
+    [
+        (999_999, False, "IVF4096,Flat"),
+        (1_000_000, False, "OPQ256_768,IVF16384_HNSW32,PQ256x8"),
+        (1_000_000, True, "IVF16384,Flat"),
+    ],
+)
+def test_get_optimal_index_keys_v2_with_large_nb_vectors(nb_vectors: int, use_gpu, expected: str):
+    assert (
+        get_optimal_index_keys_v2(
+            nb_vectors=nb_vectors,
+            dim_vector=512,
+            max_index_memory_usage="50G",
+            should_be_memory_mappable=True,
+            ivf_flat_threshold=1_000_000,
+            use_gpu=use_gpu,
+        )[0]
+        == expected
+    )
+
+
 # @pytest.mark.skip(reason="This test takes too long to run (11m)")
 @pytest.mark.parametrize(
     "index_key", ["OPQ64_128,IVF1024_HNSW32,PQ64x8", "OPQ64_128,IVF1024,PQ64x8", "IVF256,Flat", "HNSW15",],

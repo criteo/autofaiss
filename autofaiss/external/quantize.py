@@ -214,6 +214,7 @@ def build_index(
                     max_index_memory_usage,
                     make_direct_map=make_direct_map,
                     should_be_memory_mappable=should_be_memory_mappable,
+                    use_gpu=use_gpu,
                 )
                 if not best_index_keys:
                     return None, None
