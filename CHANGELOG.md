@@ -4,40 +4,45 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and this project adheres to [Semantic Versioning](https://semver.org).
 
-## [2.9.0] - 2021-02-16
+## [2.9.1] - 2022-02-17
+
+### Fixed
+* Empty ids path and temporary small indices folder at the beginning
+
+## [2.9.0] - 2022-02-16
 
 ### Added
 * Use a central logger instead of print functions
 * Add a verbosity flag to control the log level
 
-## [2.8.0] - 2021-02-14
+## [2.8.0] - 2022-02-14
 
 ### Added
 * Filter empty files
 * Implement 2 stage merging in the distributed module
 
-## [2.7.1] - 2021-02-11
+## [2.7.1] - 2022-02-11
 
 ### Fixed
 * Make absolute path so that it is more safer to use fsspec
 * Fix memory estimation for inverted list
 
-## [2.7.0] - 2021-02-04
+## [2.7.0] - 2022-02-04
 
 ### Added
 Add support for multiple embeddings folders
 
-## [2.6.0] - 2021-02-02
+## [2.6.0] - 2022-02-02
 
 ### Added
 Optional distributed indexing support using pyspark
 
-## [2.5.0] - 2021-01-06
+## [2.5.0] - 2022-01-06
 
 ### Added
 Add support for memory-mapped indices generation 
 
-## [2.4.1] - 2021-01-04
+## [2.4.1] - 2022-01-04
 
 ### Fixed
 * Add make direct map to argement of index metadata while estimating index size
