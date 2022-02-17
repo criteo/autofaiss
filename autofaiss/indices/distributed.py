@@ -5,8 +5,6 @@ import math
 import multiprocessing
 import os
 import logging
-from functools import partial
-from multiprocessing.pool import ThreadPool
 from tempfile import TemporaryDirectory
 from typing import List, Optional, Iterator, Tuple, Callable, Any
 
@@ -18,7 +16,11 @@ from fsspec import get_filesystem_class
 from fsspec.implementations.hdfs import PyArrowHDFS
 from tqdm import tqdm
 
-from autofaiss.indices.index_utils import _get_index_from_bytes, _get_bytes_from_index
+from autofaiss.indices.index_utils import (
+    get_index_from_bytes,
+    get_bytes_from_index,
+    parallel_download_indices_from_remote,
+)
 from autofaiss.readers.embeddings_iterators import get_matrix_reader, make_path_absolute
 from autofaiss.utils.cast import cast_memory_to_bytes
 from autofaiss.utils.decorators import Timeit
@@ -151,7 +153,7 @@ def _add_index(
     faiss.omp_set_num_threads(num_cores)
 
     # load empty trained index
-    empty_index = _get_index_from_bytes(broadcast_trained_index_bytes.value)
+    empty_index = get_index_from_bytes(broadcast_trained_index_bytes.value)
 
     empty_index.add(embeddings_to_add)
 
@@ -188,25 +190,6 @@ def _batch_loader(batch_size: int, nb_batches: int) -> Iterator[Tuple[int, int, 
         yield batch_id, start, end
 
 
-def _download_one(src_dst_path: Tuple[str, str], fs: fsspec.AbstractFileSystem):
-    src_path, dst_path = src_dst_path
-    fs.get(src_path, dst_path)
-
-
-def _parallel_download_indices_from_remote(
-    fs: fsspec.AbstractFileSystem, indices_file_paths: List[str], dst_folder: str
-):
-    """Download small indices in parallel."""
-    if len(indices_file_paths) == 0:
-        return
-    os.makedirs(dst_folder, exist_ok=True)
-    dst_paths = [os.path.join(dst_folder, os.path.split(p)[-1]) for p in indices_file_paths]
-    src_dest_paths = zip(indices_file_paths, dst_paths)
-    with ThreadPool(min(16, len(indices_file_paths))) as pool:
-        for _ in pool.imap_unordered(partial(_download_one, fs=fs), src_dest_paths):
-            pass
-
-
 def _get_stage2_folder(tmp_folder: str) -> str:
     """Get the temporary folder path used for the 2nd stage of merging"""
     return tmp_folder.rstrip("/") + "/stage-2/"
@@ -219,6 +202,7 @@ def _merge_index(
     start: Optional[int] = None,
     end: Optional[int] = None,
     max_size_on_disk: str = "100GB",
+    tmp_output_folder: Optional[str] = None,
 ) -> faiss.Index:
     """Merge all the indices in `small_indices_folder` into single one return the merged index."""
     fs = _get_file_system(small_indices_folder)
@@ -256,20 +240,49 @@ def _merge_index(
             for i in range(nb_iterations):
                 to_downloads = small_indices_files[i * nb_files_each_time : min(n, (i + 1) * nb_files_each_time)]
                 with TemporaryDirectory() as local_indices_folder:
-                    _parallel_download_indices_from_remote(
+                    parallel_download_indices_from_remote(
                         fs=fs, indices_file_paths=to_downloads, dst_folder=local_indices_folder
                     )
                     merged_index = _merge_from_local(merged_index)
                 pbar.update(1)
 
-    tmp_stage2 = _get_stage2_folder(small_indices_folder)
-    if batch_id is not None:
-        _save_small_index(index=merged_index, batch_id=batch_id, small_indices_folder=tmp_stage2, nb_batches=nb_batches)
+    if batch_id is not None and tmp_output_folder is not None:
+        _save_small_index(
+            index=merged_index, batch_id=batch_id, small_indices_folder=tmp_output_folder, nb_batches=nb_batches
+        )
     return merged_index
 
 
 def _get_file_system(path: str) -> fsspec.AbstractFileSystem:
     return fsspec.core.url_to_fs(path)[0]
+
+
+def _merge_to_n_indices(spark_session, n: int, src_folder: str):
+    """Merge all the indices from src_folder into n indices, and return the folder for the next stage"""
+    fs = _get_file_system(src_folder)
+    nb_indices_on_src_folder = len(fs.ls(src_folder, detail=False))
+    if nb_indices_on_src_folder <= n:
+        # merging does not happen, return the source folder
+        return src_folder
+    dst_folder = _get_stage2_folder(src_folder)
+    batch_size = math.ceil(nb_indices_on_src_folder / n)
+    merge_batches = _batch_loader(batch_size=batch_size, nb_batches=n)
+    rdd = spark_session.sparkContext.parallelize(merge_batches, n)
+    rdd.foreach(
+        lambda x: _merge_index(
+            small_indices_folder=src_folder,
+            nb_batches=n,
+            batch_id=x[0],
+            start=x[1],
+            end=x[2],
+            tmp_output_folder=dst_folder,
+        )  # type: ignore
+    )
+    fs = _get_file_system(src_folder)
+    for file in fs.ls(src_folder, detail=False):
+        if fs.isfile(file):
+            fs.rm(file)
+    return dst_folder
 
 
 def run(
@@ -283,7 +296,8 @@ def run(
     file_format: str = "npy",
     id_columns: Optional[List[str]] = None,
     embedding_ids_df_handler: Optional[Callable[[pd.DataFrame, int], Any]] = None,
-) -> faiss.Index:
+    nb_indices_to_keep: int = 1,
+) -> Tuple[Optional[faiss.Index], Optional[str]]:
     """
     Create indices by pyspark.
 
@@ -310,6 +324,8 @@ def run(
         Names of the columns containing the Ids of the vectors, only used when file_format is "parquet"
     embedding_ids_df_handler: Optional[Callable[[pd.DataFrame, int], Any]]
         The function that handles the embeddings Ids when id_columns is given
+    nb_indices_to_keep: int
+        Number of indices to keep after the merging step
     """
     temporary_indices_folder = make_path_absolute(temporary_indices_folder)
     fs = _get_file_system(temporary_indices_folder)
@@ -318,7 +334,7 @@ def run(
 
     ss = _get_pyspark_active_session()
     # broadcast the index bytes
-    trained_index_bytes = _get_bytes_from_index(faiss_index)
+    trained_index_bytes = get_bytes_from_index(faiss_index)
     broadcast_trained_index_bytes = ss.sparkContext.broadcast(trained_index_bytes)
     nb_vectors = sum(file_counts)
     nb_batches = math.ceil(nb_vectors / batch_size)  # use math.ceil to make sure that we cover every vector
@@ -346,24 +362,14 @@ def run(
         )
 
     with Timeit("-> Merging indices", indent=2):
-        small_indices_files = fs.ls(temporary_indices_folder, detail=False)
-        batch_size = 100
-        nb_batches = math.ceil(len(small_indices_files) / batch_size)
-        merge_batches = _batch_loader(batch_size=batch_size, nb_batches=nb_batches)
-        rdd = ss.sparkContext.parallelize(merge_batches, nb_batches)
-        # Merge indices in two stages
-        # stage1: each executor merges a batch of indices and saves the merged index to stage2 folder
-        rdd.foreach(
-            lambda x: _merge_index(
-                small_indices_folder=temporary_indices_folder,
-                batch_id=x[0],
-                start=x[1],
-                end=x[2],
-                nb_batches=nb_batches,
-            )  # type: ignore
-        )
-        # stage2: driver merges the indices generated from stage1
-        merged_index = _merge_index(small_indices_folder=_get_stage2_folder(temporary_indices_folder), nb_batches=1)
-        fs.rm(temporary_indices_folder, recursive=True)
+        next_stage_folder = _merge_to_n_indices(spark_session=ss, n=100, src_folder=temporary_indices_folder,)
 
-    return merged_index
+        if nb_indices_to_keep == 1:
+            merged_index = _merge_index(small_indices_folder=next_stage_folder, nb_batches=1)
+            fs.rm(temporary_indices_folder, recursive=True)
+            return merged_index, None
+        else:
+            next_stage_folder = _merge_to_n_indices(
+                spark_session=ss, n=nb_indices_to_keep, src_folder=next_stage_folder,
+            )
+            return None, next_stage_folder

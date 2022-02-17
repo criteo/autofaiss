@@ -1,16 +1,29 @@
 """ Functions to find optimal index parameters """
-
+import json
+import logging
+import os
 import re
+import tempfile
 from functools import partial, reduce
 from math import floor, log2, sqrt
 from operator import mul
-from typing import Callable, List, Optional, TypeVar
+from typing import Callable, List, Optional, TypeVar, Dict, Union
 
 import faiss
-from autofaiss.external.metadata import IndexMetadata, compute_memory_necessary_for_training_wrapper
-from autofaiss.indices.index_utils import set_search_hyperparameters, speed_test_ms_per_query
+import fsspec
+
+from autofaiss.external.metadata import compute_memory_necessary_for_training_wrapper, IndexMetadata
+from autofaiss.external.scores import compute_fast_metrics
+from autofaiss.indices.index_utils import (
+    set_search_hyperparameters,
+    speed_test_ms_per_query,
+    parallel_download_indices_from_remote,
+)
 from autofaiss.utils.algorithms import discrete_binary_search
 from autofaiss.utils.cast import cast_memory_to_bytes
+from autofaiss.utils.decorators import Timeit
+
+logger = logging.getLogger("autofaiss")
 
 
 def check_if_index_needs_training(index_key: str) -> bool:
@@ -407,3 +420,84 @@ def get_optimal_hyperparameters(
     )
 
     return hyperparameter_str_from_param(optimal_param)
+
+
+def optimize_and_measure_index(
+    embedding_column_name: str,
+    embeddings_file_paths: List[str],
+    file_format: str,
+    index: faiss.Index,
+    index_infos_path: Optional[str],
+    index_key: str,
+    index_param: Optional[str],
+    index_path: Optional[str],
+    max_index_query_time_ms: float,
+    save_on_disk: bool,
+    use_gpu: bool,
+):
+    """Optimize one index by selecting the best hyperparameters and calculate its metrics"""
+    if index_param is None:
+        with Timeit(f"Computing best hyperparameters for index {index_path}", indent=1):
+            index_param = get_optimal_hyperparameters(index, index_key, max_speed_ms=max_index_query_time_ms)
+    # Set search hyperparameters for the index
+    set_search_hyperparameters(index, index_param, use_gpu)
+    logger.info(f"The best hyperparameters are: {index_param}")
+    metric_infos: Dict[str, Union[str, float, int]] = {"index_key": index_key, "index_param": index_param}
+    with Timeit("Compute fast metrics", indent=1):
+        metric_infos.update(
+            compute_fast_metrics(
+                embeddings_file_paths, index, file_format=file_format, embedding_column_name=embedding_column_name
+            )
+        )
+    if save_on_disk:
+        with Timeit("Saving the index on local disk", indent=1):
+            with fsspec.open(index_path, "wb").open() as f:
+                faiss.write_index(index, faiss.PyCallbackIOWriter(f.write))
+            with fsspec.open(index_infos_path, "w").open() as f:
+                json.dump(metric_infos, f)
+
+    return metric_infos
+
+
+def optimize_and_measure_indices(
+    indices_folder: str,
+    embedding_column_name: str,
+    embeddings_file_paths: List[str],
+    file_format: str,
+    index_infos_path: Optional[str],
+    index_key: str,
+    index_param: Optional[str],
+    index_path: Optional[str],
+    max_index_query_time_ms: float,
+    save_on_disk: bool,
+    use_gpu: bool,
+):
+    """Optimize a list of indices by selecting the best hyperparameters and calculate their metrics"""
+    fs, _ = fsspec.core.url_to_fs(indices_folder)
+    indices_file_paths = fs.ls(indices_folder, detail=False)
+    index_path2_metric_infos: Dict[str, Dict] = {}
+    with tempfile.TemporaryDirectory() as local_indices_folder:
+        parallel_download_indices_from_remote(
+            fs=fs, indices_file_paths=indices_file_paths, dst_folder=local_indices_folder
+        )
+        for i, tmp_filename in enumerate(os.listdir(local_indices_folder), 1):
+            index_filepath = os.path.join(local_indices_folder, tmp_filename)
+            index = faiss.read_index(index_filepath)
+            if save_on_disk and index_path and index_infos_path:
+                cur_index_path = index_path + str(i)
+                cur_index_infos_path = index_infos_path + str(i)
+            metric_infos = optimize_and_measure_index(
+                embedding_column_name,
+                embeddings_file_paths,
+                file_format,
+                index,
+                cur_index_infos_path,
+                index_key,
+                index_param,
+                cur_index_path,
+                max_index_query_time_ms,
+                save_on_disk,
+                use_gpu,
+            )
+            index_path2_metric_infos[cur_index_path] = metric_infos
+    return index_path2_metric_infos

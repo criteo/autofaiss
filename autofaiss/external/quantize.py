@@ -7,7 +7,7 @@ import multiprocessing
 import os
 import tempfile
 import uuid
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union, cast
 
 import faiss
 import fire
@@ -19,7 +19,12 @@ from autofaiss.external.build import (
     estimate_memory_required_for_index_creation,
     get_estimated_construction_time_infos,
 )
-from autofaiss.external.optimize import get_optimal_hyperparameters, get_optimal_index_keys_v2
+from autofaiss.external.optimize import (
+    get_optimal_hyperparameters,
+    get_optimal_index_keys_v2,
+    optimize_and_measure_index,
+    optimize_and_measure_indices,
+)
 from autofaiss.external.scores import compute_fast_metrics, compute_medium_metrics
 from autofaiss.indices.index_utils import set_search_hyperparameters
 from autofaiss.readers.embeddings_iterators import get_file_list, make_path_absolute, read_total_nb_vectors_and_dim
@@ -65,10 +70,11 @@ def build_index(
     distributed: Optional[str] = None,
     temporary_indices_folder: str = "hdfs://root/tmp/distributed_autofaiss_indices",
     verbose: int = logging.INFO,
-) -> Tuple[Optional[Any], Optional[Dict[str, Union[str, float, int]]]]:
+    nb_indices_to_keep: int = 1,
+) -> Union[Tuple[Optional[Any], Optional[Dict[str, Union[str, float, int]]]], Dict[str, Dict]]:
     """
     Reads embeddings and creates a quantized index from them.
-    The index is stored on the current machine at the given ouput path.
+    The index is stored on the current machine at the given output path.
 
     Parameters
     ----------
@@ -131,6 +137,14 @@ def build_index(
         Only used when distributed = "pyspark".
     verbose: int
         set verbosity of outputs via logging level, default is `logging.INFO`
+    nb_indices_to_keep: int
+        Number of indices to keep when distributed is "pyspark".
+        It allows you to build an index `nb_indices_to_keep - 1` times larger than `current_memory_available`
+        If it is not equal to 1,
+            - You are expected to have at most `nb_indices_to_keep` indices with the following names:
+                "{index_path}i" where i ranges from 1 to `nb_indices_to_keep`
+            - `build_index` returns a mapping from index path to metrics instead of a tuple (index, metrics)
+        Default to 1.
     """
     setup_logging(verbose)
     if index_path is not None:
@@ -146,6 +160,15 @@ def build_index(
     if ids_path is not None:
         ids_path = make_path_absolute(ids_path)
 
+    if nb_indices_to_keep < 1:
+        logger.error("Please specify nb_indices_to_keep an integer value larger or equal to 1")
+    if nb_indices_to_keep > 1:
+        if distributed is None:
+            logger.error('nb_indices_to_keep can only be larger than 1 when distributed is "pyspark"')
+            return None, None
+        current_memory_available = (
+            f"{float(current_memory_available[:-1]) * nb_indices_to_keep}{current_memory_available[-1]}"
+        )
     current_bytes = cast_memory_to_bytes(current_memory_available)
     max_index_bytes = cast_memory_to_bytes(max_index_memory_usage)
     memory_left = current_bytes - max_index_bytes
@@ -245,7 +268,7 @@ def build_index(
                 ids.to_parquet(f)
 
         with Timeit("Creating the index", indent=1):
-            index = create_index(
+            index, indices_folder = create_index(
                 embeddings_file_paths,
                 index_key,
                 metric_type,
@@ -260,38 +283,47 @@ def build_index(
                 distributed=distributed,
                 temporary_indices_folder=temporary_indices_folder,
                 file_counts=file_counts if distributed is not None else None,
+                nb_indices_to_keep=nb_indices_to_keep,
             )
-
-        if index_param is None:
-            with Timeit("Computing best hyperparameters", indent=1):
-                index_param = get_optimal_hyperparameters(index, index_key, max_speed_ms=max_index_query_time_ms)
-
-        # Set search hyperparameters for the index
-        set_search_hyperparameters(index, index_param, use_gpu)
-        logger.info(f"The best hyperparameters are: {index_param}")
-
-        metric_infos: Dict[str, Union[str, float, int]] = {}
-        metric_infos["index_key"] = index_key
-        metric_infos["index_param"] = index_param
-
-        with Timeit("Compute fast metrics", indent=1):
-            metric_infos.update(
-                compute_fast_metrics(
-                    embeddings_file_paths, index, file_format=file_format, embedding_column_name=embedding_column_name
-                )
+        if nb_indices_to_keep > 1:
+            indices_folder = cast(str, indices_folder)
+            index_path2_metric_infos = optimize_and_measure_indices(
+                indices_folder,
+                embedding_column_name,
+                embeddings_file_paths,
+                file_format,
+                index_infos_path,
+                index_key,
+                index_param,
+                index_path,
+                max_index_query_time_ms,
+                save_on_disk,
+                use_gpu,
             )
+            for path, metric_infos in index_path2_metric_infos.items():
+                logger.info(f"Recap for index: {path}")
+                _log_output_dict(metric_infos)
+            fs, _ = fsspec.core.url_to_fs(temporary_indices_folder)
+            fs.rm(temporary_indices_folder, recursive=True)
+            return index_path2_metric_infos
 
-        if save_on_disk:
-            with Timeit("Saving the index on local disk", indent=1):
-                with fsspec.open(index_path, "wb").open() as f:
-                    faiss.write_index(index, faiss.PyCallbackIOWriter(f.write))
-                with fsspec.open(index_infos_path, "w").open() as f:
-                    json.dump(metric_infos, f)
-
-        logger.info("Recap:")
-        _log_output_dict(metric_infos)
-
-    return index, metric_infos
+        else:
+            metric_infos = optimize_and_measure_index(
+                embedding_column_name,
+                embeddings_file_paths,
+                file_format,
+                index,
+                index_infos_path,
+                index_key,
+                index_param,
+                index_path,
+                max_index_query_time_ms,
+                save_on_disk,
+                use_gpu,
+            )
+            logger.info("Recap:")
+            _log_output_dict(metric_infos)
+            return index, metric_infos
 
 
 def tune_index(
