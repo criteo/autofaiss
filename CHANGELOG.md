@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and this project adheres to [Semantic Versioning](https://semver.org).
 
 
+## [2.9.3] - 2022-02-18
+
+### Fixed
+Fix/Complete some documents
+Disable IVF, Flat index_key for large numbers of vectors on CPU
+
 ## [2.9.2] - 2022-02-17
 
 ### Fixed
