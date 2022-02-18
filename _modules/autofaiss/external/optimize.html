@@ -232,6 +232,8 @@
     <span class="n">force_pq</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">make_direct_map</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">should_be_memory_mappable</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">ivf_flat_threshold</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1_000_000</span><span class="p">,</span>
+    <span class="n">use_gpu</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Gives a list of interesting indices to try, *the one at the top is the most promising*</span>
@@ -261,12 +263,12 @@
         <span class="n">m_hnsw</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">floor</span><span class="p">((</span><span class="n">max_size_in_bytes</span> <span class="o">/</span> <span class="p">(</span><span class="mi">4</span> <span class="o">*</span> <span class="n">nb_vectors</span><span class="p">)</span> <span class="o">-</span> <span class="n">dim_vector</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">))</span>
         <span class="k">if</span> <span class="n">m_hnsw</span> <span class="o">&gt;=</span> <span class="mi">8</span><span class="p">:</span>
             <span class="k">return</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;HNSW</span><span class="si">{</span><span class="nb">min</span><span class="p">(</span><span class="n">m_hnsw</span><span class="p">,</span> <span class="mi">32</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span>
-
-    <span class="c1"># Try to build a not quantized IVF index</span>
-    <span class="n">index_keys</span> <span class="o">=</span> <span class="n">get_optimal_ivf</span><span class="p">(</span><span class="n">nb_vectors</span><span class="p">)</span>
-    <span class="n">index_metadata</span> <span class="o">=</span> <span class="n">IndexMetadata</span><span class="p">(</span><span class="n">index_keys</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">nb_vectors</span><span class="p">,</span> <span class="n">dim_vector</span><span class="p">,</span> <span class="n">make_direct_map</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">index_metadata</span><span class="o">.</span><span class="n">estimated_index_size_in_bytes</span><span class="p">()</span> <span class="o">&lt;=</span> <span class="n">max_size_in_bytes</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">index_keys</span>
+    <span class="k">if</span> <span class="n">nb_vectors</span> <span class="o">&lt;</span> <span class="n">ivf_flat_threshold</span> <span class="ow">or</span> <span class="n">use_gpu</span><span class="p">:</span>
+        <span class="c1"># Try to build a not quantized IVF index</span>
+        <span class="n">index_keys</span> <span class="o">=</span> <span class="n">get_optimal_ivf</span><span class="p">(</span><span class="n">nb_vectors</span><span class="p">)</span>
+        <span class="n">index_metadata</span> <span class="o">=</span> <span class="n">IndexMetadata</span><span class="p">(</span><span class="n">index_keys</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">nb_vectors</span><span class="p">,</span> <span class="n">dim_vector</span><span class="p">,</span> <span class="n">make_direct_map</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">index_metadata</span><span class="o">.</span><span class="n">estimated_index_size_in_bytes</span><span class="p">()</span> <span class="o">&lt;=</span> <span class="n">max_size_in_bytes</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">index_keys</span>
 
     <span class="c1"># Otherwise, there is not enough space, let&#39;s go for quantization</span>
     <span class="k">return</span> <span class="n">get_optimal_quantization</span><span class="p">(</span><span class="n">nb_vectors</span><span class="p">,</span> <span class="n">dim_vector</span><span class="p">,</span> <span class="n">force_max_index_memory_usage</span><span class="o">=</span><span class="n">max_index_memory_usage</span><span class="p">)</span></div>
