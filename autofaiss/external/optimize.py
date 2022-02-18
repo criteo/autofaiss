@@ -148,6 +148,8 @@ def get_optimal_index_keys_v2(
     force_pq: Optional[int] = None,
     make_direct_map: bool = False,
     should_be_memory_mappable: bool = False,
+    ivf_flat_threshold: int = 1_000_000,
+    use_gpu: bool = False,
 ) -> List[str]:
     """
     Gives a list of interesting indices to try, *the one at the top is the most promising*
@@ -177,12 +179,12 @@ def get_optimal_index_keys_v2(
         m_hnsw = int(floor((max_size_in_bytes / (4 * nb_vectors) - dim_vector) / 2))
         if m_hnsw >= 8:
             return [f"HNSW{min(m_hnsw, 32)}"]
-
-    # Try to build a not quantized IVF index
-    index_keys = get_optimal_ivf(nb_vectors)
-    index_metadata = IndexMetadata(index_keys[0], nb_vectors, dim_vector, make_direct_map)
-    if index_metadata.estimated_index_size_in_bytes() <= max_size_in_bytes:
-        return index_keys
+    if nb_vectors < ivf_flat_threshold or use_gpu:
+        # Try to build a not quantized IVF index
+        index_keys = get_optimal_ivf(nb_vectors)
+        index_metadata = IndexMetadata(index_keys[0], nb_vectors, dim_vector, make_direct_map)
+        if index_metadata.estimated_index_size_in_bytes() <= max_size_in_bytes:
+            return index_keys
 
     # Otherwise, there is not enough space, let's go for quantization
     return get_optimal_quantization(nb_vectors, dim_vector, force_max_index_memory_usage=max_index_memory_usage)
