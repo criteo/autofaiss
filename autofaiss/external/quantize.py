@@ -120,6 +120,9 @@ def build_index(
     make_direct_map: bool
         Create a direct map allowing reconstruction of embeddings. This is only needed for IVF indices.
         Note that might increase the RAM usage (approximately 8GB for 1 billion embeddings)
+    should_be_memory_mappable: bool
+        If set to true, the created index will be selected only among the indices that can be memory-mapped on disk.
+        This makes it possible to use 50GB indices on a machine with only 1GB of RAM. Default to False
     distributed: Optional[str]
         If "pyspark", create the indices using pyspark.
         Only "parquet" file format is supported.
