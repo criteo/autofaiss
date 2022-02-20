@@ -235,7 +235,7 @@ def create_index(
             )
         else:
             raise ValueError(f'Distributed by {distributed} is not supported, only "pyspark" is supported')
-    if nb_indices_to_keep > 1:
+    if nb_indices_to_keep == 1:
         # Give standard values for index hyperparameters if possible.
         if any(re.findall(r"OPQ\d+_\d+,IVF\d+_HNSW\d+,PQ\d+", index_key)):
             set_search_hyperparameters(index, f"nprobe={64},efSearch={128},ht={2048}", use_gpu)
