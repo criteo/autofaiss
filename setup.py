@@ -3,6 +3,7 @@
 
 from pathlib import Path
 import re
+import os
 
 import setuptools
 
@@ -16,16 +17,12 @@ if __name__ == "__main__":
     with Path(Path(__file__).parent, "README.md").open(encoding="utf-8") as file:
         long_description = file.read()
 
-    _INSTALL_REQUIRES = [
-        "dataclasses",
-        "fire>=0.4.0",
-        "numpy>=1.18.2",
-        "pandas>=1.0.5",
-        "pyarrow>=0.14",
-        "tqdm>=4.46.0",
-        "faiss-cpu>=1.7.0",
-        "fsspec==2021.11.0",
-    ]
+    def _read_reqs(relpath):
+        fullpath = os.path.join(os.path.dirname(__file__), relpath)
+        with open(fullpath) as f:
+            return [s.strip() for s in f.readlines() if (s.strip() and not s.startswith("#"))]
+
+    _INSTALL_REQUIRES = _read_reqs("requirements.txt")
 
     _TEST_REQUIRE = ["pytest"]
 
