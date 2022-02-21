@@ -56,8 +56,12 @@ def test_get_optimal_hyperparameters(index_key: str, d: int) -> None:
     match with the speed constraint of the index.
     """
 
-    nb_vectors_list = [1000, 100000]
-    target_speed_ms_list = [0.5, 1, 10, 50]
+    # commented out because slow to run
+    # nb_vectors_list = [1000, 100000]
+    # target_speed_ms_list = [0.5, 1, 10, 50]
+
+    nb_vectors_list = [10000]
+    target_speed_ms_list = [0.5]
     min_ef_search = 32
     use_gpu = False
 
