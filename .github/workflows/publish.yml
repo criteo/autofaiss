@@ -58,8 +58,8 @@ jobs:
       uses: softprops/action-gh-release@v1
       with:
         files: |
-          autofaiss3.6.pex
-          autofaiss3.8.pex
+          autofaiss-3.6.pex
+          autofaiss-3.8.pex
         tag_name: ${{ steps.regex-match.outputs.group1 }}
     - name: Build and publish
       if: ${{ steps.regex-match.outputs.match != '' && github.event_name != 'pull_request' }}
