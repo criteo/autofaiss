@@ -139,7 +139,7 @@ def build_index(
         set verbosity of outputs via logging level, default is `logging.INFO`
     nb_indices_to_keep: int
         Number of indices to keep when distributed is "pyspark".
-        It allows you to build an index `nb_indices_to_keep - 1` times larger than `current_memory_available`
+        It allows you to build an index larger than `current_memory_available`
         If it is not equal to 1,
             - You are expected to have at most `nb_indices_to_keep` indices with the following names:
                 "{index_path}i" where i ranges from 1 to `nb_indices_to_keep`
@@ -162,20 +162,17 @@ def build_index(
 
     if nb_indices_to_keep < 1:
         logger.error("Please specify nb_indices_to_keep an integer value larger or equal to 1")
-    if nb_indices_to_keep > 1:
-        if distributed is None:
-            logger.error('nb_indices_to_keep can only be larger than 1 when distributed is "pyspark"')
-            return None, None
-        current_memory_available = (
-            f"{float(current_memory_available[:-1]) * nb_indices_to_keep}{current_memory_available[-1]}"
-        )
+        return None, None
+    elif nb_indices_to_keep > 1 and distributed is None:
+        logger.error('nb_indices_to_keep can only be larger than 1 when distributed is "pyspark"')
+        return None, None
     current_bytes = cast_memory_to_bytes(current_memory_available)
     max_index_bytes = cast_memory_to_bytes(max_index_memory_usage)
     memory_left = current_bytes - max_index_bytes
 
-    if memory_left < current_bytes * 0.1:
+    if nb_indices_to_keep == 1 and memory_left < current_bytes * 0.1:
         logger.error(
-            "You do not have enough memory to build this index"
+            "You do not have enough memory to build this index, "
             "please increase current_memory_available or decrease max_index_memory_usage"
         )
         return None, None
@@ -211,7 +208,7 @@ def build_index(
 
         with Timeit("Checking that your have enough memory available to create the index", indent=1):
             necessary_mem, index_key_used = estimate_memory_required_for_index_creation(
-                nb_vectors, vec_dim, index_key, max_index_memory_usage, make_direct_map
+                nb_vectors, vec_dim, index_key, max_index_memory_usage, make_direct_map, nb_indices_to_keep
             )
             logger.info(
                 f"{cast_bytes_to_memory_string(necessary_mem)} of memory "

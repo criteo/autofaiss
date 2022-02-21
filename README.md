@@ -95,7 +95,15 @@ Autofaiss allows users to build indices in Spark, you need to do the following s
 3. Create a spark session before using `build_index` (optional), if you don't create it, a default session would
     be created with the least configuration.
 ### Producing N indices
-In the distributed mode, you can generate an index larger than your current available memory by setting `nb_indices_to_keep`
+In the distributed mode, you can generate a set of indices with the total memory larger than your current available
+memory by setting `nb_indices_to_keep` different from 1.
+For example, if you set `nb_indices_to_keep` to 3 and your `index_path` is `knn.index`, you are expected to produce 3
+indices at the end of `build_index` with the followings names:
+ - `knn.index01`
+ - `knn.index02`
+ - `knn.index03`
+
+A [concrete example](examples/distributed_autofaiss_n_indices.py) shows how to produce N indices and how to use them.
 ## Using the command line
 
 Create embeddings

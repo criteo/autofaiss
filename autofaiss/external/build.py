@@ -35,6 +35,7 @@ def estimate_memory_required_for_index_creation(
     index_key: Optional[str] = None,
     max_index_memory_usage: Optional[str] = None,
     make_direct_map: bool = False,
+    nb_indices_to_keep: int = 1,
 ) -> Tuple[int, str]:
     """
     Estimates the RAM necessary to create the index
@@ -65,7 +66,9 @@ def estimate_memory_required_for_index_creation(
     else:
         memory_for_training = 0
 
-    return int(max(index_memory + needed_for_adding, memory_for_training)), index_key
+    index_memory_with_n_indices = index_memory / nb_indices_to_keep
+    
+    return int(max(index_memory_with_n_indices + needed_for_adding, memory_for_training)), index_key
 
 
 def get_estimated_construction_time_infos(nb_vectors: int, vec_dim: int, indent: int = 0) -> str:
