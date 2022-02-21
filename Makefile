@@ -19,10 +19,10 @@ test: ## [Local development] Run unit tests, doctest and notebooks
 	# python -m pytest --doctest-modules -v autofaiss
 
 venv-lint-test: ## [Continuous integration]
-	python3.6 -m venv .env && . .env/bin/activate && make install install-dev lint test && rm -rf .env
+	python3 -m venv .env && . .env/bin/activate && make install install-dev lint test && rm -rf .env
 
 build-dist: ## [Continuous integration] Build package for pypi
-	python3.6 -m venv .env
+	python3 -m venv .env
 	. .env/bin/activate && pip install -U pip setuptools wheel
 	. .env/bin/activate && python setup.py sdist
 	rm -rf .env
