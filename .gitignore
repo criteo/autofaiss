@@ -130,3 +130,6 @@ embedding_folder
 image_folder
 myimglist.txt
 newcat.jpg
+
+.pexing
+*.pex

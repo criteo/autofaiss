@@ -183,3 +183,4 @@ make install
 ```
 
 
+`python -m pytest -x -s -v tests -k "test_get_optimal_hyperparameters"` to run a specific test

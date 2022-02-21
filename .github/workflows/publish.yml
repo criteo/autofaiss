@@ -1,27 +1,41 @@
-name: Publish Python 🐍 distributions 📦 to PyPI
+name: Release
 
-on: push
-
+on:
+  push:
+    branches:
+    - master
 jobs:
-  build-n-publish:
-    name: Build and publish Python 🐍 distributions 📦 to PyPI
+  deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@master
-      - name: Set up Python 3.6
-        uses: actions/setup-python@v1
-        with:
-          python-version: 3.6
-      - name: Build a binary wheel and a source tarball
-        run: |
-          make build-dist
-      - name: Check version for publishing on PyPI
-        if: startsWith(github.event.ref, 'refs/tags')
-        run: |
-          python check_version.py
-          echo "Publishing !!!!!"
-      - name: Publish distribution 📦 to PyPI
-        if: ${{ success() && startsWith(github.event.ref, 'refs/tags') }}
-        uses: pypa/gh-action-pypi-publish@master
-        with:
-          password: ${{ secrets.pypi_password }}
+    - uses: actions/checkout@v2
+    - uses: actions-ecosystem/action-regex-match@v2
+      id: regex-match
+      with:
+        text: ${{ github.event.head_commit.message }}
+        regex: '^Release ([^ ]+)'
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.6'
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install setuptools wheel twine pex
+    - name: Build pex
+      run: |
+        make build-pex
+    - name: Release
+      if: ${{ steps.regex-match.outputs.match != '' }}
+      uses: softprops/action-gh-release@v1
+      with:
+        files: autofaiss.pex
+        tag_name: ${{ steps.regex-match.outputs.group1 }}
+    - name: Build and publish
+      if: ${{ steps.regex-match.outputs.match != '' }}
+      env:
+        TWINE_USERNAME: __token__
+        TWINE_PASSWORD: ${{ secrets.pypi_password }}
+      run: |
+        python setup.py sdist bdist_wheel
+        twine upload dist/*

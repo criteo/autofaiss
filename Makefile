@@ -27,6 +27,12 @@ build-dist: ## [Continuous integration] Build package for pypi
 	. .env/bin/activate && python setup.py sdist
 	rm -rf .env
 
+build-pex:
+	python3 -m venv .pexing
+	. .pexing/bin/activate && python -m pip install -U pip && python -m pip install pex
+	. .pexing/bin/activate && python -m pex setuptools . -o autofaiss.pex -v
+	rm -rf .pexing
+
 .PHONY: help
 
 help: # Run `make help` to get help on the make commands
