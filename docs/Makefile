@@ -19,7 +19,7 @@ doc: pre copy-notebook html
 	echo "building doc done"
 
 venv-doc: ## [Continuous integration] Install in venv and build doc
-	python3.6 -m venv .env && . .env/bin/activate && cd .. && make install && cd docs && make install pre doctest html && rm -rf .env
+	python3 -m venv .env && . .env/bin/activate && cd .. && make install && cd docs && make install pre doctest html && rm -rf .env
 	
 run:
 	cd _build/html && python -m http.server 8010
