@@ -138,15 +138,16 @@
         <span class="n">cur_start</span> <span class="o">+=</span> <span class="n">chunk_size</span>
 
 
-<span class="k">def</span> <span class="nf">_generate_small_index_file_name</span><span class="p">(</span><span class="n">batch_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-    <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;index_</span><span class="si">{</span><span class="n">batch_id</span><span class="si">}</span><span class="s2">&quot;</span>
+<span class="k">def</span> <span class="nf">_generate_small_index_file_name</span><span class="p">(</span><span class="n">batch_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">nb_batches</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="n">suffix_width</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">nb_batches</span><span class="p">))</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="s2">&quot;index_&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">batch_id</span><span class="p">)</span><span class="o">.</span><span class="n">zfill</span><span class="p">(</span><span class="n">suffix_width</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">_save_small_index</span><span class="p">(</span><span class="n">index</span><span class="p">:</span> <span class="n">faiss</span><span class="o">.</span><span class="n">Index</span><span class="p">,</span> <span class="n">batch_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">small_indices_folder</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="k">def</span> <span class="nf">_save_small_index</span><span class="p">(</span><span class="n">index</span><span class="p">:</span> <span class="n">faiss</span><span class="o">.</span><span class="n">Index</span><span class="p">,</span> <span class="n">batch_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">small_indices_folder</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">nb_batches</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Save index for one batch.&quot;&quot;&quot;</span>
     <span class="n">fs</span> <span class="o">=</span> <span class="n">_get_file_system</span><span class="p">(</span><span class="n">small_indices_folder</span><span class="p">)</span>
     <span class="n">fs</span><span class="o">.</span><span class="n">mkdirs</span><span class="p">(</span><span class="n">small_indices_folder</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">small_index_filename</span> <span class="o">=</span> <span class="n">_generate_small_index_file_name</span><span class="p">(</span><span class="n">batch_id</span><span class="p">)</span>
+    <span class="n">small_index_filename</span> <span class="o">=</span> <span class="n">_generate_small_index_file_name</span><span class="p">(</span><span class="n">batch_id</span><span class="p">,</span> <span class="n">nb_batches</span><span class="p">)</span>
     <span class="k">with</span> <span class="n">fsspec</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">small_index_filename</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">open</span><span class="p">()</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
         <span class="n">faiss</span><span class="o">.</span><span class="n">write_index</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">faiss</span><span class="o">.</span><span class="n">PyCallbackIOWriter</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">))</span>
     <span class="n">dest_filepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">small_indices_folder</span><span class="p">,</span> <span class="n">small_index_filename</span><span class="p">)</span>
@@ -164,6 +165,7 @@
     <span class="n">batch_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="n">small_indices_folder</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">file_format</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">nb_batches</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="n">id_columns</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">num_cores</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">embedding_ids_df_handler</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -239,7 +241,9 @@
 
     <span class="k">del</span> <span class="n">embeddings_to_add</span>
 
-    <span class="n">_save_small_index</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="n">empty_index</span><span class="p">,</span> <span class="n">small_indices_folder</span><span class="o">=</span><span class="n">small_indices_folder</span><span class="p">,</span> <span class="n">batch_id</span><span class="o">=</span><span class="n">batch_id</span><span class="p">)</span>
+    <span class="n">_save_small_index</span><span class="p">(</span>
+        <span class="n">index</span><span class="o">=</span><span class="n">empty_index</span><span class="p">,</span> <span class="n">small_indices_folder</span><span class="o">=</span><span class="n">small_indices_folder</span><span class="p">,</span> <span class="n">batch_id</span><span class="o">=</span><span class="n">batch_id</span><span class="p">,</span> <span class="n">nb_batches</span><span class="o">=</span><span class="n">nb_batches</span>
+    <span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">_get_pyspark_active_session</span><span class="p">():</span>
@@ -294,6 +298,7 @@
 
 <span class="k">def</span> <span class="nf">_merge_index</span><span class="p">(</span>
     <span class="n">small_indices_folder</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">nb_batches</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="n">batch_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">start</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">end</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -309,7 +314,7 @@
 
     <span class="k">def</span> <span class="nf">_merge_from_local</span><span class="p">(</span><span class="n">merged</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">faiss</span><span class="o">.</span><span class="n">Index</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">faiss</span><span class="o">.</span><span class="n">Index</span><span class="p">:</span>
         <span class="n">local_file_paths</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">local_indices_folder</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span> <span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">local_indices_folder</span><span class="p">)</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">local_indices_folder</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span> <span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">local_indices_folder</span><span class="p">))</span>
         <span class="p">]</span>
         <span class="k">if</span> <span class="n">merged</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">merged</span> <span class="o">=</span> <span class="n">faiss</span><span class="o">.</span><span class="n">read_index</span><span class="p">(</span><span class="n">local_file_paths</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
@@ -343,7 +348,7 @@
 
     <span class="n">tmp_stage2</span> <span class="o">=</span> <span class="n">_get_stage2_folder</span><span class="p">(</span><span class="n">small_indices_folder</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">batch_id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">_save_small_index</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="n">merged_index</span><span class="p">,</span> <span class="n">batch_id</span><span class="o">=</span><span class="n">batch_id</span><span class="p">,</span> <span class="n">small_indices_folder</span><span class="o">=</span><span class="n">tmp_stage2</span><span class="p">)</span>
+        <span class="n">_save_small_index</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="n">merged_index</span><span class="p">,</span> <span class="n">batch_id</span><span class="o">=</span><span class="n">batch_id</span><span class="p">,</span> <span class="n">small_indices_folder</span><span class="o">=</span><span class="n">tmp_stage2</span><span class="p">,</span> <span class="n">nb_batches</span><span class="o">=</span><span class="n">nb_batches</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">merged_index</span>
 
 
@@ -420,6 +425,7 @@
                 <span class="n">num_cores</span><span class="o">=</span><span class="n">num_cores_per_executor</span><span class="p">,</span>
                 <span class="n">embedding_ids_df_handler</span><span class="o">=</span><span class="n">embedding_ids_df_handler</span><span class="p">,</span>
                 <span class="n">file_format</span><span class="o">=</span><span class="n">file_format</span><span class="p">,</span>
+                <span class="n">nb_batches</span><span class="o">=</span><span class="n">nb_batches</span><span class="p">,</span>
             <span class="p">)</span>
         <span class="p">)</span>
 
@@ -433,11 +439,15 @@
         <span class="c1"># stage1: each executor merges a batch of indices and saves the merged index to stage2 folder</span>
         <span class="n">rdd</span><span class="o">.</span><span class="n">foreach</span><span class="p">(</span>
             <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">_merge_index</span><span class="p">(</span>
-                <span class="n">small_indices_folder</span><span class="o">=</span><span class="n">temporary_indices_folder</span><span class="p">,</span> <span class="n">batch_id</span><span class="o">=</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">start</span><span class="o">=</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">end</span><span class="o">=</span><span class="n">x</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+                <span class="n">small_indices_folder</span><span class="o">=</span><span class="n">temporary_indices_folder</span><span class="p">,</span>
+                <span class="n">batch_id</span><span class="o">=</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="n">start</span><span class="o">=</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                <span class="n">end</span><span class="o">=</span><span class="n">x</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+                <span class="n">nb_batches</span><span class="o">=</span><span class="n">nb_batches</span><span class="p">,</span>
             <span class="p">)</span>  <span class="c1"># type: ignore</span>
         <span class="p">)</span>
         <span class="c1"># stage2: driver merges the indices generated from stage1</span>
-        <span class="n">merged_index</span> <span class="o">=</span> <span class="n">_merge_index</span><span class="p">(</span><span class="n">_get_stage2_folder</span><span class="p">(</span><span class="n">temporary_indices_folder</span><span class="p">))</span>
+        <span class="n">merged_index</span> <span class="o">=</span> <span class="n">_merge_index</span><span class="p">(</span><span class="n">small_indices_folder</span><span class="o">=</span><span class="n">_get_stage2_folder</span><span class="p">(</span><span class="n">temporary_indices_folder</span><span class="p">),</span> <span class="n">nb_batches</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
         <span class="n">fs</span><span class="o">.</span><span class="n">rm</span><span class="p">(</span><span class="n">temporary_indices_folder</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">merged_index</span></div>
