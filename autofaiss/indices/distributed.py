@@ -54,15 +54,16 @@ def _yield_embeddings_batch(
         cur_start += chunk_size
 
 
-def _generate_small_index_file_name(batch_id: int) -> str:
-    return f"index_{batch_id}"
+def _generate_small_index_file_name(batch_id: int, nb_batches: int) -> str:
+    suffix_width = int(math.log10(nb_batches)) + 1
+    return "index_" + str(batch_id).zfill(suffix_width)
 
 
-def _save_small_index(index: faiss.Index, batch_id: int, small_indices_folder: str) -> None:
+def _save_small_index(index: faiss.Index, batch_id: int, small_indices_folder: str, nb_batches: int) -> None:
     """Save index for one batch."""
     fs = _get_file_system(small_indices_folder)
     fs.mkdirs(small_indices_folder, exist_ok=True)
-    small_index_filename = _generate_small_index_file_name(batch_id)
+    small_index_filename = _generate_small_index_file_name(batch_id, nb_batches)
     with fsspec.open(small_index_filename, "wb").open() as f:
         faiss.write_index(index, faiss.PyCallbackIOWriter(f.write))
     dest_filepath = os.path.join(small_indices_folder, small_index_filename)
@@ -80,6 +81,7 @@ def _add_index(
     batch_id: int,
     small_indices_folder: str,
     file_format: str,
+    nb_batches: int,
     id_columns: Optional[List[str]] = None,
     num_cores: Optional[int] = None,
     embedding_ids_df_handler: Optional[Callable[[pd.DataFrame, int], Any]] = None,
@@ -155,7 +157,9 @@ def _add_index(
 
     del embeddings_to_add
 
-    _save_small_index(index=empty_index, small_indices_folder=small_indices_folder, batch_id=batch_id)
+    _save_small_index(
+        index=empty_index, small_indices_folder=small_indices_folder, batch_id=batch_id, nb_batches=nb_batches
+    )
 
 
 def _get_pyspark_active_session():
@@ -210,6 +214,7 @@ def _get_stage2_folder(tmp_folder: str) -> str:
 
 def _merge_index(
     small_indices_folder: str,
+    nb_batches: int,
     batch_id: Optional[int] = None,
     start: Optional[int] = None,
     end: Optional[int] = None,
@@ -225,7 +230,7 @@ def _merge_index(
 
     def _merge_from_local(merged: Optional[faiss.Index] = None) -> faiss.Index:
         local_file_paths = [
-            os.path.join(local_indices_folder, filename) for filename in os.listdir(local_indices_folder)
+            os.path.join(local_indices_folder, filename) for filename in sorted(os.listdir(local_indices_folder))
         ]
         if merged is None:
             merged = faiss.read_index(local_file_paths[0])
@@ -259,7 +264,7 @@ def _merge_index(
 
     tmp_stage2 = _get_stage2_folder(small_indices_folder)
     if batch_id is not None:
-        _save_small_index(index=merged_index, batch_id=batch_id, small_indices_folder=tmp_stage2)
+        _save_small_index(index=merged_index, batch_id=batch_id, small_indices_folder=tmp_stage2, nb_batches=nb_batches)
     return merged_index
 
 
@@ -336,6 +341,7 @@ def run(
                 num_cores=num_cores_per_executor,
                 embedding_ids_df_handler=embedding_ids_df_handler,
                 file_format=file_format,
+                nb_batches=nb_batches,
             )
         )
 
@@ -349,11 +355,15 @@ def run(
         # stage1: each executor merges a batch of indices and saves the merged index to stage2 folder
         rdd.foreach(
             lambda x: _merge_index(
-                small_indices_folder=temporary_indices_folder, batch_id=x[0], start=x[1], end=x[2],
+                small_indices_folder=temporary_indices_folder,
+                batch_id=x[0],
+                start=x[1],
+                end=x[2],
+                nb_batches=nb_batches,
             )  # type: ignore
         )
         # stage2: driver merges the indices generated from stage1
-        merged_index = _merge_index(_get_stage2_folder(temporary_indices_folder))
+        merged_index = _merge_index(small_indices_folder=_get_stage2_folder(temporary_indices_folder), nb_batches=1)
         fs.rm(temporary_indices_folder, recursive=True)
 
     return merged_index
