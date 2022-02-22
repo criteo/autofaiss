@@ -55,7 +55,7 @@ def _yield_embeddings_batch(
 
 
 def _generate_small_index_file_name(batch_id: int) -> str:
-    return f"index_{batch_id}"
+    return "index_" + str(batch_id).zfill(10)
 
 
 def _save_small_index(index: faiss.Index, batch_id: int, small_indices_folder: str) -> None:
@@ -225,7 +225,7 @@ def _merge_index(
 
     def _merge_from_local(merged: Optional[faiss.Index] = None) -> faiss.Index:
         local_file_paths = [
-            os.path.join(local_indices_folder, filename) for filename in os.listdir(local_indices_folder)
+            os.path.join(local_indices_folder, filename) for filename in sorted(os.listdir(local_indices_folder))
         ]
         if merged is None:
             merged = faiss.read_index(local_file_paths[0])
