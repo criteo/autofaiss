@@ -1,6 +1,7 @@
 """ Functions to find optimal index parameters """
 import json
 import logging
+import math
 import os
 import re
 import tempfile
@@ -476,6 +477,7 @@ def optimize_and_measure_indices(
     fs, _ = fsspec.core.url_to_fs(indices_folder)
     indices_file_paths = fs.ls(indices_folder, detail=False)
     index_path2_metric_infos: Dict[str, Dict] = {}
+    suffix_width = int(math.log(len(indices_file_paths))) + 2
     with tempfile.TemporaryDirectory() as local_indices_folder:
         parallel_download_indices_from_remote(
             fs=fs, indices_file_paths=indices_file_paths, dst_folder=local_indices_folder
@@ -484,7 +486,7 @@ def optimize_and_measure_indices(
             index_filepath = os.path.join(local_indices_folder, tmp_filename)
             index = faiss.read_index(index_filepath)
             if save_on_disk and index_path and index_infos_path:
-                cur_index_path = index_path + f"{i:0>2}"
+                cur_index_path = index_path + str(i).zfill(suffix_width)
                 cur_index_infos_path = index_infos_path + str(i)
             metric_infos = optimize_and_measure_index(
                 embedding_column_name,
