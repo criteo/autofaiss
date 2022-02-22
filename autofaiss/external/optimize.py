@@ -477,7 +477,7 @@ def optimize_and_measure_indices(
     fs, _ = fsspec.core.url_to_fs(indices_folder)
     indices_file_paths = fs.ls(indices_folder, detail=False)
     index_path2_metric_infos: Dict[str, Dict] = {}
-    suffix_width = int(math.log(len(indices_file_paths))) + 2
+    suffix_width = int(math.log10(len(indices_file_paths))) + 1
     with tempfile.TemporaryDirectory() as local_indices_folder:
         parallel_download_indices_from_remote(
             fs=fs, indices_file_paths=indices_file_paths, dst_folder=local_indices_folder
