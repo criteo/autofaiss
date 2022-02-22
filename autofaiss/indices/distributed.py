@@ -223,8 +223,11 @@ def _merge_index(
             start_index = 0
 
         for rest_index_file in tqdm(local_file_paths[start_index:]):
-            index = faiss.read_index(rest_index_file)
-            faiss.merge_into(merged, index, shift_ids=True)
+            # if master and executor are the same machine, rest_index_file could be the folder for stage2
+            # so, we have to check whether it is file or not
+            if os.path.isfile(rest_index_file):
+                index = faiss.read_index(rest_index_file)
+                faiss.merge_into(merged, index, shift_ids=True)
         return merged
 
     # estimate index size by taking the first index
@@ -363,7 +366,6 @@ def run(
 
     with Timeit("-> Merging indices", indent=2):
         next_stage_folder = _merge_to_n_indices(spark_session=ss, n=100, src_folder=temporary_indices_folder,)
-
         if nb_indices_to_keep == 1:
             merged_index = _merge_index(small_indices_folder=next_stage_folder, nb_batches=1)
             fs.rm(temporary_indices_folder, recursive=True)

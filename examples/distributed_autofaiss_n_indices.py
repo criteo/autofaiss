@@ -23,7 +23,7 @@ index_path2_metric_infos: Dict[str, Dict] = build_index(
     nb_indices_to_keep=10,
 )
 
-index_paths = list(index_path2_metric_infos.keys())
+index_paths = sorted(index_path2_metric_infos.keys())
 
 ###########################################
 # Use case 1: merging 10 indices into one #
@@ -38,16 +38,16 @@ with open("merged-knn.index", "wb") as f:
 ########################################
 # Use case 2: searching from N indices #
 ########################################
-K, DIM, all_distances, all_ids = 5, 512, [], []
-queries = faiss.rand((2, DIM))
+K, DIM, all_distances, all_ids, NB_QUERIES = 5, 512, [], [], 2
+queries = faiss.rand((NB_QUERIES, DIM))
 for rest_index_file in index_paths:
     index = faiss.read_index(rest_index_file)
     distances, ids = index.search(queries, k=K)
     all_distances.append(distances)
     all_ids.append(ids)
 
-dists_arr = np.stack(all_distances, axis=1).reshape(2, -1)
-knn_ids_arr = np.stack(all_ids, axis=1).reshape(2, -1)
+dists_arr = np.stack(all_distances, axis=1).reshape(NB_QUERIES, -1)
+knn_ids_arr = np.stack(all_ids, axis=1).reshape(NB_QUERIES, -1)
 
 sorted_k_indices = np.argsort(-dists_arr)[:, :K]
 sorted_k_dists = np.take_along_axis(dists_arr, sorted_k_indices, axis=1)
