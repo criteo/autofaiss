@@ -67,7 +67,7 @@ def estimate_memory_required_for_index_creation(
         memory_for_training = 0
 
     index_memory_with_n_indices = index_memory / nb_indices_to_keep
-    
+
     return int(max(index_memory_with_n_indices + needed_for_adding, memory_for_training)), index_key
 
 
@@ -141,7 +141,7 @@ def create_index(
         with Timeit("-> Extract training vectors", indent=2):
 
             memory_available_for_training = cast_bytes_to_memory_string(
-                cast_memory_to_bytes(current_memory_available) - metadata.estimated_index_size_in_bytes() * 0.25
+                cast_memory_to_bytes(current_memory_available) - 500_000_000
             )
 
             # Determine the number of vectors necessary to train the index
