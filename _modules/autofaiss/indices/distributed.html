@@ -126,14 +126,14 @@
     <span class="n">cur_start</span> <span class="o">=</span> <span class="n">cur_end</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="k">for</span> <span class="n">chunk_size</span><span class="p">,</span> <span class="n">file_path</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">chunk_sizes</span><span class="p">,</span> <span class="n">embeddings_paths</span><span class="p">):</span>
         <span class="n">cur_end</span> <span class="o">+=</span> <span class="n">chunk_size</span>
-        <span class="k">if</span> <span class="n">cur_end</span> <span class="o">&lt;</span> <span class="n">start</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">cur_end</span> <span class="o">&lt;=</span> <span class="n">start</span><span class="p">:</span>
             <span class="n">cur_start</span> <span class="o">+=</span> <span class="n">chunk_size</span>
             <span class="k">continue</span>
         <span class="n">slice_start</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">start</span> <span class="o">-</span> <span class="n">cur_start</span><span class="p">)</span>
         <span class="n">slice_end</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">chunk_size</span><span class="p">,</span> <span class="n">end</span> <span class="o">-</span> <span class="n">cur_start</span><span class="p">)</span>
         <span class="k">with</span> <span class="n">get_matrix_reader</span><span class="p">(</span><span class="n">file_format</span><span class="p">,</span> <span class="n">file_system</span><span class="p">,</span> <span class="n">file_path</span><span class="p">,</span> <span class="n">embedding_column_name</span><span class="p">,</span> <span class="n">id_columns</span><span class="p">)</span> <span class="k">as</span> <span class="n">matrix_reader</span><span class="p">:</span>
             <span class="k">yield</span> <span class="n">matrix_reader</span><span class="o">.</span><span class="n">get_lazy_array</span><span class="p">()</span><span class="o">.</span><span class="n">get_rows</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="n">slice_start</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="n">slice_end</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">cur_end</span> <span class="o">&gt;</span> <span class="n">end</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">cur_end</span> <span class="o">&gt;=</span> <span class="n">end</span><span class="p">:</span>
             <span class="k">break</span>
         <span class="n">cur_start</span> <span class="o">+=</span> <span class="n">chunk_size</span>
 
