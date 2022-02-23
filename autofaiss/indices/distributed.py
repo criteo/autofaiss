@@ -42,14 +42,14 @@ def _yield_embeddings_batch(
     cur_start = cur_end = 0
     for chunk_size, file_path in zip(chunk_sizes, embeddings_paths):
         cur_end += chunk_size
-        if cur_end < start:
+        if cur_end <= start:
             cur_start += chunk_size
             continue
         slice_start = max(0, start - cur_start)
         slice_end = min(chunk_size, end - cur_start)
         with get_matrix_reader(file_format, file_system, file_path, embedding_column_name, id_columns) as matrix_reader:
             yield matrix_reader.get_lazy_array().get_rows(start=slice_start, end=slice_end)
-        if cur_end > end:
+        if cur_end >= end:
             break
         cur_start += chunk_size
 
