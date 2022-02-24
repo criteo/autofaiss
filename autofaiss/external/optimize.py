@@ -482,7 +482,7 @@ def optimize_and_measure_indices(
         parallel_download_indices_from_remote(
             fs=fs, indices_file_paths=indices_file_paths, dst_folder=local_indices_folder
         )
-        for i, tmp_filename in enumerate(os.listdir(local_indices_folder), 1):
+        for i, tmp_filename in enumerate(sorted(os.listdir(local_indices_folder)), 1):
             index_filepath = os.path.join(local_indices_folder, tmp_filename)
             index = faiss.read_index(index_filepath)
             if save_on_disk and index_path and index_infos_path:

@@ -245,8 +245,8 @@ def test_index_correctness_in_distributed_mode(tmpdir):
         distributed="pyspark",
         file_format="parquet",
         temporary_indices_folder=temporary_indices_folder,
-        max_index_memory_usage="100MB",
-        current_memory_available="120MB",
+        max_index_memory_usage="600MB",
+        current_memory_available="700MB",
         embedding_column_name="embedding",
         index_key="IVF1,Flat",
         should_be_memory_mappable=True,
@@ -277,8 +277,8 @@ def test_index_correctness_in_distributed_mode(tmpdir):
         distributed="pyspark",
         file_format="npy",
         temporary_indices_folder=temporary_indices_folder,
-        max_index_memory_usage="100MB",
-        current_memory_available="120MB",
+        max_index_memory_usage="400MB",
+        current_memory_available="500MB",
         embedding_column_name="embedding",
         index_key="IVF1,Flat",
         should_be_memory_mappable=True,
@@ -344,12 +344,13 @@ def test_index_correctness_in_distributed_mode_with_multiple_indices(tmpdir):
         should_be_memory_mappable=True,
         ids_path=ids_path,
         nb_indices_to_keep=2,
+        save_on_disk=True,
+        id_columns=["id"],
     )
     index_paths = sorted(index_path2_metric_infos.keys())
     K, all_distances, all_ids, NB_QUERIES = 5, [], [], 1
     query = faiss.rand((NB_QUERIES, dim))
 
-    #
     ground_truth_index = faiss.index_factory(dim, "IVF1,Flat", faiss.METRIC_INNER_PRODUCT)
     expected_array = np.stack(expected_df["embedding"])
     ground_truth_index.train(expected_array)
@@ -361,10 +362,8 @@ def test_index_correctness_in_distributed_mode_with_multiple_indices(tmpdir):
     assert_array_equal(ids_mappings.iloc[ground_truth_ids[0, :]].to_numpy(), ground_truth_ids[0, :])
 
     _, sorted_k_ids = _search_from_multiple_indices(index_paths=index_paths, query=query, k=K)
-
     merged = _merge_indices(index_paths)
     distances, ids = merged.search(query, k=K)
-    assert ground_truth_index.nprobe == merged.nprobe
     assert_array_equal(ids, ground_truth_ids)
     assert_array_equal(sorted_k_ids, ground_truth_ids)
 
