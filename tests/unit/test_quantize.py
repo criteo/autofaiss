@@ -257,12 +257,12 @@ def test_index_correctness_in_distributed_mode(tmpdir):
     )
     query = faiss.rand((1, dim))
     distances, ids = index.search(query, k=9)
-
     ground_truth_index = faiss.index_factory(dim, "IVF1,Flat")
     expected_array = np.stack(expected_df["embedding"])
     ground_truth_index.train(expected_array)
     ground_truth_index.add(expected_array)
     ground_truth_distances, ground_truth_ids = ground_truth_index.search(query, k=9)
+
     ids_mappings = pd.read_parquet(ids_path)["id"]
     assert len(ids_mappings) == len(expected_df)
     assert_array_equal(ids_mappings.iloc[ids[0, :]].to_numpy(), ids[0, :])
@@ -272,7 +272,6 @@ def test_index_correctness_in_distributed_mode(tmpdir):
     tmp_dir, _, _, expected_array, _ = build_test_collection_numpy(
         tmpdir, min_size=min_size, max_size=max_size, dim=dim, nb_files=nb_files
     )
-
     index, _ = build_index(
         embeddings=tmp_dir,
         distributed="pyspark",
@@ -285,13 +284,118 @@ def test_index_correctness_in_distributed_mode(tmpdir):
         should_be_memory_mappable=True,
         metric_type="l2",
     )
-
     query = faiss.rand((1, dim))
     distances, ids = index.search(query, k=9)
-
     ground_truth_index = faiss.index_factory(dim, "IVF1,Flat")
     ground_truth_index.train(expected_array)
     ground_truth_index.add(expected_array)
     ground_truth_distances, ground_truth_ids = ground_truth_index.search(query, k=9)
-
     assert_array_equal(ids, ground_truth_ids)
+
+
+def _search_from_multiple_indices(index_paths, query, k):
+    n = 0
+    all_distances, all_ids, NB_QUERIES = [], [], 1
+    for rest_index_file in index_paths:
+        index = faiss.read_index(rest_index_file)
+        distances, ids = index.search(query, k=k)
+        all_distances.append(distances)
+        all_ids.append(ids + n)
+        n += index.ntotal
+
+    dists_arr = np.stack(all_distances, axis=1).reshape(NB_QUERIES, -1)
+    knn_ids_arr = np.stack(all_ids, axis=1).reshape(NB_QUERIES, -1)
+
+    sorted_k_indices = np.argsort(-dists_arr)[:, :k]
+    sorted_k_dists = np.take_along_axis(dists_arr, sorted_k_indices, axis=1)
+    sorted_k_ids = np.take_along_axis(knn_ids_arr, sorted_k_indices, axis=1)
+    return sorted_k_dists, sorted_k_ids
+
+
+def _merge_indices(index_paths):
+    merged = faiss.read_index(index_paths[0])
+    for rest_index_file in index_paths[1:]:
+        index = faiss.read_index(rest_index_file)
+        faiss.merge_into(merged, index, shift_ids=True)
+    return merged
+
+
+def test_index_correctness_in_distributed_mode_with_multiple_indices(tmpdir):
+    min_size = 20000
+    max_size = 40000
+    dim = 512
+    nb_files = 5
+
+    # parquet
+    tmp_dir, _, _, expected_df, _ = build_test_collection_parquet(
+        tmpdir, min_size=min_size, max_size=max_size, dim=dim, nb_files=nb_files, consecutive_ids=True
+    )
+    temporary_indices_folder = os.path.join(tmpdir.strpath, "distributed_autofaiss_indices")
+    ids_path = os.path.join(tmpdir.strpath, "ids")
+    index_path2_metric_infos = build_index(
+        embeddings=tmp_dir,
+        distributed="pyspark",
+        file_format="parquet",
+        temporary_indices_folder=temporary_indices_folder,
+        max_index_memory_usage="2GB",
+        current_memory_available="500MB",
+        embedding_column_name="embedding",
+        index_key="IVF1,Flat",
+        should_be_memory_mappable=True,
+        ids_path=ids_path,
+        nb_indices_to_keep=2,
+    )
+    index_paths = sorted(index_path2_metric_infos.keys())
+    K, all_distances, all_ids, NB_QUERIES = 5, [], [], 1
+    query = faiss.rand((NB_QUERIES, dim))
+
+    #
+    ground_truth_index = faiss.index_factory(dim, "IVF1,Flat", faiss.METRIC_INNER_PRODUCT)
+    expected_array = np.stack(expected_df["embedding"])
+    ground_truth_index.train(expected_array)
+    ground_truth_index.add(expected_array)
+    ground_truth_distances, ground_truth_ids = ground_truth_index.search(query, k=K)
+
+    ids_mappings = pd.read_parquet(ids_path)["id"]
+    assert len(ids_mappings) == len(expected_df)
+    assert_array_equal(ids_mappings.iloc[ground_truth_ids[0, :]].to_numpy(), ground_truth_ids[0, :])
+
+    _, sorted_k_ids = _search_from_multiple_indices(index_paths=index_paths, query=query, k=K)
+
+    merged = _merge_indices(index_paths)
+    distances, ids = merged.search(query, k=K)
+    assert ground_truth_index.nprobe == merged.nprobe
+    assert_array_equal(ids, ground_truth_ids)
+    assert_array_equal(sorted_k_ids, ground_truth_ids)
+
+    # numpy
+    tmp_dir, _, _, expected_array, _ = build_test_collection_numpy(
+        tmpdir, min_size=min_size, max_size=max_size, dim=dim, nb_files=nb_files
+    )
+
+    temporary_indices_folder = os.path.join(tmpdir.strpath, "distributed_autofaiss_indices")
+    index_path2_metric_infos = build_index(
+        embeddings=tmp_dir,
+        distributed="pyspark",
+        file_format="npy",
+        temporary_indices_folder=temporary_indices_folder,
+        max_index_memory_usage="2GB",
+        current_memory_available="500MB",
+        embedding_column_name="embedding",
+        index_key="IVF1,Flat",
+        should_be_memory_mappable=True,
+        nb_indices_to_keep=2,
+    )
+
+    ground_truth_index = faiss.index_factory(dim, "IVF1,Flat", faiss.METRIC_INNER_PRODUCT)
+    ground_truth_index.train(expected_array)
+    ground_truth_index.add(expected_array)
+    ground_truth_distances, ground_truth_ids = ground_truth_index.search(query, k=K)
+
+    index_paths = sorted(index_path2_metric_infos.keys())
+    _, sorted_k_ids = _search_from_multiple_indices(index_paths=index_paths, query=query, k=K)
+
+    merged = _merge_indices(index_paths)
+    distances, ids = merged.search(query, k=K)
+    assert_array_equal(ids, ground_truth_ids)
+    assert_array_equal(sorted_k_ids, ground_truth_ids)

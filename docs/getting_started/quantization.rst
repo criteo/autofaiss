@@ -86,7 +86,7 @@ The ``autofaiss build_index`` command takes the following parameters:
       - (Optional) Set verbosity of logging output: DEBUG=10, INFO=20, WARN=30, ERROR=40, CRITICAL=50
     * - --nb_indices_to_keep
       - 1
-      - (Optional) Number of indices to keep when distributed is "pyspark".
+      - (Optional) Number of indices to keep at most when distributed is "pyspark".
 
 .. _Faiss documentation: https://github.com/facebookresearch/faiss/wiki/The-index-factory
 

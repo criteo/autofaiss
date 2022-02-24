@@ -328,7 +328,7 @@ def run(
     embedding_ids_df_handler: Optional[Callable[[pd.DataFrame, int], Any]]
         The function that handles the embeddings Ids when id_columns is given
     nb_indices_to_keep: int
-        Number of indices to keep after the merging step
+        Number of indices to keep at most after the merging step
     """
     temporary_indices_folder = make_path_absolute(temporary_indices_folder)
     fs = _get_file_system(temporary_indices_folder)

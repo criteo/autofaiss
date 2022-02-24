@@ -138,7 +138,7 @@ def build_index(
     verbose: int
         set verbosity of outputs via logging level, default is `logging.INFO`
     nb_indices_to_keep: int
-        Number of indices to keep when distributed is "pyspark".
+        Number of indices to keep at most when distributed is "pyspark".
         It allows you to build an index larger than `current_memory_available`
         If it is not equal to 1,
             - You are expected to have at most `nb_indices_to_keep` indices with the following names:

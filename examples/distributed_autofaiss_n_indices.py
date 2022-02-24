@@ -40,11 +40,13 @@ with open("merged-knn.index", "wb") as f:
 ########################################
 K, DIM, all_distances, all_ids, NB_QUERIES = 5, 512, [], [], 2
 queries = faiss.rand((NB_QUERIES, DIM))
+n_total = 0
 for rest_index_file in index_paths:
     index = faiss.read_index(rest_index_file)
     distances, ids = index.search(queries, k=K)
     all_distances.append(distances)
-    all_ids.append(ids)
+    all_ids.append(ids + n_total)
+    n_total += index.ntotal
 
 dists_arr = np.stack(all_distances, axis=1).reshape(NB_QUERIES, -1)
 knn_ids_arr = np.stack(all_ids, axis=1).reshape(NB_QUERIES, -1)
