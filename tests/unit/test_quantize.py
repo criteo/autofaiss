@@ -236,7 +236,7 @@ def test_index_correctness_in_distributed_mode(tmpdir):
 
     # parquet
     tmp_dir, _, _, expected_df, _ = build_test_collection_parquet(
-        tmpdir, min_size=min_size, max_size=max_size, dim=dim, nb_files=nb_files
+        tmpdir, min_size=min_size, max_size=max_size, dim=dim, nb_files=nb_files, consecutive_ids=True
     )
     temporary_indices_folder = os.path.join(tmpdir.strpath, "distributed_autofaiss_indices")
     ids_path = os.path.join(tmpdir.strpath, "ids")
@@ -252,6 +252,8 @@ def test_index_correctness_in_distributed_mode(tmpdir):
         should_be_memory_mappable=True,
         metric_type="l2",
         ids_path=ids_path,
+        save_on_disk=True,
+        id_columns=["id"],
     )
     query = faiss.rand((1, dim))
     distances, ids = index.search(query, k=9)
@@ -261,7 +263,9 @@ def test_index_correctness_in_distributed_mode(tmpdir):
     ground_truth_index.train(expected_array)
     ground_truth_index.add(expected_array)
     ground_truth_distances, ground_truth_ids = ground_truth_index.search(query, k=9)
-
+    ids_mappings = pd.read_parquet(ids_path)["id"]
+    assert len(ids_mappings) == len(expected_df)
+    assert_array_equal(ids_mappings.iloc[ids[0, :]].to_numpy(), ids[0, :])
     assert_array_equal(ids, ground_truth_ids)
 
     # numpy
