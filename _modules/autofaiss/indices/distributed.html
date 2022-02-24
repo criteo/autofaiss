@@ -306,7 +306,7 @@
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">faiss</span><span class="o">.</span><span class="n">Index</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Merge all the indices in `small_indices_folder` into single one return the merged index.&quot;&quot;&quot;</span>
     <span class="n">fs</span> <span class="o">=</span> <span class="n">_get_file_system</span><span class="p">(</span><span class="n">small_indices_folder</span><span class="p">)</span>
-    <span class="n">small_indices_files</span> <span class="o">=</span> <span class="n">fs</span><span class="o">.</span><span class="n">ls</span><span class="p">(</span><span class="n">small_indices_folder</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">small_indices_files</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">fs</span><span class="o">.</span><span class="n">ls</span><span class="p">(</span><span class="n">small_indices_folder</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
     <span class="n">small_indices_files</span> <span class="o">=</span> <span class="n">small_indices_files</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">]</span>
 
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">small_indices_files</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
