@@ -11,7 +11,6 @@ from autofaiss.readers.embeddings_iterators import read_first_file_shape, read_e
 from autofaiss.external.metadata import IndexMetadata
 from autofaiss.external.optimize import (
     check_if_index_needs_training,
-    compute_memory_necessary_for_training,
     get_optimal_batch_size,
     get_optimal_index_keys_v2,
     get_optimal_train_size,
@@ -54,7 +53,6 @@ def estimate_memory_required_for_index_creation(
 
     index_memory = metadata.estimated_index_size_in_bytes()
     needed_for_adding = min(index_memory * 0.1, 10 ** 9)
-    index_overhead = index_memory * 0.1
 
     index_needs_training = check_if_index_needs_training(index_key)
 
@@ -63,13 +61,11 @@ def estimate_memory_required_for_index_creation(
         # the maximal memory constraint
         nb_vectors_train = get_optimal_train_size(nb_vectors, index_key, "1K", vec_dim)
 
-        memory_for_training = (
-            compute_memory_necessary_for_training(nb_vectors_train, index_key, vec_dim) + index_memory * 0.25
-        )
+        memory_for_training = metadata.compute_memory_necessary_for_training(nb_vectors_train)
     else:
         memory_for_training = 0
 
-    return (int(index_overhead + max(index_memory + needed_for_adding, memory_for_training))), index_key
+    return int(max(index_memory + needed_for_adding, memory_for_training)), index_key
 
 
 def get_estimated_construction_time_infos(nb_vectors: int, vec_dim: int, indent: int = 0) -> str:
@@ -146,7 +142,7 @@ def create_index(
 
             # Determine the number of vectors necessary to train the index
             train_size = get_optimal_train_size(nb_vectors, index_key, memory_available_for_training, vec_dim)
-            memory_needed_for_training = compute_memory_necessary_for_training(train_size, index_key, vec_dim)
+            memory_needed_for_training = metadata.compute_memory_necessary_for_training(train_size)
             logger.info(
                 f"Will use {train_size} vectors to train the index, "
                 f"that will use {cast_bytes_to_memory_string(memory_needed_for_training)} of memory"

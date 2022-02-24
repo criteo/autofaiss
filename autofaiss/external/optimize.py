@@ -7,7 +7,7 @@ from operator import mul
 from typing import Callable, List, Optional, TypeVar
 
 import faiss
-from autofaiss.external.metadata import IndexMetadata
+from autofaiss.external.metadata import IndexMetadata, compute_memory_necessary_for_training_wrapper
 from autofaiss.indices.index_utils import set_search_hyperparameters, speed_test_ms_per_query
 from autofaiss.utils.algorithms import discrete_binary_search
 from autofaiss.utils.cast import cast_memory_to_bytes
@@ -48,21 +48,8 @@ def index_key_to_nb_cluster(index_key: str) -> int:
     return nb_clusters
 
 
-def compute_memory_necessary_for_training(nb_training_vectors: int, index_key: str, vec_dim: int) -> float:
-    """
-    Function that computes the memory necessary to train an index with nb_training_vectors vectors
-    """
-
-    memory_per_vector = 4.0 * vec_dim
-    matching_opq = re.search(r"OPQ\d+_(\d+)", index_key)
-    if matching_opq:
-        input_size_opq = int(matching_opq.group(1))
-        memory_per_vector += input_size_opq * 4.0
-    return memory_per_vector * nb_training_vectors
-
-
 def get_optimal_train_size(
-    nb_vectors: int, index_key: str, current_memory_available: Optional[str], vec_dim: Optional[int]
+    nb_vectors: int, index_key: str, current_memory_available: Optional[str], vec_dim: Optional[int],
 ) -> int:
     """
     Function that determines the number of training points necessary to
@@ -73,12 +60,14 @@ def get_optimal_train_size(
 
     if matching:
         nb_clusters = index_key_to_nb_cluster(index_key)
-        points_per_cluster: float = 100
+        points_per_cluster: int = 100
 
         # compute best possible number of vectors to give to train the index
         # given memory constraints
         if current_memory_available and vec_dim:
-            memory_per_cluster_set = compute_memory_necessary_for_training(nb_clusters, index_key, vec_dim)
+            memory_per_cluster_set = compute_memory_necessary_for_training_wrapper(
+                points_per_cluster, index_key, vec_dim
+            )
             size = cast_memory_to_bytes(current_memory_available)
             points_per_cluster = max(min(size / memory_per_cluster_set, points_per_cluster), 31.0)
 
