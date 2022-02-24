@@ -197,3 +197,97 @@ on the query time, the recall can be higher, but it is limited by the index
 structure (if there is quantization for instance).
 """
         return description
+
+    def compute_memory_necessary_for_training(self, nb_training_vectors: int) -> float:
+        """
+        Function that computes the memory necessary to train an index with nb_training_vectors vectors
+        """
+        if self.index_type == IndexType.FLAT:
+            return 0
+        elif self.index_type == IndexType.IVF_FLAT:
+            return self.compute_memory_necessary_for_ivf_flat(nb_training_vectors)
+        elif self.index_type == IndexType.HNSW:
+            return self._get_hndw_training_memory_usage_in_bytes(nb_vectors=nb_training_vectors)
+        elif self.index_type == IndexType.OPQ_IVF_PQ:
+            return self.compute_memory_necessary_for_opq_ivf_pq(nb_training_vectors)
+        elif self.index_type == IndexType.OPQ_IVF_HNSW_PQ:
+            return self.compute_memory_necessary_for_opq_ivf_hnsw_pq(nb_training_vectors)
+        elif self.index_type == IndexType.PAD_IVF_HNSW_PQ:
+            return self.compute_memory_necessary_for_pad_ivf_hnsw_pq(nb_training_vectors)
+        else:
+            return 500 * 10 ** 6
+
+    def compute_memory_necessary_for_ivf_flat(self, nb_training_vectors: int):
+        """Compute the memory estimation for index type IVF_FLAT."""
+        ivf_memory_in_bytes = self._get_ivf_training_memory_usage_in_bytes()
+        return self._get_vectors_training_memory_usage_in_bytes(nb_training_vectors) + ivf_memory_in_bytes
+
+    def compute_memory_necessary_for_opq_ivf_pq(self, nb_training_vectors: int) -> float:
+        """Compute the memory estimation for index type OPQ_IVF_PQ."""
+        return (
+            self._get_vectors_training_memory_usage_in_bytes(nb_training_vectors)
+            + self._get_opq_training_memory_usage_in_bytes(nb_training_vectors)
+            + self._get_ivf_training_memory_usage_in_bytes()
+            + self._get_pq_training_memory_usage_in_bytes()
+        )
+
+    def compute_memory_necessary_for_opq_ivf_hnsw_pq(self, nb_training_vectors: int) -> float:
+        """Compute the memory estimation for index type OPQ_IVF_HNSW_PQ."""
+        return (
+            self._get_vectors_training_memory_usage_in_bytes(nb_training_vectors)
+            + self._get_opq_training_memory_usage_in_bytes(nb_training_vectors)
+            + self._get_ivf_training_memory_usage_in_bytes()
+            + self._get_ivf_hndw_training_memory_usage_in_bytes()
+            + self._get_pq_training_memory_usage_in_bytes()
+        )
+
+    def compute_memory_necessary_for_pad_ivf_hnsw_pq(self, nb_training_vectors: int):
+        """Compute the memory estimation for index type PAD_IVF_HNSW_PQ."""
+        return (
+            self._get_vectors_training_memory_usage_in_bytes(nb_training_vectors)
+            + self._get_ivf_training_memory_usage_in_bytes()
+            + self._get_ivf_hndw_training_memory_usage_in_bytes()
+            + self._get_pq_training_memory_usage_in_bytes()
+        )
+
+    def _get_vectors_training_memory_usage_in_bytes(self, nb_training_vectors: int):
+        """Get vectors memory estimation in bytes."""
+        return 4.0 * self.dim_vector * nb_training_vectors
+
+    def _get_ivf_training_memory_usage_in_bytes(self):
+        """Get IVF memory estimation in bytes."""
+        return 4.0 * self.params["ncentroids"] * self.dim_vector
+
+    def _get_hndw_training_memory_usage_in_bytes(self, nb_vectors):
+        """Get HNSW memory estimation in bytes."""
+        return nb_vectors * self.params["M_HNSW"] * 2 * 4
+
+    def _get_ivf_hndw_training_memory_usage_in_bytes(self):
+        """Get HNSW followed by IVF memory estimation in bytes."""
+        return self._get_hndw_training_memory_usage_in_bytes(nb_vectors=self.params["ncentroids"])
+
+    def _get_opq_training_memory_usage_in_bytes(self, nb_training_vectors: int):
+        """Get OPQ memory estimation in bytes."""
+        # see OPQMatrix::train on https://github.com/facebookresearch/faiss/blob/main/faiss/VectorTransform.cpp#L987
+        d_in, d_out, code_size = self.dim_vector, self.params["out_d"], self.params["M_OPQ"]
+        n = min(256 * 256, nb_training_vectors)
+        d = max(d_in, d_out)
+        d2 = d_out
+        xproj = d2 * n
+        pq_recons = d2 * n
+        xxr = d * n
+        tmp = d * d * 4
+        mem_code_size = code_size * n
+        opq_memory_in_bytes = (xproj + pq_recons + xxr + tmp) * 4.0 + mem_code_size * 1.0
+        return opq_memory_in_bytes
+
+    def _get_pq_training_memory_usage_in_bytes(self):
+        """Get PQ memory estimation in bytes."""
+        return ceil(self.params["pq"] * self.params["nbits"] / 8)
+
+
+def compute_memory_necessary_for_training_wrapper(nb_training_vectors: int, index_key: str, dim_vector: int):
+    # nb_vectors is useless for training memory estimation, so just put -1
+    return IndexMetadata(index_key, -1, dim_vector).compute_memory_necessary_for_training(
+        nb_training_vectors=nb_training_vectors
+    )
