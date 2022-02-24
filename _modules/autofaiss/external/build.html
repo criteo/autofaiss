@@ -95,7 +95,6 @@
 <span class="kn">from</span> <span class="nn">autofaiss.external.metadata</span> <span class="kn">import</span> <span class="n">IndexMetadata</span>
 <span class="kn">from</span> <span class="nn">autofaiss.external.optimize</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">check_if_index_needs_training</span><span class="p">,</span>
-    <span class="n">compute_memory_necessary_for_training</span><span class="p">,</span>
     <span class="n">get_optimal_batch_size</span><span class="p">,</span>
     <span class="n">get_optimal_index_keys_v2</span><span class="p">,</span>
     <span class="n">get_optimal_train_size</span><span class="p">,</span>
@@ -138,7 +137,6 @@
 
     <span class="n">index_memory</span> <span class="o">=</span> <span class="n">metadata</span><span class="o">.</span><span class="n">estimated_index_size_in_bytes</span><span class="p">()</span>
     <span class="n">needed_for_adding</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">index_memory</span> <span class="o">*</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mi">10</span> <span class="o">**</span> <span class="mi">9</span><span class="p">)</span>
-    <span class="n">index_overhead</span> <span class="o">=</span> <span class="n">index_memory</span> <span class="o">*</span> <span class="mf">0.1</span>
 
     <span class="n">index_needs_training</span> <span class="o">=</span> <span class="n">check_if_index_needs_training</span><span class="p">(</span><span class="n">index_key</span><span class="p">)</span>
 
@@ -147,13 +145,11 @@
         <span class="c1"># the maximal memory constraint</span>
         <span class="n">nb_vectors_train</span> <span class="o">=</span> <span class="n">get_optimal_train_size</span><span class="p">(</span><span class="n">nb_vectors</span><span class="p">,</span> <span class="n">index_key</span><span class="p">,</span> <span class="s2">&quot;1K&quot;</span><span class="p">,</span> <span class="n">vec_dim</span><span class="p">)</span>
 
-        <span class="n">memory_for_training</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">compute_memory_necessary_for_training</span><span class="p">(</span><span class="n">nb_vectors_train</span><span class="p">,</span> <span class="n">index_key</span><span class="p">,</span> <span class="n">vec_dim</span><span class="p">)</span> <span class="o">+</span> <span class="n">index_memory</span> <span class="o">*</span> <span class="mf">0.25</span>
-        <span class="p">)</span>
+        <span class="n">memory_for_training</span> <span class="o">=</span> <span class="n">metadata</span><span class="o">.</span><span class="n">compute_memory_necessary_for_training</span><span class="p">(</span><span class="n">nb_vectors_train</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">memory_for_training</span> <span class="o">=</span> <span class="mi">0</span>
 
-    <span class="k">return</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">index_overhead</span> <span class="o">+</span> <span class="nb">max</span><span class="p">(</span><span class="n">index_memory</span> <span class="o">+</span> <span class="n">needed_for_adding</span><span class="p">,</span> <span class="n">memory_for_training</span><span class="p">))),</span> <span class="n">index_key</span></div>
+    <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">index_memory</span> <span class="o">+</span> <span class="n">needed_for_adding</span><span class="p">,</span> <span class="n">memory_for_training</span><span class="p">)),</span> <span class="n">index_key</span></div>
 
 
 <div class="viewcode-block" id="get_estimated_construction_time_infos"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.build.get_estimated_construction_time_infos">[docs]</a><span class="k">def</span> <span class="nf">get_estimated_construction_time_infos</span><span class="p">(</span><span class="n">nb_vectors</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">vec_dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">indent</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
@@ -230,7 +226,7 @@
 
             <span class="c1"># Determine the number of vectors necessary to train the index</span>
             <span class="n">train_size</span> <span class="o">=</span> <span class="n">get_optimal_train_size</span><span class="p">(</span><span class="n">nb_vectors</span><span class="p">,</span> <span class="n">index_key</span><span class="p">,</span> <span class="n">memory_available_for_training</span><span class="p">,</span> <span class="n">vec_dim</span><span class="p">)</span>
-            <span class="n">memory_needed_for_training</span> <span class="o">=</span> <span class="n">compute_memory_necessary_for_training</span><span class="p">(</span><span class="n">train_size</span><span class="p">,</span> <span class="n">index_key</span><span class="p">,</span> <span class="n">vec_dim</span><span class="p">)</span>
+            <span class="n">memory_needed_for_training</span> <span class="o">=</span> <span class="n">metadata</span><span class="o">.</span><span class="n">compute_memory_necessary_for_training</span><span class="p">(</span><span class="n">train_size</span><span class="p">)</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">&quot;Will use </span><span class="si">{</span><span class="n">train_size</span><span class="si">}</span><span class="s2"> vectors to train the index, &quot;</span>
                 <span class="sa">f</span><span class="s2">&quot;that will use </span><span class="si">{</span><span class="n">cast_bytes_to_memory_string</span><span class="p">(</span><span class="n">memory_needed_for_training</span><span class="p">)</span><span class="si">}</span><span class="s2"> of memory&quot;</span>

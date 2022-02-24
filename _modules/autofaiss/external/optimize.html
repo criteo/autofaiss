@@ -91,7 +91,7 @@
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">TypeVar</span>
 
 <span class="kn">import</span> <span class="nn">faiss</span>
-<span class="kn">from</span> <span class="nn">autofaiss.external.metadata</span> <span class="kn">import</span> <span class="n">IndexMetadata</span>
+<span class="kn">from</span> <span class="nn">autofaiss.external.metadata</span> <span class="kn">import</span> <span class="n">IndexMetadata</span><span class="p">,</span> <span class="n">compute_memory_necessary_for_training_wrapper</span>
 <span class="kn">from</span> <span class="nn">autofaiss.indices.index_utils</span> <span class="kn">import</span> <span class="n">set_search_hyperparameters</span><span class="p">,</span> <span class="n">speed_test_ms_per_query</span>
 <span class="kn">from</span> <span class="nn">autofaiss.utils.algorithms</span> <span class="kn">import</span> <span class="n">discrete_binary_search</span>
 <span class="kn">from</span> <span class="nn">autofaiss.utils.cast</span> <span class="kn">import</span> <span class="n">cast_memory_to_bytes</span>
@@ -132,21 +132,8 @@
     <span class="k">return</span> <span class="n">nb_clusters</span></div>
 
 
-<div class="viewcode-block" id="compute_memory_necessary_for_training"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.optimize.compute_memory_necessary_for_training">[docs]</a><span class="k">def</span> <span class="nf">compute_memory_necessary_for_training</span><span class="p">(</span><span class="n">nb_training_vectors</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">index_key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">vec_dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Function that computes the memory necessary to train an index with nb_training_vectors vectors</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="n">memory_per_vector</span> <span class="o">=</span> <span class="mf">4.0</span> <span class="o">*</span> <span class="n">vec_dim</span>
-    <span class="n">matching_opq</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;OPQ\d+_(\d+)&quot;</span><span class="p">,</span> <span class="n">index_key</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">matching_opq</span><span class="p">:</span>
-        <span class="n">input_size_opq</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">matching_opq</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
-        <span class="n">memory_per_vector</span> <span class="o">+=</span> <span class="n">input_size_opq</span> <span class="o">*</span> <span class="mf">4.0</span>
-    <span class="k">return</span> <span class="n">memory_per_vector</span> <span class="o">*</span> <span class="n">nb_training_vectors</span></div>
-
-
 <div class="viewcode-block" id="get_optimal_train_size"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.optimize.get_optimal_train_size">[docs]</a><span class="k">def</span> <span class="nf">get_optimal_train_size</span><span class="p">(</span>
-    <span class="n">nb_vectors</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">index_key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">current_memory_available</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">vec_dim</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
+    <span class="n">nb_vectors</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">index_key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">current_memory_available</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">vec_dim</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Function that determines the number of training points necessary to</span>
@@ -157,12 +144,14 @@
 
     <span class="k">if</span> <span class="n">matching</span><span class="p">:</span>
         <span class="n">nb_clusters</span> <span class="o">=</span> <span class="n">index_key_to_nb_cluster</span><span class="p">(</span><span class="n">index_key</span><span class="p">)</span>
-        <span class="n">points_per_cluster</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">100</span>
+        <span class="n">points_per_cluster</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span>
 
         <span class="c1"># compute best possible number of vectors to give to train the index</span>
         <span class="c1"># given memory constraints</span>
         <span class="k">if</span> <span class="n">current_memory_available</span> <span class="ow">and</span> <span class="n">vec_dim</span><span class="p">:</span>
-            <span class="n">memory_per_cluster_set</span> <span class="o">=</span> <span class="n">compute_memory_necessary_for_training</span><span class="p">(</span><span class="n">nb_clusters</span><span class="p">,</span> <span class="n">index_key</span><span class="p">,</span> <span class="n">vec_dim</span><span class="p">)</span>
+            <span class="n">memory_per_cluster_set</span> <span class="o">=</span> <span class="n">compute_memory_necessary_for_training_wrapper</span><span class="p">(</span>
+                <span class="n">points_per_cluster</span><span class="p">,</span> <span class="n">index_key</span><span class="p">,</span> <span class="n">vec_dim</span>
+            <span class="p">)</span>
             <span class="n">size</span> <span class="o">=</span> <span class="n">cast_memory_to_bytes</span><span class="p">(</span><span class="n">current_memory_available</span><span class="p">)</span>
             <span class="n">points_per_cluster</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">size</span> <span class="o">/</span> <span class="n">memory_per_cluster_set</span><span class="p">,</span> <span class="n">points_per_cluster</span><span class="p">),</span> <span class="mf">31.0</span><span class="p">)</span>
 

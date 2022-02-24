@@ -242,6 +242,51 @@ The value returned is in Bytes</p>
 <p>Class to compute index metadata given the index_key, the number of vectors and their dimension.</p>
 <p>Note: We don’t create classes for each index type in order to keep the code simple.</p>
 <dl class="py method">
+<dt class="sig sig-object py" id="autofaiss.external.metadata.IndexMetadata.compute_memory_necessary_for_ivf_flat">
+<span class="sig-name descname"><span class="pre">compute_memory_necessary_for_ivf_flat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nb_training_vectors</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/external/metadata.html#IndexMetadata.compute_memory_necessary_for_ivf_flat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.external.metadata.IndexMetadata.compute_memory_necessary_for_ivf_flat" title="Permalink to this definition"></a></dt>
+<dd><p>Compute the memory estimation for index type IVF_FLAT.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autofaiss.external.metadata.IndexMetadata.compute_memory_necessary_for_opq_ivf_hnsw_pq">
+<span class="sig-name descname"><span class="pre">compute_memory_necessary_for_opq_ivf_hnsw_pq</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nb_training_vectors</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/external/metadata.html#IndexMetadata.compute_memory_necessary_for_opq_ivf_hnsw_pq"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.external.metadata.IndexMetadata.compute_memory_necessary_for_opq_ivf_hnsw_pq" title="Permalink to this definition"></a></dt>
+<dd><p>Compute the memory estimation for index type OPQ_IVF_HNSW_PQ.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autofaiss.external.metadata.IndexMetadata.compute_memory_necessary_for_opq_ivf_pq">
+<span class="sig-name descname"><span class="pre">compute_memory_necessary_for_opq_ivf_pq</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nb_training_vectors</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/external/metadata.html#IndexMetadata.compute_memory_necessary_for_opq_ivf_pq"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.external.metadata.IndexMetadata.compute_memory_necessary_for_opq_ivf_pq" title="Permalink to this definition"></a></dt>
+<dd><p>Compute the memory estimation for index type OPQ_IVF_PQ.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autofaiss.external.metadata.IndexMetadata.compute_memory_necessary_for_pad_ivf_hnsw_pq">
+<span class="sig-name descname"><span class="pre">compute_memory_necessary_for_pad_ivf_hnsw_pq</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nb_training_vectors</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/external/metadata.html#IndexMetadata.compute_memory_necessary_for_pad_ivf_hnsw_pq"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.external.metadata.IndexMetadata.compute_memory_necessary_for_pad_ivf_hnsw_pq" title="Permalink to this definition"></a></dt>
+<dd><p>Compute the memory estimation for index type PAD_IVF_HNSW_PQ.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autofaiss.external.metadata.IndexMetadata.compute_memory_necessary_for_training">
+<span class="sig-name descname"><span class="pre">compute_memory_necessary_for_training</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nb_training_vectors</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/external/metadata.html#IndexMetadata.compute_memory_necessary_for_training"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.external.metadata.IndexMetadata.compute_memory_necessary_for_training" title="Permalink to this definition"></a></dt>
+<dd><p>Function that computes the memory necessary to train an index with nb_training_vectors vectors</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="autofaiss.external.metadata.IndexMetadata.estimated_index_size_in_bytes">
 <span class="sig-name descname"><span class="pre">estimated_index_size_in_bytes</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/external/metadata.html#IndexMetadata.estimated_index_size_in_bytes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.external.metadata.IndexMetadata.estimated_index_size_in_bytes" title="Permalink to this definition"></a></dt>
 <dd><p>Compute the estimated size of the index in bytes.</p>
@@ -318,6 +363,11 @@ The value returned is in Bytes</p>
 
 </dd></dl>
 
+<dl class="py function">
+<dt class="sig sig-object py" id="autofaiss.external.metadata.compute_memory_necessary_for_training_wrapper">
+<span class="sig-prename descclassname"><span class="pre">autofaiss.external.metadata.</span></span><span class="sig-name descname"><span class="pre">compute_memory_necessary_for_training_wrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nb_training_vectors</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim_vector</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/external/metadata.html#compute_memory_necessary_for_training_wrapper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.external.metadata.compute_memory_necessary_for_training_wrapper" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
 </section>
 <section id="module-autofaiss.external.optimize">
 <span id="autofaiss-external-optimize-module"></span><h2>autofaiss.external.optimize module<a class="headerlink" href="#module-autofaiss.external.optimize" title="Permalink to this headline"></a></h2>
@@ -350,17 +400,6 @@ on which we do a binary search.</p></li>
 <dl class="field-list simple">
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="autofaiss.external.optimize.compute_memory_necessary_for_training">
-<span class="sig-prename descclassname"><span class="pre">autofaiss.external.optimize.</span></span><span class="sig-name descname"><span class="pre">compute_memory_necessary_for_training</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nb_training_vectors</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vec_dim</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/external/optimize.html#compute_memory_necessary_for_training"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.external.optimize.compute_memory_necessary_for_training" title="Permalink to this definition"></a></dt>
-<dd><p>Function that computes the memory necessary to train an index with nb_training_vectors vectors</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></p>
 </dd>
 </dl>
 </dd></dl>
