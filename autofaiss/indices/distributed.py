@@ -222,7 +222,7 @@ def _merge_index(
 ) -> faiss.Index:
     """Merge all the indices in `small_indices_folder` into single one return the merged index."""
     fs = _get_file_system(small_indices_folder)
-    small_indices_files = fs.ls(small_indices_folder, detail=False)
+    small_indices_files = sorted(fs.ls(small_indices_folder, detail=False))
     small_indices_files = small_indices_files[start:end]
 
     if len(small_indices_files) == 0:

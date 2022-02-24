@@ -39,7 +39,13 @@ def build_test_collection_numpy(tmpdir: py.path, min_size=2, max_size=10000, dim
 
 
 def build_test_collection_parquet(
-    tmpdir: py.path, min_size=2, max_size=10000, dim=512, nb_files=5, tmpdir_name: str = "autofaiss_parquet"
+    tmpdir: py.path,
+    min_size=2,
+    max_size=10000,
+    dim=512,
+    nb_files=5,
+    tmpdir_name: str = "autofaiss_parquet",
+    consecutive_ids=False,
 ):
     tmp_path = tmpdir.mkdir(tmpdir_name)
     print(tmp_path)
@@ -47,14 +53,20 @@ def build_test_collection_parquet(
     dim = dim
     all_dfs = []
     file_paths = []
+    n = 0
     for i, size in enumerate(sizes):
         arr = np.random.rand(size, dim).astype("float32")
-        ids = np.random.randint(max_size * nb_files * 10, size=size)
+        if consecutive_ids:
+            # ids would be consecutive from 0 to N-1
+            ids = list(range(n, n + size))
+        else:
+            ids = np.random.randint(max_size * nb_files * 10, size=size)
         df = pd.DataFrame({"embedding": list(arr), "id": ids})
         all_dfs.append(df)
         file_path = os.path.join(tmp_path, f"{str(i)}.parquet")
         df.to_parquet(file_path)
         file_paths.append(file_path)
+        n += len(df)
     all_dfs = pd.concat(all_dfs)
     return str(tmp_path), sizes, dim, all_dfs, file_paths
 
