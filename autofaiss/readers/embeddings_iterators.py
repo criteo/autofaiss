@@ -258,9 +258,10 @@ def read_total_nb_vectors_and_dim(
 
     Returns
     -------
-    (count, dim) : (int, int)
+    (count, dim, file_counts) : (int, int, List[int])
         count: total number of vectors in the dataset.
         dim: embedding dimension
+        file_counts: number of vectors in each file.
     """
     if len(embeddings_file_paths) == 0:
         raise ValueError("No file was found")
