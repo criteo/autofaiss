@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and this project adheres to [Semantic Versioning](https://semver.org).
 
+## [2.10.0] - 2022-02-25
+
+### Added
+Improve training memory estimation
+Option to produce N indices in the distributed mode
 
 ## [2.9.9] - 2022-02-23
 
