@@ -140,9 +140,7 @@ def create_index(
         # Extract training vectors
         with Timeit("-> Extract training vectors", indent=2):
 
-            memory_available_for_training = cast_bytes_to_memory_string(
-                cast_memory_to_bytes(current_memory_available) - 500_000_000
-            )
+            memory_available_for_training = cast_bytes_to_memory_string(cast_memory_to_bytes(current_memory_available))
 
             # Determine the number of vectors necessary to train the index
             train_size = get_optimal_train_size(nb_vectors, index_key, memory_available_for_training, vec_dim)
