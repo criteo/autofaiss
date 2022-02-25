@@ -83,18 +83,32 @@
              
   <h1>Source code for autofaiss.external.optimize</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot; Functions to find optimal index parameters &quot;&quot;&quot;</span>
-
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">tempfile</span>
 <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span><span class="p">,</span> <span class="n">reduce</span>
 <span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">floor</span><span class="p">,</span> <span class="n">log2</span><span class="p">,</span> <span class="n">sqrt</span>
 <span class="kn">from</span> <span class="nn">operator</span> <span class="kn">import</span> <span class="n">mul</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">TypeVar</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">TypeVar</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Union</span>
 
 <span class="kn">import</span> <span class="nn">faiss</span>
-<span class="kn">from</span> <span class="nn">autofaiss.external.metadata</span> <span class="kn">import</span> <span class="n">IndexMetadata</span><span class="p">,</span> <span class="n">compute_memory_necessary_for_training_wrapper</span>
-<span class="kn">from</span> <span class="nn">autofaiss.indices.index_utils</span> <span class="kn">import</span> <span class="n">set_search_hyperparameters</span><span class="p">,</span> <span class="n">speed_test_ms_per_query</span>
+<span class="kn">import</span> <span class="nn">fsspec</span>
+
+<span class="kn">from</span> <span class="nn">autofaiss.external.metadata</span> <span class="kn">import</span> <span class="n">compute_memory_necessary_for_training_wrapper</span><span class="p">,</span> <span class="n">IndexMetadata</span>
+<span class="kn">from</span> <span class="nn">autofaiss.external.scores</span> <span class="kn">import</span> <span class="n">compute_fast_metrics</span>
+<span class="kn">from</span> <span class="nn">autofaiss.indices.index_utils</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">set_search_hyperparameters</span><span class="p">,</span>
+    <span class="n">speed_test_ms_per_query</span><span class="p">,</span>
+    <span class="n">parallel_download_indices_from_remote</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="kn">from</span> <span class="nn">autofaiss.utils.algorithms</span> <span class="kn">import</span> <span class="n">discrete_binary_search</span>
 <span class="kn">from</span> <span class="nn">autofaiss.utils.cast</span> <span class="kn">import</span> <span class="n">cast_memory_to_bytes</span>
+<span class="kn">from</span> <span class="nn">autofaiss.utils.decorators</span> <span class="kn">import</span> <span class="n">Timeit</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;autofaiss&quot;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="check_if_index_needs_training"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.optimize.check_if_index_needs_training">[docs]</a><span class="k">def</span> <span class="nf">check_if_index_needs_training</span><span class="p">(</span><span class="n">index_key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
@@ -491,6 +505,88 @@
     <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">hyperparameter_str_from_param</span><span class="p">(</span><span class="n">optimal_param</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="optimize_and_measure_index"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.optimize.optimize_and_measure_index">[docs]</a><span class="k">def</span> <span class="nf">optimize_and_measure_index</span><span class="p">(</span>
+    <span class="n">embedding_column_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">embeddings_file_paths</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+    <span class="n">file_format</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">index</span><span class="p">:</span> <span class="n">faiss</span><span class="o">.</span><span class="n">Index</span><span class="p">,</span>
+    <span class="n">index_infos_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+    <span class="n">index_key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">index_param</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+    <span class="n">index_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+    <span class="n">max_index_query_time_ms</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">save_on_disk</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+    <span class="n">use_gpu</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Optimize one index by selecting the best hyperparameters and calculate its metrics&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">index_param</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">Timeit</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Computing best hyperparameters for index </span><span class="si">{</span><span class="n">index_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+            <span class="n">index_param</span> <span class="o">=</span> <span class="n">get_optimal_hyperparameters</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">index_key</span><span class="p">,</span> <span class="n">max_speed_ms</span><span class="o">=</span><span class="n">max_index_query_time_ms</span><span class="p">)</span>
+    <span class="c1"># Set search hyperparameters for the index</span>
+    <span class="n">set_search_hyperparameters</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">index_param</span><span class="p">,</span> <span class="n">use_gpu</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The best hyperparameters are: </span><span class="si">{</span><span class="n">index_param</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">metric_infos</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;index_key&quot;</span><span class="p">:</span> <span class="n">index_key</span><span class="p">,</span> <span class="s2">&quot;index_param&quot;</span><span class="p">:</span> <span class="n">index_param</span><span class="p">}</span>
+    <span class="k">with</span> <span class="n">Timeit</span><span class="p">(</span><span class="s2">&quot;Compute fast metrics&quot;</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+        <span class="n">metric_infos</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+            <span class="n">compute_fast_metrics</span><span class="p">(</span>
+                <span class="n">embeddings_file_paths</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">file_format</span><span class="o">=</span><span class="n">file_format</span><span class="p">,</span> <span class="n">embedding_column_name</span><span class="o">=</span><span class="n">embedding_column_name</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="n">save_on_disk</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">Timeit</span><span class="p">(</span><span class="s2">&quot;Saving the index on local disk&quot;</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+            <span class="k">with</span> <span class="n">fsspec</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">index_path</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">open</span><span class="p">()</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">faiss</span><span class="o">.</span><span class="n">write_index</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">faiss</span><span class="o">.</span><span class="n">PyCallbackIOWriter</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">))</span>
+            <span class="k">with</span> <span class="n">fsspec</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">index_infos_path</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">open</span><span class="p">()</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">metric_infos</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">metric_infos</span></div>
+
+
+<div class="viewcode-block" id="optimize_and_measure_indices"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.optimize.optimize_and_measure_indices">[docs]</a><span class="k">def</span> <span class="nf">optimize_and_measure_indices</span><span class="p">(</span>
+    <span class="n">indices_folder</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">embedding_column_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">embeddings_file_paths</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+    <span class="n">file_format</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">index_infos_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+    <span class="n">index_key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">index_param</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+    <span class="n">index_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+    <span class="n">max_index_query_time_ms</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">save_on_disk</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+    <span class="n">use_gpu</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Optimize a list of indices by selecting the best hyperparameters and calculate their metrics&quot;&quot;&quot;</span>
+    <span class="n">fs</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">fsspec</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">url_to_fs</span><span class="p">(</span><span class="n">indices_folder</span><span class="p">)</span>
+    <span class="n">indices_file_paths</span> <span class="o">=</span> <span class="n">fs</span><span class="o">.</span><span class="n">ls</span><span class="p">(</span><span class="n">indices_folder</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">index_path2_metric_infos</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">suffix_width</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">indices_file_paths</span><span class="p">)))</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="k">with</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">TemporaryDirectory</span><span class="p">()</span> <span class="k">as</span> <span class="n">local_indices_folder</span><span class="p">:</span>
+        <span class="n">parallel_download_indices_from_remote</span><span class="p">(</span>
+            <span class="n">fs</span><span class="o">=</span><span class="n">fs</span><span class="p">,</span> <span class="n">indices_file_paths</span><span class="o">=</span><span class="n">indices_file_paths</span><span class="p">,</span> <span class="n">dst_folder</span><span class="o">=</span><span class="n">local_indices_folder</span>
+        <span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">tmp_filename</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">local_indices_folder</span><span class="p">)),</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">index_filepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">local_indices_folder</span><span class="p">,</span> <span class="n">tmp_filename</span><span class="p">)</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="n">faiss</span><span class="o">.</span><span class="n">read_index</span><span class="p">(</span><span class="n">index_filepath</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">save_on_disk</span> <span class="ow">and</span> <span class="n">index_path</span> <span class="ow">and</span> <span class="n">index_infos_path</span><span class="p">:</span>
+                <span class="n">cur_index_path</span> <span class="o">=</span> <span class="n">index_path</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">.</span><span class="n">zfill</span><span class="p">(</span><span class="n">suffix_width</span><span class="p">)</span>
+                <span class="n">cur_index_infos_path</span> <span class="o">=</span> <span class="n">index_infos_path</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+            <span class="n">metric_infos</span> <span class="o">=</span> <span class="n">optimize_and_measure_index</span><span class="p">(</span>
+                <span class="n">embedding_column_name</span><span class="p">,</span>
+                <span class="n">embeddings_file_paths</span><span class="p">,</span>
+                <span class="n">file_format</span><span class="p">,</span>
+                <span class="n">index</span><span class="p">,</span>
+                <span class="n">cur_index_infos_path</span><span class="p">,</span>
+                <span class="n">index_key</span><span class="p">,</span>
+                <span class="n">index_param</span><span class="p">,</span>
+                <span class="n">cur_index_path</span><span class="p">,</span>
+                <span class="n">max_index_query_time_ms</span><span class="p">,</span>
+                <span class="n">save_on_disk</span><span class="p">,</span>
+                <span class="n">use_gpu</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">index_path2_metric_infos</span><span class="p">[</span><span class="n">cur_index_path</span><span class="p">]</span> <span class="o">=</span> <span class="n">metric_infos</span>
+    <span class="k">return</span> <span class="n">index_path2_metric_infos</span></div>
 </pre></div>
 
            </div>

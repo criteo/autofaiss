@@ -119,6 +119,7 @@
     <span class="n">index_key</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">max_index_memory_usage</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">make_direct_map</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">nb_indices_to_keep</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Estimates the RAM necessary to create the index</span>
@@ -149,7 +150,9 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="n">memory_for_training</span> <span class="o">=</span> <span class="mi">0</span>
 
-    <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">index_memory</span> <span class="o">+</span> <span class="n">needed_for_adding</span><span class="p">,</span> <span class="n">memory_for_training</span><span class="p">)),</span> <span class="n">index_key</span></div>
+    <span class="n">index_memory_with_n_indices</span> <span class="o">=</span> <span class="n">index_memory</span> <span class="o">/</span> <span class="n">nb_indices_to_keep</span>
+
+    <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">index_memory_with_n_indices</span> <span class="o">+</span> <span class="n">needed_for_adding</span><span class="p">,</span> <span class="n">memory_for_training</span><span class="p">)),</span> <span class="n">index_key</span></div>
 
 
 <div class="viewcode-block" id="get_estimated_construction_time_infos"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.build.get_estimated_construction_time_infos">[docs]</a><span class="k">def</span> <span class="nf">get_estimated_construction_time_infos</span><span class="p">(</span><span class="n">nb_vectors</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">vec_dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">indent</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
@@ -188,7 +191,8 @@
     <span class="n">distributed</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">temporary_indices_folder</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;hdfs://root/tmp/distributed_autofaiss_indices&quot;</span><span class="p">,</span>
     <span class="n">file_counts</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-<span class="p">):</span>
+    <span class="n">nb_indices_to_keep</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="n">faiss</span><span class="o">.</span><span class="n">Index</span><span class="p">],</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Function that returns an index on the numpy arrays stored on disk in the embeddings_path path.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -220,9 +224,7 @@
         <span class="c1"># Extract training vectors</span>
         <span class="k">with</span> <span class="n">Timeit</span><span class="p">(</span><span class="s2">&quot;-&gt; Extract training vectors&quot;</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
 
-            <span class="n">memory_available_for_training</span> <span class="o">=</span> <span class="n">cast_bytes_to_memory_string</span><span class="p">(</span>
-                <span class="n">cast_memory_to_bytes</span><span class="p">(</span><span class="n">current_memory_available</span><span class="p">)</span> <span class="o">-</span> <span class="n">metadata</span><span class="o">.</span><span class="n">estimated_index_size_in_bytes</span><span class="p">()</span> <span class="o">*</span> <span class="mf">0.25</span>
-            <span class="p">)</span>
+            <span class="n">memory_available_for_training</span> <span class="o">=</span> <span class="n">cast_bytes_to_memory_string</span><span class="p">(</span><span class="n">cast_memory_to_bytes</span><span class="p">(</span><span class="n">current_memory_available</span><span class="p">))</span>
 
             <span class="c1"># Determine the number of vectors necessary to train the index</span>
             <span class="n">train_size</span> <span class="o">=</span> <span class="n">get_optimal_train_size</span><span class="p">(</span><span class="n">nb_vectors</span><span class="p">,</span> <span class="n">index_key</span><span class="p">,</span> <span class="n">memory_available_for_training</span><span class="p">,</span> <span class="n">vec_dim</span><span class="p">)</span>
@@ -302,8 +304,9 @@
                 <span class="n">index</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">vec_batch</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">embedding_ids_df_handler</span><span class="p">:</span>
                     <span class="n">embedding_ids_df_handler</span><span class="p">(</span><span class="n">ids_batch</span><span class="p">,</span> <span class="n">batch_id</span><span class="p">)</span>
+            <span class="n">indices_path</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">elif</span> <span class="n">distributed</span> <span class="o">==</span> <span class="s2">&quot;pyspark&quot;</span><span class="p">:</span>
-            <span class="n">index</span> <span class="o">=</span> <span class="n">run</span><span class="p">(</span>
+            <span class="n">index</span><span class="p">,</span> <span class="n">indices_path</span> <span class="o">=</span> <span class="n">run</span><span class="p">(</span>
                 <span class="n">faiss_index</span><span class="o">=</span><span class="n">index</span><span class="p">,</span>
                 <span class="n">embedding_column_name</span><span class="o">=</span><span class="n">embedding_column_name</span><span class="p">,</span>
                 <span class="n">file_counts</span><span class="o">=</span><span class="n">file_counts</span><span class="p">,</span>  <span class="c1"># type: ignore</span>
@@ -313,14 +316,16 @@
                 <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span>
                 <span class="n">embedding_ids_df_handler</span><span class="o">=</span><span class="n">embedding_ids_df_handler</span><span class="p">,</span>
                 <span class="n">temporary_indices_folder</span><span class="o">=</span><span class="n">temporary_indices_folder</span><span class="p">,</span>
+                <span class="n">nb_indices_to_keep</span><span class="o">=</span><span class="n">nb_indices_to_keep</span><span class="p">,</span>
             <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Distributed by </span><span class="si">{</span><span class="n">distributed</span><span class="si">}</span><span class="s1"> is not supported, only &quot;pyspark&quot; is supported&#39;</span><span class="p">)</span>
-    <span class="c1"># Give standard values for index hyperparameters if possible.</span>
-    <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;OPQ\d+_\d+,IVF\d+_HNSW\d+,PQ\d+&quot;</span><span class="p">,</span> <span class="n">index_key</span><span class="p">)):</span>
-        <span class="n">set_search_hyperparameters</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;nprobe=</span><span class="si">{</span><span class="mi">64</span><span class="si">}</span><span class="s2">,efSearch=</span><span class="si">{</span><span class="mi">128</span><span class="si">}</span><span class="s2">,ht=</span><span class="si">{</span><span class="mi">2048</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">use_gpu</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">nb_indices_to_keep</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="c1"># Give standard values for index hyperparameters if possible.</span>
+        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;OPQ\d+_\d+,IVF\d+_HNSW\d+,PQ\d+&quot;</span><span class="p">,</span> <span class="n">index_key</span><span class="p">)):</span>
+            <span class="n">set_search_hyperparameters</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;nprobe=</span><span class="si">{</span><span class="mi">64</span><span class="si">}</span><span class="s2">,efSearch=</span><span class="si">{</span><span class="mi">128</span><span class="si">}</span><span class="s2">,ht=</span><span class="si">{</span><span class="mi">2048</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">use_gpu</span><span class="p">)</span>
     <span class="c1"># return the index.</span>
-    <span class="k">return</span> <span class="n">index</span></div>
+    <span class="k">return</span> <span class="n">index</span><span class="p">,</span> <span class="n">indices_path</span></div>
 </pre></div>
 
            </div>
