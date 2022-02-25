@@ -516,11 +516,12 @@ and an index in [0, total_nb_embeddings-1] store in a column “i”</p>
 :type file_format: str (default “npy”)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p><strong>(count, dim)</strong> – count: total number of vectors in the dataset.
-dim: embedding dimension</p>
+<dd class="field-odd"><p><strong>(count, dim, file_counts)</strong> – count: total number of vectors in the dataset.
+dim: embedding dimension
+file_counts: number of vectors in each file.</p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p>(<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a>)</p>
+<dd class="field-even"><p>(<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a>, List[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a>])</p>
 </dd>
 </dl>
 </dd></dl>

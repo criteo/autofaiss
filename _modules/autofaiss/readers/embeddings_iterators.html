@@ -342,9 +342,10 @@
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">    (count, dim) : (int, int)</span>
+<span class="sd">    (count, dim, file_counts) : (int, int, List[int])</span>
 <span class="sd">        count: total number of vectors in the dataset.</span>
 <span class="sd">        dim: embedding dimension</span>
+<span class="sd">        file_counts: number of vectors in each file.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">embeddings_file_paths</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No file was found&quot;</span><span class="p">)</span>
