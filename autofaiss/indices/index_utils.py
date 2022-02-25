@@ -2,14 +2,17 @@
 
 import os
 import time
+from functools import partial
 from itertools import chain, repeat
+from multiprocessing.pool import ThreadPool
 from pathlib import Path
 from tempfile import NamedTemporaryFile
-from typing import Dict, Optional, Union
+from typing import Dict, Optional, Union, List, Tuple
 import random
 import logging
 
 import faiss
+import fsspec
 import numpy as np
 
 logger = logging.getLogger("autofaiss")
@@ -86,7 +89,6 @@ def search_speed_test(
             break
 
     speed_list_ms = np.array(speed_list_ms)
-    logger.info(len(speed_list_ms))
 
     # avg2 = 1000 * (time.perf_counter() - test_start_time_s) / len(speed_list_ms)
 
@@ -116,7 +118,7 @@ def set_search_hyperparameters(index: faiss.Index, param_str: str, use_gpu: bool
     params.set_index_parameters(index, param_str)
 
 
-def _get_index_from_bytes(index_bytes: Union[bytearray, bytes]) -> faiss.Index:
+def get_index_from_bytes(index_bytes: Union[bytearray, bytes]) -> faiss.Index:
     """Transforms a bytearray containing a faiss index into the corresponding object."""
 
     with NamedTemporaryFile(delete=False) as output_file:
@@ -128,7 +130,7 @@ def _get_index_from_bytes(index_bytes: Union[bytearray, bytes]) -> faiss.Index:
     return b
 
 
-def _get_bytes_from_index(index: faiss.Index) -> bytearray:
+def get_bytes_from_index(index: faiss.Index) -> bytearray:
     """Transforms a faiss index into a bytearray."""
 
     with NamedTemporaryFile(delete=False) as output_file:
@@ -139,3 +141,22 @@ def _get_bytes_from_index(index: faiss.Index) -> bytearray:
         b = index_file.read()
         os.remove(tmp_name)
         return bytearray(b)
+
+
+def parallel_download_indices_from_remote(
+    fs: fsspec.AbstractFileSystem, indices_file_paths: List[str], dst_folder: str
+):
+    """Download small indices in parallel."""
+
+    def _download_one(src_dst_path: Tuple[str, str], fs: fsspec.AbstractFileSystem):
+        src_path, dst_path = src_dst_path
+        fs.get(src_path, dst_path)
+
+    if len(indices_file_paths) == 0:
+        return
+    os.makedirs(dst_folder, exist_ok=True)
+    dst_paths = [os.path.join(dst_folder, os.path.split(p)[-1]) for p in indices_file_paths]
+    src_dest_paths = zip(indices_file_paths, dst_paths)
+    with ThreadPool(min(16, len(indices_file_paths))) as pool:
+        for _ in pool.imap_unordered(partial(_download_one, fs=fs), src_dest_paths):
+            pass

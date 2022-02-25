@@ -35,6 +35,7 @@ def estimate_memory_required_for_index_creation(
     index_key: Optional[str] = None,
     max_index_memory_usage: Optional[str] = None,
     make_direct_map: bool = False,
+    nb_indices_to_keep: int = 1,
 ) -> Tuple[int, str]:
     """
     Estimates the RAM necessary to create the index
@@ -65,7 +66,9 @@ def estimate_memory_required_for_index_creation(
     else:
         memory_for_training = 0
 
-    return int(max(index_memory + needed_for_adding, memory_for_training)), index_key
+    index_memory_with_n_indices = index_memory / nb_indices_to_keep
+
+    return int(max(index_memory_with_n_indices + needed_for_adding, memory_for_training)), index_key
 
 
 def get_estimated_construction_time_infos(nb_vectors: int, vec_dim: int, indent: int = 0) -> str:
@@ -104,7 +107,8 @@ def create_index(
     distributed: Optional[str] = None,
     temporary_indices_folder: str = "hdfs://root/tmp/distributed_autofaiss_indices",
     file_counts: List[int] = None,
-):
+    nb_indices_to_keep: int = 1,
+) -> Tuple[Optional[faiss.Index], Optional[str]]:
     """
     Function that returns an index on the numpy arrays stored on disk in the embeddings_path path.
     """
@@ -136,9 +140,7 @@ def create_index(
         # Extract training vectors
         with Timeit("-> Extract training vectors", indent=2):
 
-            memory_available_for_training = cast_bytes_to_memory_string(
-                cast_memory_to_bytes(current_memory_available) - metadata.estimated_index_size_in_bytes() * 0.25
-            )
+            memory_available_for_training = cast_bytes_to_memory_string(cast_memory_to_bytes(current_memory_available))
 
             # Determine the number of vectors necessary to train the index
             train_size = get_optimal_train_size(nb_vectors, index_key, memory_available_for_training, vec_dim)
@@ -218,8 +220,9 @@ def create_index(
                 index.add(vec_batch)
                 if embedding_ids_df_handler:
                     embedding_ids_df_handler(ids_batch, batch_id)
+            indices_path = None
         elif distributed == "pyspark":
-            index = run(
+            index, indices_path = run(
                 faiss_index=index,
                 embedding_column_name=embedding_column_name,
                 file_counts=file_counts,  # type: ignore
@@ -229,11 +232,13 @@ def create_index(
                 batch_size=batch_size,
                 embedding_ids_df_handler=embedding_ids_df_handler,
                 temporary_indices_folder=temporary_indices_folder,
+                nb_indices_to_keep=nb_indices_to_keep,
             )
         else:
             raise ValueError(f'Distributed by {distributed} is not supported, only "pyspark" is supported')
-    # Give standard values for index hyperparameters if possible.
-    if any(re.findall(r"OPQ\d+_\d+,IVF\d+_HNSW\d+,PQ\d+", index_key)):
-        set_search_hyperparameters(index, f"nprobe={64},efSearch={128},ht={2048}", use_gpu)
+    if nb_indices_to_keep == 1:
+        # Give standard values for index hyperparameters if possible.
+        if any(re.findall(r"OPQ\d+_\d+,IVF\d+_HNSW\d+,PQ\d+", index_key)):
+            set_search_hyperparameters(index, f"nprobe={64},efSearch={128},ht={2048}", use_gpu)
     # return the index.
-    return index
+    return index, indices_path

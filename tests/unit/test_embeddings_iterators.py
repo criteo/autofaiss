@@ -22,8 +22,10 @@ def list_file_paths(dir_path):
     return [os.path.join(dir_path, filename) for filename in os.listdir(dir_path)]
 
 
-def build_test_collection_numpy(tmpdir: py.path, min_size=2, max_size=10000, dim=512, nb_files=5):
-    tmp_path = tmpdir.mkdir("autofaiss_numpy")
+def build_test_collection_numpy(
+    tmpdir: py.path, min_size=2, max_size=10000, dim=512, nb_files=5, tmpdir_name: str = "autofaiss_numpy"
+):
+    tmp_path = tmpdir.mkdir(tmpdir_name)
     sizes = [random.randint(min_size, max_size) for _ in range(nb_files)]
     dim = dim
     all_arrays = []
