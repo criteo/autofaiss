@@ -220,12 +220,14 @@ structure (if there is quantization for instance).
     def compute_memory_necessary_for_ivf_flat(self, nb_training_vectors: int):
         """Compute the memory estimation for index type IVF_FLAT."""
         ivf_memory_in_bytes = self._get_ivf_training_memory_usage_in_bytes()
-        return self._get_vectors_training_memory_usage_in_bytes(nb_training_vectors) + ivf_memory_in_bytes
+        # TODO: remove x1.5 when estimation is correct
+        return self._get_vectors_training_memory_usage_in_bytes(nb_training_vectors) * 1.5 + ivf_memory_in_bytes
 
     def compute_memory_necessary_for_opq_ivf_pq(self, nb_training_vectors: int) -> float:
         """Compute the memory estimation for index type OPQ_IVF_PQ."""
+        # TODO: remove x1.5 when estimation is correct
         return (
-            self._get_vectors_training_memory_usage_in_bytes(nb_training_vectors)
+            self._get_vectors_training_memory_usage_in_bytes(nb_training_vectors) * 1.5
             + self._get_opq_training_memory_usage_in_bytes(nb_training_vectors)
             + self._get_ivf_training_memory_usage_in_bytes()
             + self._get_pq_training_memory_usage_in_bytes()
@@ -233,8 +235,9 @@ structure (if there is quantization for instance).
 
     def compute_memory_necessary_for_opq_ivf_hnsw_pq(self, nb_training_vectors: int) -> float:
         """Compute the memory estimation for index type OPQ_IVF_HNSW_PQ."""
+        # TODO: remove x1.5 when estimation is correct
         return (
-            self._get_vectors_training_memory_usage_in_bytes(nb_training_vectors)
+            self._get_vectors_training_memory_usage_in_bytes(nb_training_vectors) * 1.5
             + self._get_opq_training_memory_usage_in_bytes(nb_training_vectors)
             + self._get_ivf_training_memory_usage_in_bytes()
             + self._get_ivf_hnsw_training_memory_usage_in_bytes()
@@ -243,8 +246,9 @@ structure (if there is quantization for instance).
 
     def compute_memory_necessary_for_pad_ivf_hnsw_pq(self, nb_training_vectors: int):
         """Compute the memory estimation for index type PAD_IVF_HNSW_PQ."""
+        # TODO: remove x1.5 when estimation is correct
         return (
-            self._get_vectors_training_memory_usage_in_bytes(nb_training_vectors)
+            self._get_vectors_training_memory_usage_in_bytes(nb_training_vectors) * 1.5
             + self._get_ivf_training_memory_usage_in_bytes()
             + self._get_ivf_hnsw_training_memory_usage_in_bytes()
             + self._get_pq_training_memory_usage_in_bytes()
