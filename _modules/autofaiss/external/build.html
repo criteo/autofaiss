@@ -265,8 +265,11 @@
         <span class="k">del</span> <span class="n">train_vectors</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">train_size</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="n">size_per_index</span> <span class="o">=</span> <span class="n">metadata</span><span class="o">.</span><span class="n">estimated_index_size_in_bytes</span><span class="p">()</span> <span class="o">/</span> <span class="n">nb_indices_to_keep</span>
+
     <span class="n">memory_available_for_adding</span> <span class="o">=</span> <span class="n">cast_bytes_to_memory_string</span><span class="p">(</span>
-        <span class="n">cast_memory_to_bytes</span><span class="p">(</span><span class="n">current_memory_available</span><span class="p">)</span> <span class="o">-</span> <span class="n">metadata</span><span class="o">.</span><span class="n">compute_memory_necessary_for_training</span><span class="p">(</span><span class="n">train_size</span><span class="p">)</span>
+        <span class="n">cast_memory_to_bytes</span><span class="p">(</span><span class="n">current_memory_available</span><span class="p">)</span> <span class="o">-</span> <span class="n">size_per_index</span>
     <span class="p">)</span>
 
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>

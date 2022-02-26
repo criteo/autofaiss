@@ -291,7 +291,7 @@
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">index_type</span> <span class="o">==</span> <span class="n">IndexType</span><span class="o">.</span><span class="n">IVF_FLAT</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_memory_necessary_for_ivf_flat</span><span class="p">(</span><span class="n">nb_training_vectors</span><span class="p">)</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">index_type</span> <span class="o">==</span> <span class="n">IndexType</span><span class="o">.</span><span class="n">HNSW</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_hndw_training_memory_usage_in_bytes</span><span class="p">(</span><span class="n">nb_vectors</span><span class="o">=</span><span class="n">nb_training_vectors</span><span class="p">)</span>
+            <span class="k">return</span> <span class="mi">0</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">index_type</span> <span class="o">==</span> <span class="n">IndexType</span><span class="o">.</span><span class="n">OPQ_IVF_PQ</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_memory_necessary_for_opq_ivf_pq</span><span class="p">(</span><span class="n">nb_training_vectors</span><span class="p">)</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">index_type</span> <span class="o">==</span> <span class="n">IndexType</span><span class="o">.</span><span class="n">OPQ_IVF_HNSW_PQ</span><span class="p">:</span>
@@ -304,12 +304,14 @@
 <div class="viewcode-block" id="IndexMetadata.compute_memory_necessary_for_ivf_flat"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.metadata.IndexMetadata.compute_memory_necessary_for_ivf_flat">[docs]</a>    <span class="k">def</span> <span class="nf">compute_memory_necessary_for_ivf_flat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nb_training_vectors</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Compute the memory estimation for index type IVF_FLAT.&quot;&quot;&quot;</span>
         <span class="n">ivf_memory_in_bytes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_ivf_training_memory_usage_in_bytes</span><span class="p">()</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_vectors_training_memory_usage_in_bytes</span><span class="p">(</span><span class="n">nb_training_vectors</span><span class="p">)</span> <span class="o">+</span> <span class="n">ivf_memory_in_bytes</span></div>
+        <span class="c1"># TODO: remove x1.5 when estimation is correct</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_vectors_training_memory_usage_in_bytes</span><span class="p">(</span><span class="n">nb_training_vectors</span><span class="p">)</span> <span class="o">*</span> <span class="mf">1.5</span> <span class="o">+</span> <span class="n">ivf_memory_in_bytes</span></div>
 
 <div class="viewcode-block" id="IndexMetadata.compute_memory_necessary_for_opq_ivf_pq"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.metadata.IndexMetadata.compute_memory_necessary_for_opq_ivf_pq">[docs]</a>    <span class="k">def</span> <span class="nf">compute_memory_necessary_for_opq_ivf_pq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nb_training_vectors</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Compute the memory estimation for index type OPQ_IVF_PQ.&quot;&quot;&quot;</span>
+        <span class="c1"># TODO: remove x1.5 when estimation is correct</span>
         <span class="k">return</span> <span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_get_vectors_training_memory_usage_in_bytes</span><span class="p">(</span><span class="n">nb_training_vectors</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_get_vectors_training_memory_usage_in_bytes</span><span class="p">(</span><span class="n">nb_training_vectors</span><span class="p">)</span> <span class="o">*</span> <span class="mf">1.5</span>
             <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_opq_training_memory_usage_in_bytes</span><span class="p">(</span><span class="n">nb_training_vectors</span><span class="p">)</span>
             <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_ivf_training_memory_usage_in_bytes</span><span class="p">()</span>
             <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_pq_training_memory_usage_in_bytes</span><span class="p">()</span>
@@ -317,20 +319,22 @@
 
 <div class="viewcode-block" id="IndexMetadata.compute_memory_necessary_for_opq_ivf_hnsw_pq"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.metadata.IndexMetadata.compute_memory_necessary_for_opq_ivf_hnsw_pq">[docs]</a>    <span class="k">def</span> <span class="nf">compute_memory_necessary_for_opq_ivf_hnsw_pq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nb_training_vectors</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Compute the memory estimation for index type OPQ_IVF_HNSW_PQ.&quot;&quot;&quot;</span>
+        <span class="c1"># TODO: remove x1.5 when estimation is correct</span>
         <span class="k">return</span> <span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_get_vectors_training_memory_usage_in_bytes</span><span class="p">(</span><span class="n">nb_training_vectors</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_get_vectors_training_memory_usage_in_bytes</span><span class="p">(</span><span class="n">nb_training_vectors</span><span class="p">)</span> <span class="o">*</span> <span class="mf">1.5</span>
             <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_opq_training_memory_usage_in_bytes</span><span class="p">(</span><span class="n">nb_training_vectors</span><span class="p">)</span>
             <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_ivf_training_memory_usage_in_bytes</span><span class="p">()</span>
-            <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_ivf_hndw_training_memory_usage_in_bytes</span><span class="p">()</span>
+            <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_ivf_hnsw_training_memory_usage_in_bytes</span><span class="p">()</span>
             <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_pq_training_memory_usage_in_bytes</span><span class="p">()</span>
         <span class="p">)</span></div>
 
 <div class="viewcode-block" id="IndexMetadata.compute_memory_necessary_for_pad_ivf_hnsw_pq"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.metadata.IndexMetadata.compute_memory_necessary_for_pad_ivf_hnsw_pq">[docs]</a>    <span class="k">def</span> <span class="nf">compute_memory_necessary_for_pad_ivf_hnsw_pq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nb_training_vectors</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Compute the memory estimation for index type PAD_IVF_HNSW_PQ.&quot;&quot;&quot;</span>
+        <span class="c1"># TODO: remove x1.5 when estimation is correct</span>
         <span class="k">return</span> <span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_get_vectors_training_memory_usage_in_bytes</span><span class="p">(</span><span class="n">nb_training_vectors</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_get_vectors_training_memory_usage_in_bytes</span><span class="p">(</span><span class="n">nb_training_vectors</span><span class="p">)</span> <span class="o">*</span> <span class="mf">1.5</span>
             <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_ivf_training_memory_usage_in_bytes</span><span class="p">()</span>
-            <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_ivf_hndw_training_memory_usage_in_bytes</span><span class="p">()</span>
+            <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_ivf_hnsw_training_memory_usage_in_bytes</span><span class="p">()</span>
             <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_pq_training_memory_usage_in_bytes</span><span class="p">()</span>
         <span class="p">)</span></div>
 
@@ -342,13 +346,12 @@
         <span class="sd">&quot;&quot;&quot;Get IVF memory estimation in bytes.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="mf">4.0</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;ncentroids&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim_vector</span>
 
-    <span class="k">def</span> <span class="nf">_get_hndw_training_memory_usage_in_bytes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nb_vectors</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Get HNSW memory estimation in bytes.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">nb_vectors</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;M_HNSW&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">*</span> <span class="mi">4</span>
-
-    <span class="k">def</span> <span class="nf">_get_ivf_hndw_training_memory_usage_in_bytes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_get_ivf_hnsw_training_memory_usage_in_bytes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Get HNSW followed by IVF memory estimation in bytes.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_hndw_training_memory_usage_in_bytes</span><span class="p">(</span><span class="n">nb_vectors</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;ncentroids&quot;</span><span class="p">])</span>
+
+        <span class="n">hnsw_graph_in_bytes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;ncentroids&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;M_HNSW&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">*</span> <span class="mi">4</span>
+        <span class="n">vectors_size_in_bytes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;ncentroids&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim_vector</span> <span class="o">*</span> <span class="mi">4</span>
+        <span class="k">return</span> <span class="n">vectors_size_in_bytes</span> <span class="o">+</span> <span class="n">hnsw_graph_in_bytes</span>
 
     <span class="k">def</span> <span class="nf">_get_opq_training_memory_usage_in_bytes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nb_training_vectors</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Get OPQ memory estimation in bytes.&quot;&quot;&quot;</span>
