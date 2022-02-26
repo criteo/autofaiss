@@ -181,8 +181,11 @@ def create_index(
         del train_vectors
     else:
         train_size = 0
+
+    size_per_index = metadata.estimated_index_size_in_bytes() / nb_indices_to_keep
+
     memory_available_for_adding = cast_bytes_to_memory_string(
-        cast_memory_to_bytes(current_memory_available) - metadata.compute_memory_necessary_for_training(train_size)
+        cast_memory_to_bytes(current_memory_available) - size_per_index
     )
 
     logger.info(
