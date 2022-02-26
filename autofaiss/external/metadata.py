@@ -207,7 +207,7 @@ structure (if there is quantization for instance).
         elif self.index_type == IndexType.IVF_FLAT:
             return self.compute_memory_necessary_for_ivf_flat(nb_training_vectors)
         elif self.index_type == IndexType.HNSW:
-            return self._get_hndw_training_memory_usage_in_bytes(nb_vectors=nb_training_vectors)
+            return 0
         elif self.index_type == IndexType.OPQ_IVF_PQ:
             return self.compute_memory_necessary_for_opq_ivf_pq(nb_training_vectors)
         elif self.index_type == IndexType.OPQ_IVF_HNSW_PQ:
@@ -237,7 +237,7 @@ structure (if there is quantization for instance).
             self._get_vectors_training_memory_usage_in_bytes(nb_training_vectors)
             + self._get_opq_training_memory_usage_in_bytes(nb_training_vectors)
             + self._get_ivf_training_memory_usage_in_bytes()
-            + self._get_ivf_hndw_training_memory_usage_in_bytes()
+            + self._get_ivf_hnsw_training_memory_usage_in_bytes()
             + self._get_pq_training_memory_usage_in_bytes()
         )
 
@@ -246,7 +246,7 @@ structure (if there is quantization for instance).
         return (
             self._get_vectors_training_memory_usage_in_bytes(nb_training_vectors)
             + self._get_ivf_training_memory_usage_in_bytes()
-            + self._get_ivf_hndw_training_memory_usage_in_bytes()
+            + self._get_ivf_hnsw_training_memory_usage_in_bytes()
             + self._get_pq_training_memory_usage_in_bytes()
         )
 
@@ -258,13 +258,12 @@ structure (if there is quantization for instance).
         """Get IVF memory estimation in bytes."""
         return 4.0 * self.params["ncentroids"] * self.dim_vector
 
-    def _get_hndw_training_memory_usage_in_bytes(self, nb_vectors):
-        """Get HNSW memory estimation in bytes."""
-        return nb_vectors * self.params["M_HNSW"] * 2 * 4
-
-    def _get_ivf_hndw_training_memory_usage_in_bytes(self):
+    def _get_ivf_hnsw_training_memory_usage_in_bytes(self):
         """Get HNSW followed by IVF memory estimation in bytes."""
-        return self._get_hndw_training_memory_usage_in_bytes(nb_vectors=self.params["ncentroids"])
+
+        hnsw_graph_in_bytes = self.params["ncentroids"] * self.params["M_HNSW"] * 2 * 4
+        vectors_size_in_bytes = self.params["ncentroids"] * self.dim_vector * 4
+        return vectors_size_in_bytes + hnsw_graph_in_bytes
 
     def _get_opq_training_memory_usage_in_bytes(self, nb_training_vectors: int):
         """Get OPQ memory estimation in bytes."""
