@@ -66,10 +66,9 @@ def _save_small_index(index: faiss.Index, batch_id: int, small_indices_folder: s
     fs = _get_file_system(small_indices_folder)
     fs.mkdirs(small_indices_folder, exist_ok=True)
     small_index_filename = _generate_small_index_file_name(batch_id, nb_batches)
-    with fsspec.open(small_index_filename, "wb").open() as f:
-        faiss.write_index(index, faiss.PyCallbackIOWriter(f.write))
     dest_filepath = os.path.join(small_indices_folder, small_index_filename)
-    fs.put(small_index_filename, dest_filepath)
+    with fsspec.open(dest_filepath, "wb").open() as f:
+        faiss.write_index(index, faiss.PyCallbackIOWriter(f.write))
 
 
 def _add_index(
