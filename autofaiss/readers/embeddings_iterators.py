@@ -25,8 +25,8 @@ class AbstractArray:
 class AbstractMatrixReader(ABC):
     """Read a file and provide its shape, row count and ndarray. Behaves as a context manager"""
 
-    def __init__(self, fs: fsspec.AbstractFileSystem, file_path: str):
-        self.f = fs.open(file_path, "rb")
+    def __init__(self, fs: fsspec.AbstractFileSystem, file_path: str, **fs_kwargs):
+        self.f = fs.open(file_path, "rb", **fs_kwargs)
 
     def __enter__(self):
         return self
@@ -62,9 +62,17 @@ class NumpyEagerNdArray(AbstractArray):
 
 def read_numpy_header(f):
     f.seek(0)
-    file_size = f.size if isinstance(f.size, int) else f.size()
+    try:
+        file_size = f.size if isinstance(f.size, int) else f.size()
+    except AttributeError:
+        file_size = float('inf')
+
     first_line = f.read(min(file_size, 300)).split(b"\n")[0]
     result = re.search(r"'shape': \(([0-9]+), ([0-9]+)\)", str(first_line))
+
+    if result is None:
+        raise RuntimeError("cannot find shape header in file")
+
     shape = (int(result.group(1)), int(result.group(2)))
     dtype = re.search(r"'descr': '([<f0-9]+)'", str(first_line)).group(1)
     end = len(first_line) + 1  # the first line content and the endline
@@ -93,8 +101,8 @@ class NumpyLazyNdArray(AbstractArray):
 class NumpyMatrixReader(AbstractMatrixReader):
     """Read a numpy file and provide its shape, row count and ndarray. Behaves as a context manager"""
 
-    def __init__(self, fs: fsspec.AbstractFileSystem, file_path: str, *_):
-        super().__init__(fs, file_path)
+    def __init__(self, fs: fsspec.AbstractFileSystem, file_path: str, *_, **fs_kwargs):
+        super().__init__(fs, file_path, **fs_kwargs)
 
     def get_shape(self) -> Tuple[int, int]:
         shape, _, _ = read_numpy_header(self.f)
@@ -111,6 +119,11 @@ class NumpyMatrixReader(AbstractMatrixReader):
 
     def is_empty(self) -> bool:
         return self.get_row_count() == 0
+
+
+class CompressedNumpyMatrixReader(NumpyMatrixReader):
+    def __init__(self, fs: fsspec.AbstractFileSystem, file_path: str, *_):
+        super(CompressedNumpyMatrixReader, self).__init__(fs, file_path, compression='zip')
 
 
 class ParquetEagerNdArray(AbstractArray):
@@ -173,7 +186,7 @@ class ParquetMatrixReader(AbstractMatrixReader):
         return self.get_row_count() == 0
 
 
-matrix_readers_registry = {"parquet": ParquetMatrixReader, "npy": NumpyMatrixReader}
+matrix_readers_registry = {"parquet": ParquetMatrixReader, "npy": NumpyMatrixReader, "npz": CompressedNumpyMatrixReader}
 
 
 def get_matrix_reader(file_format: str, fs: fsspec.AbstractFileSystem, file_path: str, *args) -> AbstractMatrixReader:
