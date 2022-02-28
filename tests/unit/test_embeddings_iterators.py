@@ -22,9 +22,35 @@ def list_file_paths(dir_path):
     return [os.path.join(dir_path, filename) for filename in os.listdir(dir_path)]
 
 
+def save_as_npy(path: str, name: str, arr: np.array) -> str:
+
+    if not name.startswith(".npy"):
+        name += ".npy"
+
+    filepath = os.path.join(path, name)
+    np.save(filepath, arr)
+
+    return filepath
+
+
+def save_as_npz(path: str, name: str, arr: np.array) -> str:
+    if not name.startswith(".npz"):
+        name += ".npz"
+
+    filepath = os.path.join(path, name)
+    np.savez_compressed(filepath, arr)
+    return filepath
+
+
 def build_test_collection_numpy(
-    tmpdir: py.path, min_size=2, max_size=10000, dim=512, nb_files=5, tmpdir_name: str = "autofaiss_numpy"
+    tmpdir: py.path, min_size=2, max_size=10000, dim=512, nb_files=5, tmpdir_name: str = "autofaiss_numpy",
+    compressed: bool = False
 ):
+    if compressed:
+        save_func = save_as_npz
+    else:
+        save_func = save_as_npy
+
     tmp_path = tmpdir.mkdir(tmpdir_name)
     sizes = [random.randint(min_size, max_size) for _ in range(nb_files)]
     dim = dim
@@ -33,9 +59,10 @@ def build_test_collection_numpy(
     for i, size in enumerate(sizes):
         arr = np.random.rand(size, dim).astype("float32")
         all_arrays.append(arr)
-        file_path = os.path.join(tmp_path, f"{str(i)}.npy")
-        file_paths.append(file_path)
-        np.save(file_path, arr)
+
+        name = str(i)
+        file_paths.append(save_func(tmp_path, name, arr))
+
     all_arrays = np.vstack(all_arrays)
     return str(tmp_path), sizes, dim, all_arrays, file_paths
 
@@ -118,6 +145,21 @@ def test_read_embeddings(tmpdir):
     expected_array = np.vstack(expected_df["embedding"])
     batch_size = random.randint(min_size, max_size)
     it = read_embeddings(tmp_paths, file_format="parquet", batch_size=batch_size, embedding_column_name="embedding")
+    all_batches = list(it)
+    all_shapes = [x[0].shape for x in all_batches]
+    actual_array = np.vstack([x[0] for x in all_batches])
+
+    assert all(s[0] == batch_size and s[1] == 512 for s in all_shapes[:-1])
+    assert all_shapes[-1][0] <= batch_size and all_shapes[-1][1] == 512
+    np.testing.assert_almost_equal(actual_array, expected_array)
+
+    tmp_dir, sizes, dim, expected_array, tmp_paths = build_test_collection_numpy(
+        tmpdir, tmpdir_name='autofaiss_npz', min_size=min_size, max_size=max_size, dim=dim, nb_files=nb_files,
+        compressed=True
+    )
+
+    batch_size = random.randint(min_size, max_size)
+    it = read_embeddings(tmp_paths, file_format="npz", batch_size=batch_size)
     all_batches = list(it)
     all_shapes = [x[0].shape for x in all_batches]
     actual_array = np.vstack([x[0] for x in all_batches])
