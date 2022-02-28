@@ -123,7 +123,7 @@ class NumpyMatrixReader(AbstractMatrixReader):
 
 class CompressedNumpyMatrixReader(NumpyMatrixReader):
     def __init__(self, fs: fsspec.AbstractFileSystem, file_path: str, *_):
-        super(CompressedNumpyMatrixReader, self).__init__(fs, file_path, compression='zip')
+        super().__init__(fs, file_path, compression='zip')
 
 
 class ParquetEagerNdArray(AbstractArray):
