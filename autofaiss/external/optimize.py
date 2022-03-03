@@ -11,6 +11,7 @@ from typing import Callable, List, Optional, TypeVar, Dict, Union
 
 import faiss
 import fsspec
+from embedding_reader import EmbeddingReader
 
 from autofaiss.external.metadata import compute_memory_necessary_for_training_wrapper, IndexMetadata
 from autofaiss.external.scores import compute_fast_metrics
@@ -18,7 +19,7 @@ from autofaiss.indices.index_utils import (
     set_search_hyperparameters,
     speed_test_ms_per_query,
 )
-from autofaiss.readers.embeddings_iterators import make_path_absolute
+from autofaiss.utils.path import make_path_absolute
 from autofaiss.utils.algorithms import discrete_binary_search
 from autofaiss.utils.cast import cast_memory_to_bytes
 from autofaiss.utils.decorators import Timeit
@@ -423,9 +424,7 @@ def get_optimal_hyperparameters(
 
 
 def optimize_and_measure_index(
-    embedding_column_name: str,
-    embeddings_file_paths: List[str],
-    file_format: str,
+    embedding_reader: EmbeddingReader,
     index: faiss.Index,
     index_infos_path: Optional[str],
     index_key: str,
@@ -444,11 +443,7 @@ def optimize_and_measure_index(
     logger.info(f"The best hyperparameters are: {index_param}")
     metric_infos: Dict[str, Union[str, float, int]] = {"index_key": index_key, "index_param": index_param}
     with Timeit("Compute fast metrics", indent=1):
-        metric_infos.update(
-            compute_fast_metrics(
-                embeddings_file_paths, index, file_format=file_format, embedding_column_name=embedding_column_name
-            )
-        )
+        metric_infos.update(compute_fast_metrics(embedding_reader, index))
     if save_on_disk:
         with Timeit("Saving the index on local disk", indent=1):
             with fsspec.open(index_path, "wb").open() as f:
@@ -461,9 +456,7 @@ def optimize_and_measure_index(
 
 def optimize_and_measure_indices(
     indices_folder: str,
-    embedding_column_name: str,
-    embeddings_file_paths: List[str],
-    file_format: str,
+    embedding_reader: EmbeddingReader,
     index_infos_path: Optional[str],
     index_key: str,
     index_param: Optional[str],
@@ -500,9 +493,7 @@ def optimize_and_measure_indices(
                 cur_index_path = index_path + str(i + 1).zfill(suffix_width)
                 cur_index_infos_path = index_infos_path + str(i + 1)
                 metric_infos = optimize_and_measure_index(
-                    embedding_column_name,
-                    embeddings_file_paths,
-                    file_format,
+                    embedding_reader,
                     index,
                     cur_index_infos_path,
                     index_key,

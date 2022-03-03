@@ -10,6 +10,8 @@ import tempfile
 import uuid
 from typing import Any, Dict, List, Optional, Tuple, Union, cast
 
+from embedding_reader import EmbeddingReader
+
 import faiss
 import fire
 import fsspec
@@ -28,7 +30,7 @@ from autofaiss.external.optimize import (
 )
 from autofaiss.external.scores import compute_fast_metrics, compute_medium_metrics
 from autofaiss.indices.index_utils import set_search_hyperparameters
-from autofaiss.readers.embeddings_iterators import get_file_list, make_path_absolute, read_total_nb_vectors_and_dim
+from autofaiss.utils.path import make_path_absolute
 from autofaiss.utils.cast import cast_bytes_to_memory_string, cast_memory_to_bytes
 from autofaiss.utils.decorators import Timeit
 
@@ -196,15 +198,14 @@ def build_index(
 
     with Timeit("Launching the whole pipeline"):
         with Timeit("Reading total number of vectors and dimension"):
-            _, embeddings_file_paths = get_file_list(path=embeddings_path, file_format=file_format)
-            nb_vectors, vec_dim, file_counts = read_total_nb_vectors_and_dim(
-                embeddings_file_paths, file_format=file_format, embedding_column_name=embedding_column_name
+            embedding_reader = EmbeddingReader(
+                embeddings_path,
+                file_format=file_format,
+                embedding_column=embedding_column_name,
+                meta_columns=id_columns,
             )
-            embeddings_file_paths, file_counts = zip(  # type: ignore
-                *((fp, count) for fp, count in zip(embeddings_file_paths, file_counts) if count > 0)
-            )
-            embeddings_file_paths = list(embeddings_file_paths)
-            file_counts = list(file_counts)
+            nb_vectors = embedding_reader.count
+            vec_dim = embedding_reader.dimension
             logger.info(f"There are {nb_vectors} embeddings of dim {vec_dim}")
 
         with Timeit("Compute estimated construction time of the index", indent=1):
@@ -271,20 +272,15 @@ def build_index(
 
         with Timeit("Creating the index", indent=1):
             index, indices_folder = create_index(
-                embeddings_file_paths,
+                embedding_reader,
                 index_key,
                 metric_type,
-                nb_vectors,
                 current_memory_available,
                 use_gpu=use_gpu,
-                file_format=file_format,
-                embedding_column_name=embedding_column_name,
-                id_columns=id_columns,
                 embedding_ids_df_handler=write_ids_df_to_parquet if ids_path and id_columns else None,
                 make_direct_map=make_direct_map,
                 distributed=distributed,
                 temporary_indices_folder=temporary_indices_folder,
-                file_counts=file_counts if distributed is not None else None,
                 nb_indices_to_keep=nb_indices_to_keep,
             )
         if nb_indices_to_keep > 1:
@@ -298,9 +294,7 @@ def build_index(
             )
             index_path2_metric_infos = optimize_and_measure_indices(
                 indices_folder,
-                embedding_column_name,
-                embeddings_file_paths,
-                file_format,
+                embedding_reader,
                 index_infos_path,
                 index_key,
                 index_param,
@@ -319,9 +313,7 @@ def build_index(
 
         else:
             metric_infos = optimize_and_measure_index(
-                embedding_column_name,
-                embeddings_file_paths,
-                file_format,
+                embedding_reader,
                 index,
                 index_infos_path,
                 index_key,
@@ -453,10 +445,12 @@ def score_index(
     else:
         embeddings_path = embeddings
 
+    embedding_reader = EmbeddingReader(embeddings_path, file_format="npy")
+
     infos: Dict[str, Union[str, float, int]] = {}
 
     with Timeit("Compute fast metrics"):
-        infos.update(compute_fast_metrics(embeddings_path, index))
+        infos.update(compute_fast_metrics(embedding_reader, index))
 
     logger.info("Intermediate recap:")
     _log_output_dict(infos)
@@ -472,7 +466,7 @@ def score_index(
         return None
 
     with Timeit("Compute medium metrics"):
-        infos.update(compute_medium_metrics(embeddings_path, index, memory_left))
+        infos.update(compute_medium_metrics(embedding_reader, index, memory_left))
 
     logger.info("Performances recap:")
     _log_output_dict(infos)

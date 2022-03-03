@@ -6,3 +6,4 @@ pyarrow>=6.0.1,<8
 tqdm>=4.62.3,<5
 faiss-cpu>=1.7.2,<2
 fsspec>=2022.1.0
+embedding_reader>=1.1.0,<2

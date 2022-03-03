@@ -3,11 +3,12 @@
 import heapq
 from typing import List, Optional, Tuple
 
+from embedding_reader import EmbeddingReader
+
 import faiss
 import numpy as np
 from tqdm import trange
 
-from autofaiss.readers.embeddings_iterators import read_embeddings
 from autofaiss.indices.faiss_index_wrapper import FaissIndexWrapper
 
 
@@ -36,7 +37,7 @@ class MemEfficientFlatIndex(FaissIndexWrapper):
 
         self.dim = d
         self.prod_emb = np.zeros((0, self.dim))
-        self.prod_emb_path: Optional[str] = None
+        self.embedding_reader: Optional[EmbeddingReader] = None
 
     def delete_vectors(self):
         """delete the vectors of the index"""
@@ -67,9 +68,9 @@ class MemEfficientFlatIndex(FaissIndexWrapper):
         else:
             raise NotImplementedError("You can add vectors only once, delete them first")
 
-    def add_files(self, local_path: str):
-        if self.prod_emb_path is None:
-            self.prod_emb_path = local_path
+    def add_files(self, embedding_reader: EmbeddingReader):
+        if self.embedding_reader is None:
+            self.embedding_reader = embedding_reader
         else:
             raise NotImplementedError("You can add vectors only once, delete them first with delete_vectors")
 
@@ -229,9 +230,9 @@ class MemEfficientFlatIndex(FaissIndexWrapper):
 
         return D, I
 
-    def search_files(self, x: np.ndarray, k: int, batch_size: Optional[int] = None):
+    def search_files(self, x: np.ndarray, k: int, batch_size: int):
 
-        if self.prod_emb_path is None:
+        if self.embedding_reader is None:
             raise ValueError("The index is empty")
 
         # Cast in the right format for Faiss
@@ -248,7 +249,7 @@ class MemEfficientFlatIndex(FaissIndexWrapper):
         offset = 0
 
         # For each batch
-        for emb_array, _ in read_embeddings(self.prod_emb_path, batch_size, verbose=True):
+        for emb_array, _ in self.embedding_reader(batch_size):
             # for i in trange(0, self.prod_emb.shape[0], batch_size):
 
             # instanciate a Flat index
