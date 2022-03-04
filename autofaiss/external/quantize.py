@@ -289,11 +289,14 @@ def build_index(
             )
         if nb_indices_to_keep > 1:
             indices_folder = cast(str, indices_folder)
-            max_nb_threads = max(
-                1,
-                math.floor(
-                    cast_memory_to_bytes(current_memory_available)
-                    / (cast_memory_to_bytes(max_index_memory_usage) / nb_indices_to_keep)
+            max_nb_threads = min(
+                multiprocessing.cpu_count(),
+                max(
+                    1,
+                    math.floor(
+                        cast_memory_to_bytes(current_memory_available)
+                        / (cast_memory_to_bytes(max_index_memory_usage) / nb_indices_to_keep)
+                    ),
                 ),
             )
             index_path2_metric_infos = optimize_and_measure_indices(
