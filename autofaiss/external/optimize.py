@@ -3,7 +3,6 @@ import json
 import logging
 import math
 import re
-import tempfile
 from functools import partial, reduce
 from math import floor, log2, sqrt
 from operator import mul
@@ -17,8 +16,8 @@ from autofaiss.external.scores import compute_fast_metrics
 from autofaiss.indices.index_utils import (
     set_search_hyperparameters,
     speed_test_ms_per_query,
-    download_one,
 )
+from autofaiss.readers.embeddings_iterators import make_path_absolute
 from autofaiss.utils.algorithms import discrete_binary_search
 from autofaiss.utils.cast import cast_memory_to_bytes
 from autofaiss.utils.decorators import Timeit
@@ -473,18 +472,22 @@ def optimize_and_measure_indices(
     use_gpu: bool,
 ):
     """Optimize a list of indices by selecting the best hyperparameters and calculate their metrics"""
-    fs, _ = fsspec.core.url_to_fs(indices_folder)
+    if index_path is None:
+        index_path = "knn.index"
+    if index_infos_path is None:
+        index_infos_path = "index_infos.json"
+    indices_folder = make_path_absolute(indices_folder)
+    fs, path_in_fs = fsspec.core.url_to_fs(indices_folder)
+    # Need prefix because fsspec.ls does not keep prefix for some file systems
+    prefix = indices_folder[: indices_folder.index(path_in_fs)]
     indices_file_paths = fs.ls(indices_folder, detail=False)
     index_path2_metric_infos: Dict[str, Dict] = {}
     suffix_width = int(math.log10(len(indices_file_paths))) + 1
     for i, index_file_path in enumerate(sorted(indices_file_paths), 1):
-        with tempfile.NamedTemporaryFile() as local_index_file:
-            local_index_filename = local_index_file.name
-            download_one(src_dst_path=(index_file_path, local_index_filename), fs=fs)
-            index = faiss.read_index(local_index_filename)
-            if save_on_disk and index_path and index_infos_path:
-                cur_index_path = index_path + str(i).zfill(suffix_width)
-                cur_index_infos_path = index_infos_path + str(i)
+        with fsspec.open(prefix + f"/{index_file_path}", "r").open() as f:
+            index = faiss.read_index(faiss.PyCallbackIOReader(f.read))
+            cur_index_path = index_path + str(i).zfill(suffix_width)
+            cur_index_infos_path = index_infos_path + str(i)
             metric_infos = optimize_and_measure_index(
                 embedding_column_name,
                 embeddings_file_paths,

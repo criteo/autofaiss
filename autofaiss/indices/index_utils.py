@@ -143,20 +143,20 @@ def get_bytes_from_index(index: faiss.Index) -> bytearray:
         return bytearray(b)
 
 
-def download_one(src_dst_path: Tuple[str, str], fs: fsspec.AbstractFileSystem):
-    src_path, dst_path = src_dst_path
-    fs.get(src_path, dst_path)
-
-
 def parallel_download_indices_from_remote(
     fs: fsspec.AbstractFileSystem, indices_file_paths: List[str], dst_folder: str
 ):
     """Download small indices in parallel."""
+
+    def _download_one(src_dst_path: Tuple[str, str], fs: fsspec.AbstractFileSystem):
+        src_path, dst_path = src_dst_path
+        fs.get(src_path, dst_path)
+
     if len(indices_file_paths) == 0:
         return
     os.makedirs(dst_folder, exist_ok=True)
     dst_paths = [os.path.join(dst_folder, os.path.split(p)[-1]) for p in indices_file_paths]
     src_dest_paths = zip(indices_file_paths, dst_paths)
     with ThreadPool(min(16, len(indices_file_paths))) as pool:
-        for _ in pool.imap_unordered(partial(download_one, fs=fs), src_dest_paths):
+        for _ in pool.imap_unordered(partial(_download_one, fs=fs), src_dest_paths):
             pass

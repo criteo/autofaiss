@@ -163,9 +163,13 @@ def build_index(
     if nb_indices_to_keep < 1:
         logger.error("Please specify nb_indices_to_keep an integer value larger or equal to 1")
         return None, None
-    elif nb_indices_to_keep > 1 and distributed is None:
-        logger.error('nb_indices_to_keep can only be larger than 1 when distributed is "pyspark"')
-        return None, None
+    elif nb_indices_to_keep > 1:
+        if distributed is None:
+            logger.error('nb_indices_to_keep can only be larger than 1 when distributed is "pyspark"')
+            return None, None
+        if not save_on_disk:
+            logger.error("Please set save_on_disk to True when nb_indices_to_keep is larger than 1")
+            return None, None
     current_bytes = cast_memory_to_bytes(current_memory_available)
     max_index_bytes = cast_memory_to_bytes(max_index_memory_usage)
     memory_left = current_bytes - max_index_bytes
