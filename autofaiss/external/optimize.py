@@ -2,7 +2,6 @@
 import json
 import logging
 import math
-import os
 import re
 import tempfile
 from functools import partial, reduce
@@ -18,7 +17,7 @@ from autofaiss.external.scores import compute_fast_metrics
 from autofaiss.indices.index_utils import (
     set_search_hyperparameters,
     speed_test_ms_per_query,
-    parallel_download_indices_from_remote,
+    download_one,
 )
 from autofaiss.utils.algorithms import discrete_binary_search
 from autofaiss.utils.cast import cast_memory_to_bytes
@@ -478,13 +477,11 @@ def optimize_and_measure_indices(
     indices_file_paths = fs.ls(indices_folder, detail=False)
     index_path2_metric_infos: Dict[str, Dict] = {}
     suffix_width = int(math.log10(len(indices_file_paths))) + 1
-    with tempfile.TemporaryDirectory() as local_indices_folder:
-        parallel_download_indices_from_remote(
-            fs=fs, indices_file_paths=indices_file_paths, dst_folder=local_indices_folder
-        )
-        for i, tmp_filename in enumerate(sorted(os.listdir(local_indices_folder)), 1):
-            index_filepath = os.path.join(local_indices_folder, tmp_filename)
-            index = faiss.read_index(index_filepath)
+    for i, index_file_path in enumerate(sorted(indices_file_paths), 1):
+        with tempfile.NamedTemporaryFile() as local_index_file:
+            local_index_filename = local_index_file.name
+            download_one(src_dst_path=(index_file_path, local_index_filename), fs=fs)
+            index = faiss.read_index(local_index_filename)
             if save_on_disk and index_path and index_infos_path:
                 cur_index_path = index_path + str(i).zfill(suffix_width)
                 cur_index_infos_path = index_infos_path + str(i)
