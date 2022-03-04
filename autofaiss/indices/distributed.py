@@ -14,6 +14,7 @@ import pandas as pd
 from embedding_reader import EmbeddingReader
 from tqdm import tqdm
 
+from autofaiss.external.optimize import get_optimal_batch_size
 from autofaiss.indices.index_utils import (
     get_index_from_bytes,
     get_bytes_from_index,
@@ -45,6 +46,7 @@ def _add_index(
     start: int,
     end: int,
     broadcast_trained_index_bytes,
+    memory_available_for_adding: str,
     embedding_reader: EmbeddingReader,
     batch_id: int,
     small_indices_folder: str,
@@ -63,6 +65,8 @@ def _add_index(
         End position of this batch
     broadcast_trained_index_bytes: pyspark.Broadcast
         Trained yet empty index
+    memory_available_for_adding: str
+        Memory available for adding embeddings
     embedding_reader: EmbeddingReader
         Embedding reader
     batch_id: int
@@ -74,14 +78,6 @@ def _add_index(
     embedding_ids_df_handler: Optional[Callable[[pd.DataFrame, int], Any]]
         The function that handles the embeddings Ids when id_columns is given
     """
-    if end > embedding_reader.count:
-        end = embedding_reader.count
-
-    embeddings_to_add, batch_ids_gen = next(embedding_reader(batch_size=end - start, start=start, end=end))
-
-    if embedding_ids_df_handler is not None:
-        embedding_ids_df_handler(batch_ids_gen, batch_id)
-
     if num_cores is None:
         num_cores = multiprocessing.cpu_count()
 
@@ -90,9 +86,16 @@ def _add_index(
     # load empty trained index
     empty_index = get_index_from_bytes(broadcast_trained_index_bytes.value)
 
-    empty_index.add(embeddings_to_add)
+    batch_size = get_optimal_batch_size(embedding_reader.dimension, memory_available_for_adding)
 
-    del embeddings_to_add
+    ids_total = []
+    for (vec_batch, ids_batch) in embedding_reader(batch_size=batch_size, start=start, end=end):
+        empty_index.add(vec_batch)
+        if embedding_ids_df_handler:
+            ids_total.append(ids_batch)
+
+    if embedding_ids_df_handler:
+        embedding_ids_df_handler(pd.concat(ids_total), batch_id)
 
     _save_small_index(
         index=empty_index, small_indices_folder=small_indices_folder, batch_id=batch_id, nb_batches=nb_batches
@@ -226,7 +229,7 @@ def _merge_to_n_indices(spark_session, n: int, src_folder: str):
 def run(
     faiss_index: faiss.Index,
     embedding_reader: EmbeddingReader,
-    batch_size: int,
+    memory_available_for_adding: str,
     num_cores_per_executor: Optional[int] = None,
     temporary_indices_folder="hdfs://root/tmp/distributed_autofaiss_indices",
     embedding_ids_df_handler: Optional[Callable[[pd.DataFrame, int], Any]] = None,
@@ -241,8 +244,8 @@ def run(
         Trained faiss index
     embedding_reader: EmbeddingReader
         Embedding reader.
-    batch_size: int
-        Number of vectors handled per worker
+    memory_available_for_adding: str
+        Memory available for adding embeddings.
     num_cores_per_executor: int
         Number of CPU cores per executor
     temporary_indices_folder: str
@@ -261,8 +264,14 @@ def run(
     # broadcast the index bytes
     trained_index_bytes = get_bytes_from_index(faiss_index)
     broadcast_trained_index_bytes = ss.sparkContext.broadcast(trained_index_bytes)
-    nb_vectors = embedding_reader.count
-    nb_batches = math.ceil(nb_vectors / batch_size)  # use math.ceil to make sure that we cover every vector
+    sc = ss._jsc.sc()  # pylint: disable=protected-access
+    n_workers = len(sc.statusTracker().getExecutorInfos()) - 1
+
+    # maximum between the number of spark workers, 100M embeddings per task and the number of indices to keep
+    estimated_nb_batches = max(n_workers, int(embedding_reader.count / (10 ** 7)), nb_indices_to_keep)
+    batch_size = math.ceil(embedding_reader.count / estimated_nb_batches)
+    nb_batches = math.ceil(embedding_reader.count / batch_size)
+
     batches = _batch_loader(batch_size=batch_size, nb_batches=nb_batches)
     rdd = ss.sparkContext.parallelize(batches, nb_batches)
     with Timeit("-> Adding indices", indent=2):
@@ -271,6 +280,7 @@ def run(
                 batch_id=x[0],
                 start=x[1],
                 end=x[2],
+                memory_available_for_adding=memory_available_for_adding,
                 broadcast_trained_index_bytes=broadcast_trained_index_bytes,
                 embedding_reader=embedding_reader,
                 small_indices_folder=temporary_indices_folder,
