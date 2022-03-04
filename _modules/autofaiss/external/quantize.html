@@ -87,6 +87,7 @@
 <span class="kn">import</span> <span class="nn">json</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">logging.config</span>
+<span class="kn">import</span> <span class="nn">math</span>
 <span class="kn">import</span> <span class="nn">multiprocessing</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">tempfile</span>
@@ -247,9 +248,13 @@
     <span class="k">if</span> <span class="n">nb_indices_to_keep</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Please specify nb_indices_to_keep an integer value larger or equal to 1&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
-    <span class="k">elif</span> <span class="n">nb_indices_to_keep</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">distributed</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;nb_indices_to_keep can only be larger than 1 when distributed is &quot;pyspark&quot;&#39;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+    <span class="k">elif</span> <span class="n">nb_indices_to_keep</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">distributed</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;nb_indices_to_keep can only be larger than 1 when distributed is &quot;pyspark&quot;&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">save_on_disk</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Please set save_on_disk to True when nb_indices_to_keep is larger than 1&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
     <span class="n">current_bytes</span> <span class="o">=</span> <span class="n">cast_memory_to_bytes</span><span class="p">(</span><span class="n">current_memory_available</span><span class="p">)</span>
     <span class="n">max_index_bytes</span> <span class="o">=</span> <span class="n">cast_memory_to_bytes</span><span class="p">(</span><span class="n">max_index_memory_usage</span><span class="p">)</span>
     <span class="n">memory_left</span> <span class="o">=</span> <span class="n">current_bytes</span> <span class="o">-</span> <span class="n">max_index_bytes</span>
@@ -368,6 +373,13 @@
             <span class="p">)</span>
         <span class="k">if</span> <span class="n">nb_indices_to_keep</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
             <span class="n">indices_folder</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">indices_folder</span><span class="p">)</span>
+            <span class="n">max_nb_threads</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span>
+                <span class="mi">1</span><span class="p">,</span>
+                <span class="n">math</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span>
+                    <span class="n">cast_memory_to_bytes</span><span class="p">(</span><span class="n">current_memory_available</span><span class="p">)</span>
+                    <span class="o">/</span> <span class="p">(</span><span class="n">cast_memory_to_bytes</span><span class="p">(</span><span class="n">max_index_memory_usage</span><span class="p">)</span> <span class="o">/</span> <span class="n">nb_indices_to_keep</span><span class="p">)</span>
+                <span class="p">),</span>
+            <span class="p">)</span>
             <span class="n">index_path2_metric_infos</span> <span class="o">=</span> <span class="n">optimize_and_measure_indices</span><span class="p">(</span>
                 <span class="n">indices_folder</span><span class="p">,</span>
                 <span class="n">embedding_column_name</span><span class="p">,</span>
@@ -380,6 +392,7 @@
                 <span class="n">max_index_query_time_ms</span><span class="p">,</span>
                 <span class="n">save_on_disk</span><span class="p">,</span>
                 <span class="n">use_gpu</span><span class="p">,</span>
+                <span class="n">max_nb_threads</span><span class="p">,</span>
             <span class="p">)</span>
             <span class="k">for</span> <span class="n">path</span><span class="p">,</span> <span class="n">metric_infos</span> <span class="ow">in</span> <span class="n">index_path2_metric_infos</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Recap for index: </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -453,7 +466,7 @@
 
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">index_path</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
         <span class="n">index_path</span> <span class="o">=</span> <span class="n">make_path_absolute</span><span class="p">(</span><span class="n">index_path</span><span class="p">)</span>
-        <span class="k">with</span> <span class="n">fsspec</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">index_path</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">open</span><span class="p">()</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">fsspec</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">index_path</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">open</span><span class="p">()</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="n">index</span> <span class="o">=</span> <span class="n">faiss</span><span class="o">.</span><span class="n">read_index</span><span class="p">(</span><span class="n">faiss</span><span class="o">.</span><span class="n">PyCallbackIOReader</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">))</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">index</span> <span class="o">=</span> <span class="n">index_path</span>
@@ -506,7 +519,7 @@
 
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">index_path</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
         <span class="n">index_path</span> <span class="o">=</span> <span class="n">make_path_absolute</span><span class="p">(</span><span class="n">index_path</span><span class="p">)</span>
-        <span class="k">with</span> <span class="n">fsspec</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">index_path</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">open</span><span class="p">()</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">fsspec</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">index_path</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">open</span><span class="p">()</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="n">index</span> <span class="o">=</span> <span class="n">faiss</span><span class="o">.</span><span class="n">read_index</span><span class="p">(</span><span class="n">faiss</span><span class="o">.</span><span class="n">PyCallbackIOReader</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">))</span>
         <span class="n">fs</span><span class="p">,</span> <span class="n">path_in_fs</span> <span class="o">=</span> <span class="n">fsspec</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">url_to_fs</span><span class="p">(</span><span class="n">index_path</span><span class="p">)</span>
         <span class="n">index_memory</span> <span class="o">=</span> <span class="n">fs</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">path_in_fs</span><span class="p">)</span>
