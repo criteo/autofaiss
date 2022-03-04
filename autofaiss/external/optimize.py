@@ -484,7 +484,7 @@ def optimize_and_measure_indices(
     index_path2_metric_infos: Dict[str, Dict] = {}
     suffix_width = int(math.log10(len(indices_file_paths))) + 1
     for i, index_file_path in enumerate(sorted(indices_file_paths), 1):
-        with fsspec.open(prefix + f"/{index_file_path}", "r").open() as f:
+        with fsspec.open(prefix + f"/{index_file_path}", "br").open() as f:
             index = faiss.read_index(faiss.PyCallbackIOReader(f.read))
             cur_index_path = index_path + str(i).zfill(suffix_width)
             cur_index_infos_path = index_infos_path + str(i)

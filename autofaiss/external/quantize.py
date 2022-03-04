@@ -373,7 +373,7 @@ def tune_index(
 
     if isinstance(index_path, str):
         index_path = make_path_absolute(index_path)
-        with fsspec.open(index_path, "r").open() as f:
+        with fsspec.open(index_path, "rb").open() as f:
             index = faiss.read_index(faiss.PyCallbackIOReader(f.read))
     else:
         index = index_path
@@ -426,7 +426,7 @@ def score_index(
 
     if isinstance(index_path, str):
         index_path = make_path_absolute(index_path)
-        with fsspec.open(index_path, "r").open() as f:
+        with fsspec.open(index_path, "rb").open() as f:
             index = faiss.read_index(faiss.PyCallbackIOReader(f.read))
         fs, path_in_fs = fsspec.core.url_to_fs(index_path)
         index_memory = fs.size(path_in_fs)
