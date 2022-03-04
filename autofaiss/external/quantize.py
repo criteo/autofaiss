@@ -3,6 +3,7 @@
 import json
 import logging
 import logging.config
+import math
 import multiprocessing
 import os
 import tempfile
@@ -288,6 +289,13 @@ def build_index(
             )
         if nb_indices_to_keep > 1:
             indices_folder = cast(str, indices_folder)
+            max_nb_threads = max(
+                1,
+                math.floor(
+                    cast_memory_to_bytes(current_memory_available)
+                    / (cast_memory_to_bytes(max_index_memory_usage) / nb_indices_to_keep)
+                ),
+            )
             index_path2_metric_infos = optimize_and_measure_indices(
                 indices_folder,
                 embedding_column_name,
@@ -300,6 +308,7 @@ def build_index(
                 max_index_query_time_ms,
                 save_on_disk,
                 use_gpu,
+                max_nb_threads,
             )
             for path, metric_infos in index_path2_metric_infos.items():
                 logger.info(f"Recap for index: {path}")
