@@ -2,11 +2,10 @@
 import json
 import logging
 import math
-import os
 import re
-import tempfile
 from functools import partial, reduce
 from math import floor, log2, sqrt
+from multiprocessing.pool import ThreadPool
 from operator import mul
 from typing import Callable, List, Optional, TypeVar, Dict, Union
 
@@ -18,8 +17,8 @@ from autofaiss.external.scores import compute_fast_metrics
 from autofaiss.indices.index_utils import (
     set_search_hyperparameters,
     speed_test_ms_per_query,
-    parallel_download_indices_from_remote,
 )
+from autofaiss.readers.embeddings_iterators import make_path_absolute
 from autofaiss.utils.algorithms import discrete_binary_search
 from autofaiss.utils.cast import cast_memory_to_bytes
 from autofaiss.utils.decorators import Timeit
@@ -472,34 +471,46 @@ def optimize_and_measure_indices(
     max_index_query_time_ms: float,
     save_on_disk: bool,
     use_gpu: bool,
+    max_nb_threads: int,
 ):
     """Optimize a list of indices by selecting the best hyperparameters and calculate their metrics"""
-    fs, _ = fsspec.core.url_to_fs(indices_folder)
+    if index_path is None:
+        raise ValueError("index_path is None")
+    if index_infos_path is None:
+        raise ValueError("index_infos_path is None")
+
+    indices_folder = make_path_absolute(indices_folder)
+    fs, path_in_fs = fsspec.core.url_to_fs(indices_folder)
+    # Need prefix because fsspec.ls does not keep prefix for some file systems
+    prefix = indices_folder[: indices_folder.index(path_in_fs)]
     indices_file_paths = fs.ls(indices_folder, detail=False)
-    index_path2_metric_infos: Dict[str, Dict] = {}
     suffix_width = int(math.log10(len(indices_file_paths))) + 1
-    with tempfile.TemporaryDirectory() as local_indices_folder:
-        parallel_download_indices_from_remote(
-            fs=fs, indices_file_paths=indices_file_paths, dst_folder=local_indices_folder
-        )
-        for i, tmp_filename in enumerate(sorted(os.listdir(local_indices_folder)), 1):
-            index_filepath = os.path.join(local_indices_folder, tmp_filename)
-            index = faiss.read_index(index_filepath)
-            if save_on_disk and index_path and index_infos_path:
-                cur_index_path = index_path + str(i).zfill(suffix_width)
-                cur_index_infos_path = index_infos_path + str(i)
-            metric_infos = optimize_and_measure_index(
-                embedding_column_name,
-                embeddings_file_paths,
-                file_format,
-                index,
-                cur_index_infos_path,
-                index_key,
-                index_param,
-                cur_index_path,
-                max_index_query_time_ms,
-                save_on_disk,
-                use_gpu,
-            )
-            index_path2_metric_infos[cur_index_path] = metric_infos
+    indices_file_paths = [
+        prefix.rstrip("/") + "/" + index_file_path.lstrip("/") for index_file_path in sorted(indices_file_paths)
+    ]
+
+    def _read_one_index(index_file_path: str):
+        with fsspec.open(index_file_path, "rb").open() as f:
+            return faiss.read_index(faiss.PyCallbackIOReader(f.read))
+
+    index_path2_metric_infos: Dict[str, Dict] = {}
+    for i in range(0, len(indices_file_paths), max_nb_threads):
+        with ThreadPool(min(16, max_nb_threads, len(indices_file_paths))) as pool:
+            for index in pool.imap(_read_one_index, indices_file_paths[i : i + max_nb_threads]):
+                cur_index_path = index_path + str(i + 1).zfill(suffix_width)
+                cur_index_infos_path = index_infos_path + str(i + 1)
+                metric_infos = optimize_and_measure_index(
+                    embedding_column_name,
+                    embeddings_file_paths,
+                    file_format,
+                    index,
+                    cur_index_infos_path,
+                    index_key,
+                    index_param,
+                    cur_index_path,
+                    max_index_query_time_ms,
+                    save_on_disk,
+                    use_gpu,
+                )
+                index_path2_metric_infos[cur_index_path] = metric_infos
     return index_path2_metric_infos

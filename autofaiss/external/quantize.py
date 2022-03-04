@@ -3,6 +3,7 @@
 import json
 import logging
 import logging.config
+import math
 import multiprocessing
 import os
 import tempfile
@@ -163,9 +164,13 @@ def build_index(
     if nb_indices_to_keep < 1:
         logger.error("Please specify nb_indices_to_keep an integer value larger or equal to 1")
         return None, None
-    elif nb_indices_to_keep > 1 and distributed is None:
-        logger.error('nb_indices_to_keep can only be larger than 1 when distributed is "pyspark"')
-        return None, None
+    elif nb_indices_to_keep > 1:
+        if distributed is None:
+            logger.error('nb_indices_to_keep can only be larger than 1 when distributed is "pyspark"')
+            return None, None
+        if not save_on_disk:
+            logger.error("Please set save_on_disk to True when nb_indices_to_keep is larger than 1")
+            return None, None
     current_bytes = cast_memory_to_bytes(current_memory_available)
     max_index_bytes = cast_memory_to_bytes(max_index_memory_usage)
     memory_left = current_bytes - max_index_bytes
@@ -284,6 +289,13 @@ def build_index(
             )
         if nb_indices_to_keep > 1:
             indices_folder = cast(str, indices_folder)
+            max_nb_threads = max(
+                1,
+                math.floor(
+                    cast_memory_to_bytes(current_memory_available)
+                    / (cast_memory_to_bytes(max_index_memory_usage) / nb_indices_to_keep)
+                ),
+            )
             index_path2_metric_infos = optimize_and_measure_indices(
                 indices_folder,
                 embedding_column_name,
@@ -296,6 +308,7 @@ def build_index(
                 max_index_query_time_ms,
                 save_on_disk,
                 use_gpu,
+                max_nb_threads,
             )
             for path, metric_infos in index_path2_metric_infos.items():
                 logger.info(f"Recap for index: {path}")
@@ -369,7 +382,7 @@ def tune_index(
 
     if isinstance(index_path, str):
         index_path = make_path_absolute(index_path)
-        with fsspec.open(index_path, "r").open() as f:
+        with fsspec.open(index_path, "rb").open() as f:
             index = faiss.read_index(faiss.PyCallbackIOReader(f.read))
     else:
         index = index_path
@@ -422,7 +435,7 @@ def score_index(
 
     if isinstance(index_path, str):
         index_path = make_path_absolute(index_path)
-        with fsspec.open(index_path, "r").open() as f:
+        with fsspec.open(index_path, "rb").open() as f:
             index = faiss.read_index(faiss.PyCallbackIOReader(f.read))
         fs, path_in_fs = fsspec.core.url_to_fs(index_path)
         index_memory = fs.size(path_in_fs)
