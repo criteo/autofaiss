@@ -373,11 +373,14 @@
             <span class="p">)</span>
         <span class="k">if</span> <span class="n">nb_indices_to_keep</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
             <span class="n">indices_folder</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">indices_folder</span><span class="p">)</span>
-            <span class="n">max_nb_threads</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span>
-                <span class="mi">1</span><span class="p">,</span>
-                <span class="n">math</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span>
-                    <span class="n">cast_memory_to_bytes</span><span class="p">(</span><span class="n">current_memory_available</span><span class="p">)</span>
-                    <span class="o">/</span> <span class="p">(</span><span class="n">cast_memory_to_bytes</span><span class="p">(</span><span class="n">max_index_memory_usage</span><span class="p">)</span> <span class="o">/</span> <span class="n">nb_indices_to_keep</span><span class="p">)</span>
+            <span class="n">max_nb_threads</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span>
+                <span class="n">multiprocessing</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">(),</span>
+                <span class="nb">max</span><span class="p">(</span>
+                    <span class="mi">1</span><span class="p">,</span>
+                    <span class="n">math</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span>
+                        <span class="n">cast_memory_to_bytes</span><span class="p">(</span><span class="n">current_memory_available</span><span class="p">)</span>
+                        <span class="o">/</span> <span class="p">(</span><span class="n">cast_memory_to_bytes</span><span class="p">(</span><span class="n">max_index_memory_usage</span><span class="p">)</span> <span class="o">/</span> <span class="n">nb_indices_to_keep</span><span class="p">)</span>
+                    <span class="p">),</span>
                 <span class="p">),</span>
             <span class="p">)</span>
             <span class="n">index_path2_metric_infos</span> <span class="o">=</span> <span class="n">optimize_and_measure_indices</span><span class="p">(</span>
