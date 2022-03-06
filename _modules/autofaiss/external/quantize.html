@@ -94,6 +94,8 @@
 <span class="kn">import</span> <span class="nn">uuid</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">cast</span>
 
+<span class="kn">from</span> <span class="nn">embedding_reader</span> <span class="kn">import</span> <span class="n">EmbeddingReader</span>
+
 <span class="kn">import</span> <span class="nn">faiss</span>
 <span class="kn">import</span> <span class="nn">fire</span>
 <span class="kn">import</span> <span class="nn">fsspec</span>
@@ -112,7 +114,7 @@
 <span class="p">)</span>
 <span class="kn">from</span> <span class="nn">autofaiss.external.scores</span> <span class="kn">import</span> <span class="n">compute_fast_metrics</span><span class="p">,</span> <span class="n">compute_medium_metrics</span>
 <span class="kn">from</span> <span class="nn">autofaiss.indices.index_utils</span> <span class="kn">import</span> <span class="n">set_search_hyperparameters</span>
-<span class="kn">from</span> <span class="nn">autofaiss.readers.embeddings_iterators</span> <span class="kn">import</span> <span class="n">get_file_list</span><span class="p">,</span> <span class="n">make_path_absolute</span><span class="p">,</span> <span class="n">read_total_nb_vectors_and_dim</span>
+<span class="kn">from</span> <span class="nn">autofaiss.utils.path</span> <span class="kn">import</span> <span class="n">make_path_absolute</span>
 <span class="kn">from</span> <span class="nn">autofaiss.utils.cast</span> <span class="kn">import</span> <span class="n">cast_bytes_to_memory_string</span><span class="p">,</span> <span class="n">cast_memory_to_bytes</span>
 <span class="kn">from</span> <span class="nn">autofaiss.utils.decorators</span> <span class="kn">import</span> <span class="n">Timeit</span>
 
@@ -280,15 +282,14 @@
 
     <span class="k">with</span> <span class="n">Timeit</span><span class="p">(</span><span class="s2">&quot;Launching the whole pipeline&quot;</span><span class="p">):</span>
         <span class="k">with</span> <span class="n">Timeit</span><span class="p">(</span><span class="s2">&quot;Reading total number of vectors and dimension&quot;</span><span class="p">):</span>
-            <span class="n">_</span><span class="p">,</span> <span class="n">embeddings_file_paths</span> <span class="o">=</span> <span class="n">get_file_list</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">embeddings_path</span><span class="p">,</span> <span class="n">file_format</span><span class="o">=</span><span class="n">file_format</span><span class="p">)</span>
-            <span class="n">nb_vectors</span><span class="p">,</span> <span class="n">vec_dim</span><span class="p">,</span> <span class="n">file_counts</span> <span class="o">=</span> <span class="n">read_total_nb_vectors_and_dim</span><span class="p">(</span>
-                <span class="n">embeddings_file_paths</span><span class="p">,</span> <span class="n">file_format</span><span class="o">=</span><span class="n">file_format</span><span class="p">,</span> <span class="n">embedding_column_name</span><span class="o">=</span><span class="n">embedding_column_name</span>
+            <span class="n">embedding_reader</span> <span class="o">=</span> <span class="n">EmbeddingReader</span><span class="p">(</span>
+                <span class="n">embeddings_path</span><span class="p">,</span>
+                <span class="n">file_format</span><span class="o">=</span><span class="n">file_format</span><span class="p">,</span>
+                <span class="n">embedding_column</span><span class="o">=</span><span class="n">embedding_column_name</span><span class="p">,</span>
+                <span class="n">meta_columns</span><span class="o">=</span><span class="n">id_columns</span><span class="p">,</span>
             <span class="p">)</span>
-            <span class="n">embeddings_file_paths</span><span class="p">,</span> <span class="n">file_counts</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span>  <span class="c1"># type: ignore</span>
-                <span class="o">*</span><span class="p">((</span><span class="n">fp</span><span class="p">,</span> <span class="n">count</span><span class="p">)</span> <span class="k">for</span> <span class="n">fp</span><span class="p">,</span> <span class="n">count</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">embeddings_file_paths</span><span class="p">,</span> <span class="n">file_counts</span><span class="p">)</span> <span class="k">if</span> <span class="n">count</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
-            <span class="p">)</span>
-            <span class="n">embeddings_file_paths</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">embeddings_file_paths</span><span class="p">)</span>
-            <span class="n">file_counts</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">file_counts</span><span class="p">)</span>
+            <span class="n">nb_vectors</span> <span class="o">=</span> <span class="n">embedding_reader</span><span class="o">.</span><span class="n">count</span>
+            <span class="n">vec_dim</span> <span class="o">=</span> <span class="n">embedding_reader</span><span class="o">.</span><span class="n">dimension</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;There are </span><span class="si">{</span><span class="n">nb_vectors</span><span class="si">}</span><span class="s2"> embeddings of dim </span><span class="si">{</span><span class="n">vec_dim</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
         <span class="k">with</span> <span class="n">Timeit</span><span class="p">(</span><span class="s2">&quot;Compute estimated construction time of the index&quot;</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
@@ -355,20 +356,15 @@
 
         <span class="k">with</span> <span class="n">Timeit</span><span class="p">(</span><span class="s2">&quot;Creating the index&quot;</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
             <span class="n">index</span><span class="p">,</span> <span class="n">indices_folder</span> <span class="o">=</span> <span class="n">create_index</span><span class="p">(</span>
-                <span class="n">embeddings_file_paths</span><span class="p">,</span>
+                <span class="n">embedding_reader</span><span class="p">,</span>
                 <span class="n">index_key</span><span class="p">,</span>
                 <span class="n">metric_type</span><span class="p">,</span>
-                <span class="n">nb_vectors</span><span class="p">,</span>
                 <span class="n">current_memory_available</span><span class="p">,</span>
                 <span class="n">use_gpu</span><span class="o">=</span><span class="n">use_gpu</span><span class="p">,</span>
-                <span class="n">file_format</span><span class="o">=</span><span class="n">file_format</span><span class="p">,</span>
-                <span class="n">embedding_column_name</span><span class="o">=</span><span class="n">embedding_column_name</span><span class="p">,</span>
-                <span class="n">id_columns</span><span class="o">=</span><span class="n">id_columns</span><span class="p">,</span>
                 <span class="n">embedding_ids_df_handler</span><span class="o">=</span><span class="n">write_ids_df_to_parquet</span> <span class="k">if</span> <span class="n">ids_path</span> <span class="ow">and</span> <span class="n">id_columns</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
                 <span class="n">make_direct_map</span><span class="o">=</span><span class="n">make_direct_map</span><span class="p">,</span>
                 <span class="n">distributed</span><span class="o">=</span><span class="n">distributed</span><span class="p">,</span>
                 <span class="n">temporary_indices_folder</span><span class="o">=</span><span class="n">temporary_indices_folder</span><span class="p">,</span>
-                <span class="n">file_counts</span><span class="o">=</span><span class="n">file_counts</span> <span class="k">if</span> <span class="n">distributed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
                 <span class="n">nb_indices_to_keep</span><span class="o">=</span><span class="n">nb_indices_to_keep</span><span class="p">,</span>
             <span class="p">)</span>
         <span class="k">if</span> <span class="n">nb_indices_to_keep</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
@@ -385,9 +381,7 @@
             <span class="p">)</span>
             <span class="n">index_path2_metric_infos</span> <span class="o">=</span> <span class="n">optimize_and_measure_indices</span><span class="p">(</span>
                 <span class="n">indices_folder</span><span class="p">,</span>
-                <span class="n">embedding_column_name</span><span class="p">,</span>
-                <span class="n">embeddings_file_paths</span><span class="p">,</span>
-                <span class="n">file_format</span><span class="p">,</span>
+                <span class="n">embedding_reader</span><span class="p">,</span>
                 <span class="n">index_infos_path</span><span class="p">,</span>
                 <span class="n">index_key</span><span class="p">,</span>
                 <span class="n">index_param</span><span class="p">,</span>
@@ -406,9 +400,7 @@
 
         <span class="k">else</span><span class="p">:</span>
             <span class="n">metric_infos</span> <span class="o">=</span> <span class="n">optimize_and_measure_index</span><span class="p">(</span>
-                <span class="n">embedding_column_name</span><span class="p">,</span>
-                <span class="n">embeddings_file_paths</span><span class="p">,</span>
-                <span class="n">file_format</span><span class="p">,</span>
+                <span class="n">embedding_reader</span><span class="p">,</span>
                 <span class="n">index</span><span class="p">,</span>
                 <span class="n">index_infos_path</span><span class="p">,</span>
                 <span class="n">index_key</span><span class="p">,</span>
@@ -540,10 +532,12 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="n">embeddings_path</span> <span class="o">=</span> <span class="n">embeddings</span>
 
+    <span class="n">embedding_reader</span> <span class="o">=</span> <span class="n">EmbeddingReader</span><span class="p">(</span><span class="n">embeddings_path</span><span class="p">,</span> <span class="n">file_format</span><span class="o">=</span><span class="s2">&quot;npy&quot;</span><span class="p">)</span>
+
     <span class="n">infos</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
 
     <span class="k">with</span> <span class="n">Timeit</span><span class="p">(</span><span class="s2">&quot;Compute fast metrics&quot;</span><span class="p">):</span>
-        <span class="n">infos</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">compute_fast_metrics</span><span class="p">(</span><span class="n">embeddings_path</span><span class="p">,</span> <span class="n">index</span><span class="p">))</span>
+        <span class="n">infos</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">compute_fast_metrics</span><span class="p">(</span><span class="n">embedding_reader</span><span class="p">,</span> <span class="n">index</span><span class="p">))</span>
 
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Intermediate recap:&quot;</span><span class="p">)</span>
     <span class="n">_log_output_dict</span><span class="p">(</span><span class="n">infos</span><span class="p">)</span>
@@ -559,7 +553,7 @@
         <span class="k">return</span> <span class="kc">None</span>
 
     <span class="k">with</span> <span class="n">Timeit</span><span class="p">(</span><span class="s2">&quot;Compute medium metrics&quot;</span><span class="p">):</span>
-        <span class="n">infos</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">compute_medium_metrics</span><span class="p">(</span><span class="n">embeddings_path</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">memory_left</span><span class="p">))</span>
+        <span class="n">infos</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">compute_medium_metrics</span><span class="p">(</span><span class="n">embedding_reader</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">memory_left</span><span class="p">))</span>
 
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Performances recap:&quot;</span><span class="p">)</span>
     <span class="n">_log_output_dict</span><span class="p">(</span><span class="n">infos</span><span class="p">)</span>

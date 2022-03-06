@@ -36,6 +36,14 @@ autofaiss.utils.decorators module
    :undoc-members:
    :show-inheritance:
 
+autofaiss.utils.path module
+---------------------------
+
+.. automodule:: autofaiss.utils.path
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Module contents
 ---------------
 

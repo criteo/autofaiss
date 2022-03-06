@@ -10,7 +10,6 @@ Subpackages
    autofaiss.external
    autofaiss.indices
    autofaiss.metrics
-   autofaiss.readers
    autofaiss.utils
 
 Submodules

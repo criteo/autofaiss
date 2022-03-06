@@ -95,6 +95,7 @@
 
 <span class="kn">import</span> <span class="nn">faiss</span>
 <span class="kn">import</span> <span class="nn">fsspec</span>
+<span class="kn">from</span> <span class="nn">embedding_reader</span> <span class="kn">import</span> <span class="n">EmbeddingReader</span>
 
 <span class="kn">from</span> <span class="nn">autofaiss.external.metadata</span> <span class="kn">import</span> <span class="n">compute_memory_necessary_for_training_wrapper</span><span class="p">,</span> <span class="n">IndexMetadata</span>
 <span class="kn">from</span> <span class="nn">autofaiss.external.scores</span> <span class="kn">import</span> <span class="n">compute_fast_metrics</span>
@@ -102,7 +103,7 @@
     <span class="n">set_search_hyperparameters</span><span class="p">,</span>
     <span class="n">speed_test_ms_per_query</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span> <span class="nn">autofaiss.readers.embeddings_iterators</span> <span class="kn">import</span> <span class="n">make_path_absolute</span>
+<span class="kn">from</span> <span class="nn">autofaiss.utils.path</span> <span class="kn">import</span> <span class="n">make_path_absolute</span>
 <span class="kn">from</span> <span class="nn">autofaiss.utils.algorithms</span> <span class="kn">import</span> <span class="n">discrete_binary_search</span>
 <span class="kn">from</span> <span class="nn">autofaiss.utils.cast</span> <span class="kn">import</span> <span class="n">cast_memory_to_bytes</span>
 <span class="kn">from</span> <span class="nn">autofaiss.utils.decorators</span> <span class="kn">import</span> <span class="n">Timeit</span>
@@ -507,9 +508,7 @@
 
 
 <div class="viewcode-block" id="optimize_and_measure_index"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.optimize.optimize_and_measure_index">[docs]</a><span class="k">def</span> <span class="nf">optimize_and_measure_index</span><span class="p">(</span>
-    <span class="n">embedding_column_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-    <span class="n">embeddings_file_paths</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
-    <span class="n">file_format</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">embedding_reader</span><span class="p">:</span> <span class="n">EmbeddingReader</span><span class="p">,</span>
     <span class="n">index</span><span class="p">:</span> <span class="n">faiss</span><span class="o">.</span><span class="n">Index</span><span class="p">,</span>
     <span class="n">index_infos_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
     <span class="n">index_key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -528,11 +527,7 @@
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The best hyperparameters are: </span><span class="si">{</span><span class="n">index_param</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
     <span class="n">metric_infos</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;index_key&quot;</span><span class="p">:</span> <span class="n">index_key</span><span class="p">,</span> <span class="s2">&quot;index_param&quot;</span><span class="p">:</span> <span class="n">index_param</span><span class="p">}</span>
     <span class="k">with</span> <span class="n">Timeit</span><span class="p">(</span><span class="s2">&quot;Compute fast metrics&quot;</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
-        <span class="n">metric_infos</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
-            <span class="n">compute_fast_metrics</span><span class="p">(</span>
-                <span class="n">embeddings_file_paths</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">file_format</span><span class="o">=</span><span class="n">file_format</span><span class="p">,</span> <span class="n">embedding_column_name</span><span class="o">=</span><span class="n">embedding_column_name</span>
-            <span class="p">)</span>
-        <span class="p">)</span>
+        <span class="n">metric_infos</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">compute_fast_metrics</span><span class="p">(</span><span class="n">embedding_reader</span><span class="p">,</span> <span class="n">index</span><span class="p">))</span>
     <span class="k">if</span> <span class="n">save_on_disk</span><span class="p">:</span>
         <span class="k">with</span> <span class="n">Timeit</span><span class="p">(</span><span class="s2">&quot;Saving the index on local disk&quot;</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
             <span class="k">with</span> <span class="n">fsspec</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">index_path</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">open</span><span class="p">()</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
@@ -545,9 +540,7 @@
 
 <div class="viewcode-block" id="optimize_and_measure_indices"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.optimize.optimize_and_measure_indices">[docs]</a><span class="k">def</span> <span class="nf">optimize_and_measure_indices</span><span class="p">(</span>
     <span class="n">indices_folder</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-    <span class="n">embedding_column_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-    <span class="n">embeddings_file_paths</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
-    <span class="n">file_format</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">embedding_reader</span><span class="p">:</span> <span class="n">EmbeddingReader</span><span class="p">,</span>
     <span class="n">index_infos_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
     <span class="n">index_key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">index_param</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
@@ -584,9 +577,7 @@
                 <span class="n">cur_index_path</span> <span class="o">=</span> <span class="n">index_path</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">zfill</span><span class="p">(</span><span class="n">suffix_width</span><span class="p">)</span>
                 <span class="n">cur_index_infos_path</span> <span class="o">=</span> <span class="n">index_infos_path</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
                 <span class="n">metric_infos</span> <span class="o">=</span> <span class="n">optimize_and_measure_index</span><span class="p">(</span>
-                    <span class="n">embedding_column_name</span><span class="p">,</span>
-                    <span class="n">embeddings_file_paths</span><span class="p">,</span>
-                    <span class="n">file_format</span><span class="p">,</span>
+                    <span class="n">embedding_reader</span><span class="p">,</span>
                     <span class="n">index</span><span class="p">,</span>
                     <span class="n">cur_index_infos_path</span><span class="p">,</span>
                     <span class="n">index_key</span><span class="p">,</span>

@@ -85,13 +85,13 @@
 <span></span><span class="sd">&quot;&quot;&quot; gather functions necessary to build an index &quot;&quot;&quot;</span>
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">import</span> <span class="nn">logging</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">List</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Any</span>
 
 <span class="kn">import</span> <span class="nn">faiss</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 <span class="kn">from</span> <span class="nn">faiss</span> <span class="kn">import</span> <span class="n">extract_index_ivf</span>
+<span class="kn">from</span> <span class="nn">embedding_reader</span> <span class="kn">import</span> <span class="n">EmbeddingReader</span>
 
-<span class="kn">from</span> <span class="nn">autofaiss.readers.embeddings_iterators</span> <span class="kn">import</span> <span class="n">read_first_file_shape</span><span class="p">,</span> <span class="n">read_embeddings</span>
 <span class="kn">from</span> <span class="nn">autofaiss.external.metadata</span> <span class="kn">import</span> <span class="n">IndexMetadata</span>
 <span class="kn">from</span> <span class="nn">autofaiss.external.optimize</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">check_if_index_needs_training</span><span class="p">,</span>
@@ -177,20 +177,15 @@
 
 
 <div class="viewcode-block" id="create_index"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.build.create_index">[docs]</a><span class="k">def</span> <span class="nf">create_index</span><span class="p">(</span>
-    <span class="n">embeddings_file_paths</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+    <span class="n">embedding_reader</span><span class="p">:</span> <span class="n">EmbeddingReader</span><span class="p">,</span>
     <span class="n">index_key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">metric_type</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
-    <span class="n">nb_vectors</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="n">current_memory_available</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-    <span class="n">file_format</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;npy&quot;</span><span class="p">,</span>
-    <span class="n">embedding_column_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;embeddings&quot;</span><span class="p">,</span>
-    <span class="n">id_columns</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">embedding_ids_df_handler</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">use_gpu</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">make_direct_map</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">distributed</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">temporary_indices_folder</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;hdfs://root/tmp/distributed_autofaiss_indices&quot;</span><span class="p">,</span>
-    <span class="n">file_counts</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">nb_indices_to_keep</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="n">faiss</span><span class="o">.</span><span class="n">Index</span><span class="p">],</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -203,15 +198,12 @@
         <span class="c1"># Convert metric_type to faiss type</span>
         <span class="n">metric_type</span> <span class="o">=</span> <span class="n">to_faiss_metric_type</span><span class="p">(</span><span class="n">metric_type</span><span class="p">)</span>
 
-        <span class="c1"># Get information for one partition</span>
-        <span class="n">_</span><span class="p">,</span> <span class="n">vec_dim</span> <span class="o">=</span> <span class="n">read_first_file_shape</span><span class="p">(</span>
-            <span class="n">embeddings_file_paths</span><span class="p">,</span> <span class="n">file_format</span><span class="o">=</span><span class="n">file_format</span><span class="p">,</span> <span class="n">embedding_column_name</span><span class="o">=</span><span class="n">embedding_column_name</span>
-        <span class="p">)</span>
+        <span class="n">vec_dim</span> <span class="o">=</span> <span class="n">embedding_reader</span><span class="o">.</span><span class="n">dimension</span>
 
         <span class="c1"># Instanciate the index</span>
         <span class="n">index</span> <span class="o">=</span> <span class="n">index_factory</span><span class="p">(</span><span class="n">vec_dim</span><span class="p">,</span> <span class="n">index_key</span><span class="p">,</span> <span class="n">metric_type</span><span class="p">)</span>
 
-    <span class="n">metadata</span> <span class="o">=</span> <span class="n">IndexMetadata</span><span class="p">(</span><span class="n">index_key</span><span class="p">,</span> <span class="n">nb_vectors</span><span class="p">,</span> <span class="n">vec_dim</span><span class="p">,</span> <span class="n">make_direct_map</span><span class="p">)</span>
+    <span class="n">metadata</span> <span class="o">=</span> <span class="n">IndexMetadata</span><span class="p">(</span><span class="n">index_key</span><span class="p">,</span> <span class="n">embedding_reader</span><span class="o">.</span><span class="n">count</span><span class="p">,</span> <span class="n">vec_dim</span><span class="p">,</span> <span class="n">make_direct_map</span><span class="p">)</span>
 
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
         <span class="sa">f</span><span class="s2">&quot;The index size will be approximately </span><span class="si">{</span><span class="n">cast_bytes_to_memory_string</span><span class="p">(</span><span class="n">metadata</span><span class="o">.</span><span class="n">estimated_index_size_in_bytes</span><span class="p">())</span><span class="si">}</span><span class="s2">&quot;</span>
@@ -227,7 +219,9 @@
             <span class="n">memory_available_for_training</span> <span class="o">=</span> <span class="n">cast_bytes_to_memory_string</span><span class="p">(</span><span class="n">cast_memory_to_bytes</span><span class="p">(</span><span class="n">current_memory_available</span><span class="p">))</span>
 
             <span class="c1"># Determine the number of vectors necessary to train the index</span>
-            <span class="n">train_size</span> <span class="o">=</span> <span class="n">get_optimal_train_size</span><span class="p">(</span><span class="n">nb_vectors</span><span class="p">,</span> <span class="n">index_key</span><span class="p">,</span> <span class="n">memory_available_for_training</span><span class="p">,</span> <span class="n">vec_dim</span><span class="p">)</span>
+            <span class="n">train_size</span> <span class="o">=</span> <span class="n">get_optimal_train_size</span><span class="p">(</span>
+                <span class="n">embedding_reader</span><span class="o">.</span><span class="n">count</span><span class="p">,</span> <span class="n">index_key</span><span class="p">,</span> <span class="n">memory_available_for_training</span><span class="p">,</span> <span class="n">vec_dim</span>
+            <span class="p">)</span>
             <span class="n">memory_needed_for_training</span> <span class="o">=</span> <span class="n">metadata</span><span class="o">.</span><span class="n">compute_memory_necessary_for_training</span><span class="p">(</span><span class="n">train_size</span><span class="p">)</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">&quot;Will use </span><span class="si">{</span><span class="n">train_size</span><span class="si">}</span><span class="s2"> vectors to train the index, &quot;</span>
@@ -235,15 +229,7 @@
             <span class="p">)</span>
 
             <span class="c1"># Extract training vectors</span>
-            <span class="n">train_vectors</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span>
-                <span class="n">read_embeddings</span><span class="p">(</span>
-                    <span class="n">embeddings_file_paths</span><span class="p">,</span>
-                    <span class="n">file_format</span><span class="o">=</span><span class="n">file_format</span><span class="p">,</span>
-                    <span class="n">embedding_column_name</span><span class="o">=</span><span class="n">embedding_column_name</span><span class="p">,</span>
-                    <span class="n">batch_size</span><span class="o">=</span><span class="n">train_size</span><span class="p">,</span>
-                    <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                <span class="p">)</span>
-            <span class="p">)</span>
+            <span class="n">train_vectors</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">embedding_reader</span><span class="p">(</span><span class="n">batch_size</span><span class="o">=</span><span class="n">train_size</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="n">train_size</span><span class="p">))</span>
 
         <span class="c1"># Instanciate the index and train it</span>
         <span class="c1"># pylint: disable=no-member</span>
@@ -295,16 +281,7 @@
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">embedded_index</span><span class="p">,</span> <span class="p">(</span><span class="n">faiss</span><span class="o">.</span><span class="n">swigfaiss</span><span class="o">.</span><span class="n">IndexIVF</span><span class="p">,</span> <span class="n">faiss</span><span class="o">.</span><span class="n">swigfaiss</span><span class="o">.</span><span class="n">IndexBinaryIVF</span><span class="p">)):</span>
                 <span class="n">embedded_index</span><span class="o">.</span><span class="n">make_direct_map</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">distributed</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">batch_id</span><span class="p">,</span> <span class="p">(</span><span class="n">vec_batch</span><span class="p">,</span> <span class="n">ids_batch</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span>
-                <span class="n">read_embeddings</span><span class="p">(</span>
-                    <span class="n">embeddings_file_paths</span><span class="p">,</span>
-                    <span class="n">file_format</span><span class="o">=</span><span class="n">file_format</span><span class="p">,</span>
-                    <span class="n">embedding_column_name</span><span class="o">=</span><span class="n">embedding_column_name</span><span class="p">,</span>
-                    <span class="n">id_columns</span><span class="o">=</span><span class="n">id_columns</span><span class="p">,</span>
-                    <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span>
-                    <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                <span class="p">)</span>
-            <span class="p">):</span>
+            <span class="k">for</span> <span class="n">batch_id</span><span class="p">,</span> <span class="p">(</span><span class="n">vec_batch</span><span class="p">,</span> <span class="n">ids_batch</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">embedding_reader</span><span class="p">(</span><span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">)):</span>
                 <span class="n">index</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">vec_batch</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">embedding_ids_df_handler</span><span class="p">:</span>
                     <span class="n">embedding_ids_df_handler</span><span class="p">(</span><span class="n">ids_batch</span><span class="p">,</span> <span class="n">batch_id</span><span class="p">)</span>
@@ -312,11 +289,7 @@
         <span class="k">elif</span> <span class="n">distributed</span> <span class="o">==</span> <span class="s2">&quot;pyspark&quot;</span><span class="p">:</span>
             <span class="n">index</span><span class="p">,</span> <span class="n">indices_path</span> <span class="o">=</span> <span class="n">run</span><span class="p">(</span>
                 <span class="n">faiss_index</span><span class="o">=</span><span class="n">index</span><span class="p">,</span>
-                <span class="n">embedding_column_name</span><span class="o">=</span><span class="n">embedding_column_name</span><span class="p">,</span>
-                <span class="n">file_counts</span><span class="o">=</span><span class="n">file_counts</span><span class="p">,</span>  <span class="c1"># type: ignore</span>
-                <span class="n">id_columns</span><span class="o">=</span><span class="n">id_columns</span><span class="p">,</span>
-                <span class="n">file_format</span><span class="o">=</span><span class="n">file_format</span><span class="p">,</span>
-                <span class="n">embeddings_file_paths</span><span class="o">=</span><span class="n">embeddings_file_paths</span><span class="p">,</span>
+                <span class="n">embedding_reader</span><span class="o">=</span><span class="n">embedding_reader</span><span class="p">,</span>
                 <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span>
                 <span class="n">embedding_ids_df_handler</span><span class="o">=</span><span class="n">embedding_ids_df_handler</span><span class="p">,</span>
                 <span class="n">temporary_indices_folder</span><span class="o">=</span><span class="n">temporary_indices_folder</span><span class="p">,</span>
