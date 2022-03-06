@@ -98,6 +98,7 @@
 <span class="kn">from</span> <span class="nn">embedding_reader</span> <span class="kn">import</span> <span class="n">EmbeddingReader</span>
 <span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span>
 
+<span class="kn">from</span> <span class="nn">autofaiss.external.optimize</span> <span class="kn">import</span> <span class="n">get_optimal_batch_size</span>
 <span class="kn">from</span> <span class="nn">autofaiss.indices.index_utils</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">get_index_from_bytes</span><span class="p">,</span>
     <span class="n">get_bytes_from_index</span><span class="p">,</span>
@@ -129,6 +130,7 @@
     <span class="n">start</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="n">end</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="n">broadcast_trained_index_bytes</span><span class="p">,</span>
+    <span class="n">memory_available_for_adding</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">embedding_reader</span><span class="p">:</span> <span class="n">EmbeddingReader</span><span class="p">,</span>
     <span class="n">batch_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="n">small_indices_folder</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -147,6 +149,8 @@
 <span class="sd">        End position of this batch</span>
 <span class="sd">    broadcast_trained_index_bytes: pyspark.Broadcast</span>
 <span class="sd">        Trained yet empty index</span>
+<span class="sd">    memory_available_for_adding: str</span>
+<span class="sd">        Memory available for adding embeddings</span>
 <span class="sd">    embedding_reader: EmbeddingReader</span>
 <span class="sd">        Embedding reader</span>
 <span class="sd">    batch_id: int</span>
@@ -158,14 +162,6 @@
 <span class="sd">    embedding_ids_df_handler: Optional[Callable[[pd.DataFrame, int], Any]]</span>
 <span class="sd">        The function that handles the embeddings Ids when id_columns is given</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">end</span> <span class="o">&gt;</span> <span class="n">embedding_reader</span><span class="o">.</span><span class="n">count</span><span class="p">:</span>
-        <span class="n">end</span> <span class="o">=</span> <span class="n">embedding_reader</span><span class="o">.</span><span class="n">count</span>
-
-    <span class="n">embeddings_to_add</span><span class="p">,</span> <span class="n">batch_ids_gen</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">embedding_reader</span><span class="p">(</span><span class="n">batch_size</span><span class="o">=</span><span class="n">end</span> <span class="o">-</span> <span class="n">start</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="n">end</span><span class="p">))</span>
-
-    <span class="k">if</span> <span class="n">embedding_ids_df_handler</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">embedding_ids_df_handler</span><span class="p">(</span><span class="n">batch_ids_gen</span><span class="p">,</span> <span class="n">batch_id</span><span class="p">)</span>
-
     <span class="k">if</span> <span class="n">num_cores</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">num_cores</span> <span class="o">=</span> <span class="n">multiprocessing</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">()</span>
 
@@ -174,9 +170,16 @@
     <span class="c1"># load empty trained index</span>
     <span class="n">empty_index</span> <span class="o">=</span> <span class="n">get_index_from_bytes</span><span class="p">(</span><span class="n">broadcast_trained_index_bytes</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
 
-    <span class="n">empty_index</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">embeddings_to_add</span><span class="p">)</span>
+    <span class="n">batch_size</span> <span class="o">=</span> <span class="n">get_optimal_batch_size</span><span class="p">(</span><span class="n">embedding_reader</span><span class="o">.</span><span class="n">dimension</span><span class="p">,</span> <span class="n">memory_available_for_adding</span><span class="p">)</span>
 
-    <span class="k">del</span> <span class="n">embeddings_to_add</span>
+    <span class="n">ids_total</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">vec_batch</span><span class="p">,</span> <span class="n">ids_batch</span><span class="p">)</span> <span class="ow">in</span> <span class="n">embedding_reader</span><span class="p">(</span><span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="n">end</span><span class="p">):</span>
+        <span class="n">empty_index</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">vec_batch</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">embedding_ids_df_handler</span><span class="p">:</span>
+            <span class="n">ids_total</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ids_batch</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">embedding_ids_df_handler</span><span class="p">:</span>
+        <span class="n">embedding_ids_df_handler</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">ids_total</span><span class="p">),</span> <span class="n">batch_id</span><span class="p">)</span>
 
     <span class="n">_save_small_index</span><span class="p">(</span>
         <span class="n">index</span><span class="o">=</span><span class="n">empty_index</span><span class="p">,</span> <span class="n">small_indices_folder</span><span class="o">=</span><span class="n">small_indices_folder</span><span class="p">,</span> <span class="n">batch_id</span><span class="o">=</span><span class="n">batch_id</span><span class="p">,</span> <span class="n">nb_batches</span><span class="o">=</span><span class="n">nb_batches</span>
@@ -310,7 +313,7 @@
 <div class="viewcode-block" id="run"><a class="viewcode-back" href="../../../_source/autofaiss.indices.html#autofaiss.indices.distributed.run">[docs]</a><span class="k">def</span> <span class="nf">run</span><span class="p">(</span>
     <span class="n">faiss_index</span><span class="p">:</span> <span class="n">faiss</span><span class="o">.</span><span class="n">Index</span><span class="p">,</span>
     <span class="n">embedding_reader</span><span class="p">:</span> <span class="n">EmbeddingReader</span><span class="p">,</span>
-    <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">memory_available_for_adding</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">num_cores_per_executor</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">temporary_indices_folder</span><span class="o">=</span><span class="s2">&quot;hdfs://root/tmp/distributed_autofaiss_indices&quot;</span><span class="p">,</span>
     <span class="n">embedding_ids_df_handler</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -325,8 +328,8 @@
 <span class="sd">        Trained faiss index</span>
 <span class="sd">    embedding_reader: EmbeddingReader</span>
 <span class="sd">        Embedding reader.</span>
-<span class="sd">    batch_size: int</span>
-<span class="sd">        Number of vectors handled per worker</span>
+<span class="sd">    memory_available_for_adding: str</span>
+<span class="sd">        Memory available for adding embeddings.</span>
 <span class="sd">    num_cores_per_executor: int</span>
 <span class="sd">        Number of CPU cores per executor</span>
 <span class="sd">    temporary_indices_folder: str</span>
@@ -345,8 +348,14 @@
     <span class="c1"># broadcast the index bytes</span>
     <span class="n">trained_index_bytes</span> <span class="o">=</span> <span class="n">get_bytes_from_index</span><span class="p">(</span><span class="n">faiss_index</span><span class="p">)</span>
     <span class="n">broadcast_trained_index_bytes</span> <span class="o">=</span> <span class="n">ss</span><span class="o">.</span><span class="n">sparkContext</span><span class="o">.</span><span class="n">broadcast</span><span class="p">(</span><span class="n">trained_index_bytes</span><span class="p">)</span>
-    <span class="n">nb_vectors</span> <span class="o">=</span> <span class="n">embedding_reader</span><span class="o">.</span><span class="n">count</span>
-    <span class="n">nb_batches</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">nb_vectors</span> <span class="o">/</span> <span class="n">batch_size</span><span class="p">)</span>  <span class="c1"># use math.ceil to make sure that we cover every vector</span>
+    <span class="n">sc</span> <span class="o">=</span> <span class="n">ss</span><span class="o">.</span><span class="n">_jsc</span><span class="o">.</span><span class="n">sc</span><span class="p">()</span>  <span class="c1"># pylint: disable=protected-access</span>
+    <span class="n">n_workers</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">sc</span><span class="o">.</span><span class="n">statusTracker</span><span class="p">()</span><span class="o">.</span><span class="n">getExecutorInfos</span><span class="p">())</span> <span class="o">-</span> <span class="mi">1</span>
+
+    <span class="c1"># maximum between the number of spark workers, 100M embeddings per task and the number of indices to keep</span>
+    <span class="n">estimated_nb_batches</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">n_workers</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">embedding_reader</span><span class="o">.</span><span class="n">count</span> <span class="o">/</span> <span class="p">(</span><span class="mi">10</span> <span class="o">**</span> <span class="mi">7</span><span class="p">)),</span> <span class="n">nb_indices_to_keep</span><span class="p">)</span>
+    <span class="n">batch_size</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">embedding_reader</span><span class="o">.</span><span class="n">count</span> <span class="o">/</span> <span class="n">estimated_nb_batches</span><span class="p">)</span>
+    <span class="n">nb_batches</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">embedding_reader</span><span class="o">.</span><span class="n">count</span> <span class="o">/</span> <span class="n">batch_size</span><span class="p">)</span>
+
     <span class="n">batches</span> <span class="o">=</span> <span class="n">_batch_loader</span><span class="p">(</span><span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">nb_batches</span><span class="o">=</span><span class="n">nb_batches</span><span class="p">)</span>
     <span class="n">rdd</span> <span class="o">=</span> <span class="n">ss</span><span class="o">.</span><span class="n">sparkContext</span><span class="o">.</span><span class="n">parallelize</span><span class="p">(</span><span class="n">batches</span><span class="p">,</span> <span class="n">nb_batches</span><span class="p">)</span>
     <span class="k">with</span> <span class="n">Timeit</span><span class="p">(</span><span class="s2">&quot;-&gt; Adding indices&quot;</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
@@ -355,6 +364,7 @@
                 <span class="n">batch_id</span><span class="o">=</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
                 <span class="n">start</span><span class="o">=</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
                 <span class="n">end</span><span class="o">=</span><span class="n">x</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+                <span class="n">memory_available_for_adding</span><span class="o">=</span><span class="n">memory_available_for_adding</span><span class="p">,</span>
                 <span class="n">broadcast_trained_index_bytes</span><span class="o">=</span><span class="n">broadcast_trained_index_bytes</span><span class="p">,</span>
                 <span class="n">embedding_reader</span><span class="o">=</span><span class="n">embedding_reader</span><span class="p">,</span>
                 <span class="n">small_indices_folder</span><span class="o">=</span><span class="n">temporary_indices_folder</span><span class="p">,</span>
