@@ -6,14 +6,12 @@ import multiprocessing
 import os
 import logging
 from tempfile import TemporaryDirectory
-from typing import List, Optional, Iterator, Tuple, Callable, Any
+from typing import Optional, Iterator, Tuple, Callable, Any
 
 import faiss
 import fsspec
-import numpy as np
 import pandas as pd
-from fsspec import get_filesystem_class
-from fsspec.implementations.hdfs import PyArrowHDFS
+from embedding_reader import EmbeddingReader
 from tqdm import tqdm
 
 from autofaiss.indices.index_utils import (
@@ -21,39 +19,11 @@ from autofaiss.indices.index_utils import (
     get_bytes_from_index,
     parallel_download_indices_from_remote,
 )
-from autofaiss.readers.embeddings_iterators import get_matrix_reader, make_path_absolute
+from autofaiss.utils.path import make_path_absolute
 from autofaiss.utils.cast import cast_memory_to_bytes
 from autofaiss.utils.decorators import Timeit
 
 logger = logging.getLogger("autofaiss")
-
-
-def _yield_embeddings_batch(
-    embeddings_paths: List[str],
-    chunk_sizes: List[int],
-    file_system: fsspec.AbstractFileSystem,
-    start: int,
-    end: int,
-    embedding_column_name: str,
-    file_format: str,
-    id_columns: Optional[List[str]] = None,
-):
-    """Lazy load a batch of embeddings."""
-    if isinstance(file_system, PyArrowHDFS):
-        file_system = get_filesystem_class("hdfs")()
-    cur_start = cur_end = 0
-    for chunk_size, file_path in zip(chunk_sizes, embeddings_paths):
-        cur_end += chunk_size
-        if cur_end <= start:
-            cur_start += chunk_size
-            continue
-        slice_start = max(0, start - cur_start)
-        slice_end = min(chunk_size, end - cur_start)
-        with get_matrix_reader(file_format, file_system, file_path, embedding_column_name, id_columns) as matrix_reader:
-            yield matrix_reader.get_lazy_array().get_rows(start=slice_start, end=slice_end)
-        if cur_end >= end:
-            break
-        cur_start += chunk_size
 
 
 def _generate_small_index_file_name(batch_id: int, nb_batches: int) -> str:
@@ -75,15 +45,10 @@ def _add_index(
     start: int,
     end: int,
     broadcast_trained_index_bytes,
-    file_system: fsspec.AbstractFileSystem,
-    chunk_sizes: List[int],
-    embeddings_file_paths: List[str],
-    embedding_column_name: str,
+    embedding_reader: EmbeddingReader,
     batch_id: int,
     small_indices_folder: str,
-    file_format: str,
     nb_batches: int,
-    id_columns: Optional[List[str]] = None,
     num_cores: Optional[int] = None,
     embedding_ids_df_handler: Optional[Callable[[pd.DataFrame, int], Any]] = None,
 ):
@@ -98,53 +63,24 @@ def _add_index(
         End position of this batch
     broadcast_trained_index_bytes: pyspark.Broadcast
         Trained yet empty index
-    chunk_sizes: List[int]
-        A list of number of vectors in each embedding files
-    embeddings_file_paths: List[str]
-        A list of embeddings file paths
-    embedding_column_name: str
-        Embeddings column name for parquet ; default "embedding"
+    embedding_reader: EmbeddingReader
+        Embedding reader
     batch_id: int
         Batch id
     small_indices_folder: str
         The folder where we save all the small indices
     num_cores: int
         Number of CPU cores (not Vcores)
-    file_format: str
-        Embedding file format, "npy" or "parquet"
-    id_columns: Optional[List[str]]
-        Names of the columns containing the Ids of the vectors, only used when file_format is "parquet"
     embedding_ids_df_handler: Optional[Callable[[pd.DataFrame, int], Any]]
         The function that handles the embeddings Ids when id_columns is given
     """
-    total_chunk_sizes = sum(chunk_sizes)
-    if end > total_chunk_sizes:
-        end = total_chunk_sizes
-    if len(chunk_sizes) != len(embeddings_file_paths):
-        raise ValueError(
-            f"The length of chunk_sizes should be equal to the number of embeddings_file_paths.\n"
-            f"Got len(chunk_sizes)={len(chunk_sizes)},"
-            f"len(embeddings_file_paths)={len(embeddings_file_paths)}.\n"
-            f"chunk_sizes={chunk_sizes}\n"
-            f"embeddings_file_paths={embeddings_file_paths}"
-        )
-    batch_vectors_gen, batch_ids_gen = zip(
-        *_yield_embeddings_batch(
-            embeddings_paths=embeddings_file_paths,
-            chunk_sizes=chunk_sizes,
-            file_system=file_system,
-            start=start,
-            end=end,
-            embedding_column_name=embedding_column_name,
-            id_columns=id_columns,
-            file_format=file_format,
-        )
-    )
+    if end > embedding_reader.count:
+        end = embedding_reader.count
 
-    embeddings_to_add = np.vstack(batch_vectors_gen).astype(np.float32)  # faiss requires float32 type
+    embeddings_to_add, batch_ids_gen = next(embedding_reader(batch_size=end - start, start=start, end=end))
 
     if embedding_ids_df_handler is not None:
-        embedding_ids_df_handler(pd.concat(batch_ids_gen), batch_id)
+        embedding_ids_df_handler(batch_ids_gen, batch_id)
 
     if num_cores is None:
         num_cores = multiprocessing.cpu_count()
@@ -289,14 +225,10 @@ def _merge_to_n_indices(spark_session, n: int, src_folder: str):
 
 def run(
     faiss_index: faiss.Index,
-    embeddings_file_paths: List[str],
-    file_counts: List[int],
+    embedding_reader: EmbeddingReader,
     batch_size: int,
-    embedding_column_name: str = "embedding",
     num_cores_per_executor: Optional[int] = None,
     temporary_indices_folder="hdfs://root/tmp/distributed_autofaiss_indices",
-    file_format: str = "npy",
-    id_columns: Optional[List[str]] = None,
     embedding_ids_df_handler: Optional[Callable[[pd.DataFrame, int], Any]] = None,
     nb_indices_to_keep: int = 1,
 ) -> Tuple[Optional[faiss.Index], Optional[str]]:
@@ -307,23 +239,14 @@ def run(
     ----------
     faiss_index: faiss.Index
         Trained faiss index
-    embeddings_file_paths: List[str]
-        List of embeddings file in numpy or parquet format.
-    file_counts: List[str]
-        Number of lines for each file
+    embedding_reader: EmbeddingReader
+        Embedding reader.
     batch_size: int
         Number of vectors handled per worker
-    embedding_column_name: str
-        Embeddings column name for parquet; default "embedding"
     num_cores_per_executor: int
         Number of CPU cores per executor
     temporary_indices_folder: str
         Folder to save the temporary small indices
-    file_format: str
-        Embeddings file format; default "npy"
-        "npy" or "parquet"
-    id_columns: Optional[List[str]]
-        Names of the columns containing the Ids of the vectors, only used when file_format is "parquet"
     embedding_ids_df_handler: Optional[Callable[[pd.DataFrame, int], Any]]
         The function that handles the embeddings Ids when id_columns is given
     nb_indices_to_keep: int
@@ -338,11 +261,10 @@ def run(
     # broadcast the index bytes
     trained_index_bytes = get_bytes_from_index(faiss_index)
     broadcast_trained_index_bytes = ss.sparkContext.broadcast(trained_index_bytes)
-    nb_vectors = sum(file_counts)
+    nb_vectors = embedding_reader.count
     nb_batches = math.ceil(nb_vectors / batch_size)  # use math.ceil to make sure that we cover every vector
     batches = _batch_loader(batch_size=batch_size, nb_batches=nb_batches)
     rdd = ss.sparkContext.parallelize(batches, nb_batches)
-    file_system = _get_file_system(embeddings_file_paths[0])
     with Timeit("-> Adding indices", indent=2):
         rdd.foreach(
             lambda x: _add_index(
@@ -350,15 +272,10 @@ def run(
                 start=x[1],
                 end=x[2],
                 broadcast_trained_index_bytes=broadcast_trained_index_bytes,
-                embeddings_file_paths=embeddings_file_paths,
-                file_system=file_system,
-                chunk_sizes=file_counts,
-                embedding_column_name=embedding_column_name,
-                id_columns=id_columns,
+                embedding_reader=embedding_reader,
                 small_indices_folder=temporary_indices_folder,
                 num_cores=num_cores_per_executor,
                 embedding_ids_df_handler=embedding_ids_df_handler,
-                file_format=file_format,
                 nb_batches=nb_batches,
             )
         )

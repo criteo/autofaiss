@@ -1,13 +1,13 @@
 """ gather functions necessary to build an index """
 import re
 import logging
-from typing import Optional, Tuple, Union, Callable, Any, List
+from typing import Optional, Tuple, Union, Callable, Any
 
 import faiss
 import pandas as pd
 from faiss import extract_index_ivf
+from embedding_reader import EmbeddingReader
 
-from autofaiss.readers.embeddings_iterators import read_first_file_shape, read_embeddings
 from autofaiss.external.metadata import IndexMetadata
 from autofaiss.external.optimize import (
     check_if_index_needs_training,
@@ -93,20 +93,15 @@ def get_estimated_construction_time_infos(nb_vectors: int, vec_dim: int, indent:
 
 
 def create_index(
-    embeddings_file_paths: List[str],
+    embedding_reader: EmbeddingReader,
     index_key: str,
     metric_type: Union[str, int],
-    nb_vectors: int,
     current_memory_available: str,
-    file_format: str = "npy",
-    embedding_column_name: str = "embeddings",
-    id_columns: Optional[List[str]] = None,
     embedding_ids_df_handler: Optional[Callable[[pd.DataFrame, int], Any]] = None,
     use_gpu: bool = False,
     make_direct_map: bool = False,
     distributed: Optional[str] = None,
     temporary_indices_folder: str = "hdfs://root/tmp/distributed_autofaiss_indices",
-    file_counts: List[int] = None,
     nb_indices_to_keep: int = 1,
 ) -> Tuple[Optional[faiss.Index], Optional[str]]:
     """
@@ -119,15 +114,12 @@ def create_index(
         # Convert metric_type to faiss type
         metric_type = to_faiss_metric_type(metric_type)
 
-        # Get information for one partition
-        _, vec_dim = read_first_file_shape(
-            embeddings_file_paths, file_format=file_format, embedding_column_name=embedding_column_name
-        )
+        vec_dim = embedding_reader.dimension
 
         # Instanciate the index
         index = index_factory(vec_dim, index_key, metric_type)
 
-    metadata = IndexMetadata(index_key, nb_vectors, vec_dim, make_direct_map)
+    metadata = IndexMetadata(index_key, embedding_reader.count, vec_dim, make_direct_map)
 
     logger.info(
         f"The index size will be approximately {cast_bytes_to_memory_string(metadata.estimated_index_size_in_bytes())}"
@@ -143,7 +135,9 @@ def create_index(
             memory_available_for_training = cast_bytes_to_memory_string(cast_memory_to_bytes(current_memory_available))
 
             # Determine the number of vectors necessary to train the index
-            train_size = get_optimal_train_size(nb_vectors, index_key, memory_available_for_training, vec_dim)
+            train_size = get_optimal_train_size(
+                embedding_reader.count, index_key, memory_available_for_training, vec_dim
+            )
             memory_needed_for_training = metadata.compute_memory_necessary_for_training(train_size)
             logger.info(
                 f"Will use {train_size} vectors to train the index, "
@@ -151,15 +145,7 @@ def create_index(
             )
 
             # Extract training vectors
-            train_vectors, _ = next(
-                read_embeddings(
-                    embeddings_file_paths,
-                    file_format=file_format,
-                    embedding_column_name=embedding_column_name,
-                    batch_size=train_size,
-                    verbose=True,
-                )
-            )
+            train_vectors, _ = next(embedding_reader(batch_size=train_size, start=0, end=train_size))
 
         # Instanciate the index and train it
         # pylint: disable=no-member
@@ -211,16 +197,7 @@ def create_index(
             if isinstance(embedded_index, (faiss.swigfaiss.IndexIVF, faiss.swigfaiss.IndexBinaryIVF)):
                 embedded_index.make_direct_map()
         if distributed is None:
-            for batch_id, (vec_batch, ids_batch) in enumerate(
-                read_embeddings(
-                    embeddings_file_paths,
-                    file_format=file_format,
-                    embedding_column_name=embedding_column_name,
-                    id_columns=id_columns,
-                    batch_size=batch_size,
-                    verbose=True,
-                )
-            ):
+            for batch_id, (vec_batch, ids_batch) in enumerate(embedding_reader(batch_size=batch_size)):
                 index.add(vec_batch)
                 if embedding_ids_df_handler:
                     embedding_ids_df_handler(ids_batch, batch_id)
@@ -228,11 +205,7 @@ def create_index(
         elif distributed == "pyspark":
             index, indices_path = run(
                 faiss_index=index,
-                embedding_column_name=embedding_column_name,
-                file_counts=file_counts,  # type: ignore
-                id_columns=id_columns,
-                file_format=file_format,
-                embeddings_file_paths=embeddings_file_paths,
+                embedding_reader=embedding_reader,
                 batch_size=batch_size,
                 embedding_ids_df_handler=embedding_ids_df_handler,
                 temporary_indices_folder=temporary_indices_folder,

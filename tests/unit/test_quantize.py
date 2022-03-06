@@ -1,5 +1,6 @@
 import logging
 import os
+import py
 import random
 from tempfile import TemporaryDirectory, NamedTemporaryFile
 
@@ -13,13 +14,62 @@ from numpy.testing import assert_array_equal
 LOGGER = logging.getLogger(__name__)
 
 from autofaiss import build_index
-from tests.unit.test_embeddings_iterators import build_test_collection_numpy, build_test_collection_parquet
 
 logging.basicConfig(level=logging.DEBUG)
 
 # hide py4j DEBUG from pyspark, otherwise, there will be too many useless debugging output
 # https://stackoverflow.com/questions/37252527/how-to-hide-py4j-java-gatewayreceived-command-c-on-object-id-p0
 logging.getLogger("py4j").setLevel(logging.ERROR)
+
+
+def build_test_collection_numpy(
+    tmpdir: py.path, min_size=2, max_size=10000, dim=512, nb_files=5, tmpdir_name: str = "autofaiss_numpy"
+):
+    tmp_path = tmpdir.mkdir(tmpdir_name)
+    sizes = [random.randint(min_size, max_size) for _ in range(nb_files)]
+    dim = dim
+    all_arrays = []
+    file_paths = []
+    for i, size in enumerate(sizes):
+        arr = np.random.rand(size, dim).astype("float32")
+        all_arrays.append(arr)
+        file_path = os.path.join(tmp_path, f"{str(i)}.npy")
+        file_paths.append(file_path)
+        np.save(file_path, arr)
+    all_arrays = np.vstack(all_arrays)
+    return str(tmp_path), sizes, dim, all_arrays, file_paths
+
+
+def build_test_collection_parquet(
+    tmpdir: py.path,
+    min_size=2,
+    max_size=10000,
+    dim=512,
+    nb_files=5,
+    tmpdir_name: str = "autofaiss_parquet",
+    consecutive_ids=False,
+):
+    tmp_path = tmpdir.mkdir(tmpdir_name)
+    sizes = [random.randint(min_size, max_size) for _ in range(nb_files)]
+    dim = dim
+    all_dfs = []
+    file_paths = []
+    n = 0
+    for i, size in enumerate(sizes):
+        arr = np.random.rand(size, dim).astype("float32")
+        if consecutive_ids:
+            # ids would be consecutive from 0 to N-1
+            ids = list(range(n, n + size))
+        else:
+            ids = np.random.randint(max_size * nb_files * 10, size=size)
+        df = pd.DataFrame({"embedding": list(arr), "id": ids})
+        all_dfs.append(df)
+        file_path = os.path.join(tmp_path, f"{str(i)}.parquet")
+        df.to_parquet(file_path)
+        file_paths.append(file_path)
+        n += len(df)
+    all_dfs = pd.concat(all_dfs)
+    return str(tmp_path), sizes, dim, all_dfs, file_paths
 
 
 def test_quantize(tmpdir):
@@ -132,7 +182,9 @@ def test_quantize_with_pyspark(tmpdir):
     output_parquet_index_faiss = faiss.read_index(index_parquet_path)
     output_parquet_ids = pq.read_table(ids_path).to_pandas()
     assert output_parquet_index_faiss.ntotal == len(expected_df)
-    pd.testing.assert_frame_equal(output_parquet_ids.reset_index(drop=True), expected_df[["id"]].reset_index(drop=True))
+    pd.testing.assert_frame_equal(
+        output_parquet_ids[["id"]].reset_index(drop=True), expected_df[["id"]].reset_index(drop=True)
+    )
 
     tmp_dir, _, _, expected_array, _ = build_test_collection_numpy(
         tmpdir, min_size=min_size, max_size=max_size, dim=dim, nb_files=nb_files
