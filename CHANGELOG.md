@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and this project adheres to [Semantic Versioning](https://semver.org).
 
+## [2.11.0] - 2022-03-06
+
+### Added
+* add guide for distributed autofaiss
+
+### Changed
+* replace embedding iterator by embedding reader
+* produce less indices in distributed mode
+
+### Fixed
+* Make max_nb_threads in #94 less than or equal to cpu cores
+
 ## [2.10.3] - 2022-03-04
 
 ### Fixed
