@@ -206,7 +206,7 @@ def create_index(
             index, indices_path = run(
                 faiss_index=index,
                 embedding_reader=embedding_reader,
-                batch_size=batch_size,
+                memory_available_for_adding=memory_available_for_adding,
                 embedding_ids_df_handler=embedding_ids_df_handler,
                 temporary_indices_folder=temporary_indices_folder,
                 nb_indices_to_keep=nb_indices_to_keep,
