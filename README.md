@@ -88,13 +88,19 @@ However, this mapping will be stored in RAM... We advise you to create your own 
 numpy array and then call .reconstruct_from_offset() with your custom direct_map.
 
 ## Using autofaiss with pyspark
+
 Autofaiss allows users to build indices in Spark, you need to do the following steps:
 
 1. Install pyspark by `pip install pyspark`.
 2. Prepare your embeddings files.
 3. Create a spark session before using `build_index` (optional), if you don't create it, a default session would
     be created with the least configuration.
+
+Also see [distributed_autofaiss.md](docs/distributed/distributed_autofaiss.md) for a full guide of how to use autofaiss in distributed mode.
+
+
 ### Producing N indices
+
 In the distributed mode, you can generate a set of indices with the total memory larger than your current available
 memory by setting `nb_indices_to_keep` different from 1.
 For example, if you set `nb_indices_to_keep` to 10 and your `index_path` is `knn.index`, you are expected to produce 10
@@ -106,6 +112,8 @@ indices at the end of `build_index` with the followings names:
  - `knn.index10`
 
 A [concrete example](examples/distributed_autofaiss_n_indices.py) shows how to produce N indices and how to use them.
+
+
 ## Using the command line
 
 Create embeddings
