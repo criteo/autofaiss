@@ -142,7 +142,11 @@ def _merge_index(
     tmp_output_folder: Optional[str] = None,
     index_optimizer: Callable = None,
 ) -> Tuple[faiss.Index, Dict[str, str]]:
-    """Merge all the indices in `small_indices_folder` into single one return the merged index."""
+    """
+    Merge all the indices in `small_indices_folder` into single one.
+    Also run optimization when `index_optimizer` is given.
+    Returns the merged index and the metric
+    """
     fs = _get_file_system(small_indices_folder)
     small_indices_files = sorted(fs.ls(small_indices_folder, detail=False))
     small_indices_files = small_indices_files[start:end]
@@ -205,9 +209,14 @@ def _get_file_system(path: str) -> fsspec.AbstractFileSystem:
 
 
 def _merge_to_n_indices(spark_session, n: int, src_folder: str, dst_folder: str, index_optimizer: Callable = None):
-    """Merge all the indices from src_folder into n indices, and return the folder for the next stage"""
+    """Merge all the indices from src_folder into n indices, and return the folder for the next stage, as well as the metrics"""
     fs = _get_file_system(src_folder)
     nb_indices_on_src_folder = len(fs.ls(src_folder, detail=False))
+
+    if nb_indices_on_src_folder <= n and index_optimizer is None:
+        # no need to merge
+        return src_folder, None
+
     batch_size = math.ceil(nb_indices_on_src_folder / n)
     n = math.ceil(nb_indices_on_src_folder / batch_size)
     merge_batches = _batch_loader(batch_size=batch_size, nb_batches=n)
@@ -232,7 +241,6 @@ def _merge_to_n_indices(spark_session, n: int, src_folder: str, dst_folder: str,
         metrics_dict = {metric_info["index_path"]: metric_info for metric_info in metrics}  # type: ignore
     else:
         metrics_dict = None  # type: ignore
-    fs = _get_file_system(src_folder)
     for file in fs.ls(src_folder, detail=False):
         if fs.isfile(file):
             fs.rm(file)
@@ -325,4 +333,5 @@ def run(
                 dst_folder=final_folder,
                 index_optimizer=index_optimizer,
             )
+            fs.rm(temporary_indices_folder, recursive=True)
             return None, metrics
