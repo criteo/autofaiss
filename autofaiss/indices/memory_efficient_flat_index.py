@@ -277,7 +277,7 @@ class MemEfficientFlatIndex(FaissIndexWrapper):
             # case where we couldn't find enough vectors
             max_k = min(k, len(h[i]))
             for j in range(max_k):
-                x = heapq.heappop(h[i])
+                x = heapq.heappop(h[i])  # type: ignore
                 D[i][max_k - 1 - j] = x[0]
                 I[i][max_k - 1 - j] = x[1]
 

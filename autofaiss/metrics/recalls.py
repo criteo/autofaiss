@@ -48,7 +48,7 @@ def r_recall_at_r(
     other_index: faiss.Index,
     r_max: int = 40,
     eval_item_ids: Optional[np.ndarray] = None,
-) -> List[float]:
+) -> np.ndarray:
     """Compute an R-recall@R array for each R in range [1, R_max] for
     a single query.
     """
@@ -114,7 +114,7 @@ def one_recall_at_r(
     other_index: faiss.Index,
     r_max: int = 40,
     eval_item_ids: Optional[np.ndarray] = None,
-) -> List[float]:
+) -> np.ndarray:
     """Compute an 1-recall@R array for each R in range [1, r_max]"""
     # O(r_max)
 

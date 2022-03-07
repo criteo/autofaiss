@@ -102,7 +102,7 @@ def create_index(
     temporary_indices_folder: str = "hdfs://root/tmp/distributed_autofaiss_indices",
     nb_indices_to_keep: int = 1,
     index_optimizer: Callable = None,
-) -> Tuple[Optional[faiss.Index], Optional[str], Dict[str, str]]:
+) -> Tuple[Optional[faiss.Index], Dict[str, str]]:
     """
     Function that returns an index on the numpy arrays stored on disk in the embeddings_path path.
     """
@@ -200,7 +200,7 @@ def create_index(
                 index.add(vec_batch)
                 if embedding_ids_df_handler:
                     embedding_ids_df_handler(ids_batch, batch_id)
-            metric_infos = index_optimizer(index, "")
+            metric_infos = index_optimizer(index, "")  # type: ignore
         elif distributed == "pyspark":
             index, metric_infos = run(
                 faiss_index=index,

@@ -20,7 +20,7 @@ def compute_fast_metrics(
     index: faiss.Index,
     omp_threads: Optional[int] = None,
     query_max: Optional[int] = 1000,
-) -> Dict[str, Union[str, int, float]]:
+) -> Dict:
     """compute query speed, size and reconstruction of an index"""
     infos: Dict[str, Union[str, int, float]] = {}
 

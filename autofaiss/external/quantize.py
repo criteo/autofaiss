@@ -73,7 +73,7 @@ def build_index(
     temporary_indices_folder: str = "hdfs://root/tmp/distributed_autofaiss_indices",
     verbose: int = logging.INFO,
     nb_indices_to_keep: int = 1,
-) -> Union[Tuple[Optional[Any], Optional[Dict[str, Union[str, float, int]]]], Dict[str, Dict]]:
+) -> Tuple[Optional[Any], Optional[Dict[str, str]]]:
     """
     Reads embeddings and creates a quantized index from them.
     The index is stored on the current machine at the given output path.

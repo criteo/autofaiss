@@ -229,9 +229,9 @@ def _merge_to_n_indices(spark_session, n: int, src_folder: str, dst_folder: str,
     metrics_rdd = rdd.map(merge)
     metrics = list(metrics_rdd.collect())
     if index_optimizer is not None:
-        metrics_dict = {metric_info["index_path"]: metric_info for metric_info in metrics}
+        metrics_dict = {metric_info["index_path"]: metric_info for metric_info in metrics}  # type: ignore
     else:
-        metrics_dict = None
+        metrics_dict = None  # type: ignore
     fs = _get_file_system(src_folder)
     for file in fs.ls(src_folder, detail=False):
         if fs.isfile(file):
@@ -248,7 +248,7 @@ def run(
     embedding_ids_df_handler: Optional[Callable[[pd.DataFrame, int], Any]] = None,
     nb_indices_to_keep: int = 1,
     index_optimizer: Optional[Callable] = None,
-) -> Tuple[Optional[faiss.Index], Optional[str], Optional[Dict[str, str]]]:
+) -> Tuple[Optional[faiss.Index], Optional[Dict[str, str]]]:
     """
     Create indices by pyspark.
 
@@ -268,6 +268,8 @@ def run(
         The function that handles the embeddings Ids when id_columns is given
     nb_indices_to_keep: int
         Number of indices to keep at most after the merging step
+    index_optimizer: Optional[Callable]
+        The function that optimizes the index
     """
     temporary_indices_folder = make_path_absolute(temporary_indices_folder)
     fs = _get_file_system(temporary_indices_folder)
@@ -312,7 +314,7 @@ def run(
         if nb_indices_to_keep == 1:
             merged_index, _ = _merge_index(small_indices_folder=next_stage_folder, nb_batches=1)
             fs.rm(temporary_indices_folder, recursive=True)
-            metrics = index_optimizer(merged_index, "")
+            metrics = index_optimizer(merged_index, "")  # type: ignore
             return merged_index, metrics
         else:
             final_folder = temporary_indices_folder.rstrip("/") + "/final"

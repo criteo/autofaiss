@@ -5,7 +5,7 @@ import re
 from functools import partial, reduce
 from math import floor, log2, sqrt
 from operator import mul
-from typing import Callable, List, Optional, TypeVar, Dict, Union
+from typing import Callable, List, Optional, TypeVar
 
 import faiss
 import fsspec
@@ -438,7 +438,7 @@ def optimize_and_measure_index(
     # Set search hyperparameters for the index
     set_search_hyperparameters(index, index_param, use_gpu)
     logger.info(f"The best hyperparameters are: {index_param}")
-    metric_infos: Dict[str, Union[str, float, int]] = {
+    metric_infos = {
         "index_key": index_key,
         "index_param": index_param,
         "index_path": index_path,
