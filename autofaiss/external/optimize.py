@@ -474,13 +474,8 @@ def optimize_and_measure_indices(
 
     indices_folder = make_path_absolute(indices_folder)
     fs, path_in_fs = fsspec.core.url_to_fs(indices_folder, use_listings_cache=False)
-    # Need prefix because fsspec.ls does not keep prefix for some file systems
-    prefix = indices_folder[: indices_folder.index(path_in_fs)]
-    indices_file_paths = fs.ls(indices_folder, detail=False)
+    indices_file_paths = fs.ls(path_in_fs, detail=False)
     suffix_width = int(math.log10(len(indices_file_paths))) + 1
-    indices_file_paths = [
-        prefix.rstrip("/") + "/" + index_file_path.lstrip("/") for index_file_path in sorted(indices_file_paths)
-    ]
 
     def _read_one_index(index_file_path: str):
         with fs.open(index_file_path, "rb") as f:
