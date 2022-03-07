@@ -474,7 +474,7 @@ def optimize_and_measure_indices(
 
     indices_folder = make_path_absolute(indices_folder)
     fs, path_in_fs = fsspec.core.url_to_fs(indices_folder, use_listings_cache=False)
-    indices_file_paths = fs.ls(path_in_fs, detail=False)
+    indices_file_paths = sorted(fs.ls(path_in_fs, detail=False))
     suffix_width = int(math.log10(len(indices_file_paths))) + 1
 
     def _read_one_index(index_file_path: str):
