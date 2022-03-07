@@ -6,7 +6,7 @@ import multiprocessing
 import os
 import logging
 from tempfile import TemporaryDirectory
-from typing import Optional, Iterator, Tuple, Callable, Any
+from typing import Dict, Optional, Iterator, Tuple, Callable, Any
 
 import faiss
 import fsspec
@@ -27,9 +27,13 @@ from autofaiss.utils.decorators import Timeit
 logger = logging.getLogger("autofaiss")
 
 
-def _generate_small_index_file_name(batch_id: int, nb_batches: int) -> str:
+def _generate_suffix(batch_id: int, nb_batches: int) -> str:
     suffix_width = int(math.log10(nb_batches)) + 1
-    return "index_" + str(batch_id).zfill(suffix_width)
+    return str(batch_id).zfill(suffix_width)
+
+
+def _generate_small_index_file_name(batch_id: int, nb_batches: int) -> str:
+    return "index_" + _generate_suffix(batch_id, nb_batches)
 
 
 def _save_small_index(index: faiss.Index, batch_id: int, small_indices_folder: str, nb_batches: int) -> None:
@@ -136,7 +140,8 @@ def _merge_index(
     end: Optional[int] = None,
     max_size_on_disk: str = "100GB",
     tmp_output_folder: Optional[str] = None,
-) -> faiss.Index:
+    index_optimizer: Callable = None,
+) -> Tuple[faiss.Index, Dict[str, str]]:
     """Merge all the indices in `small_indices_folder` into single one return the merged index."""
     fs = _get_file_system(small_indices_folder)
     small_indices_files = sorted(fs.ls(small_indices_folder, detail=False))
@@ -183,42 +188,55 @@ def _merge_index(
                 pbar.update(1)
 
     if batch_id is not None and tmp_output_folder is not None:
-        _save_small_index(
-            index=merged_index, batch_id=batch_id, small_indices_folder=tmp_output_folder, nb_batches=nb_batches
-        )
-    return merged_index
+        if index_optimizer is not None:
+            metric_infos = index_optimizer(merged_index, index_suffix=_generate_suffix(batch_id, nb_batches))
+        else:
+            metric_infos = None
+            _save_small_index(
+                index=merged_index, batch_id=batch_id, small_indices_folder=tmp_output_folder, nb_batches=nb_batches
+            )
+    else:
+        metric_infos = None
+    return merged_index, metric_infos
 
 
 def _get_file_system(path: str) -> fsspec.AbstractFileSystem:
     return fsspec.core.url_to_fs(path, use_listings_cache=False)[0]
 
 
-def _merge_to_n_indices(spark_session, n: int, src_folder: str, dst_folder: str):
+def _merge_to_n_indices(spark_session, n: int, src_folder: str, dst_folder: str, index_optimizer: Callable = None):
     """Merge all the indices from src_folder into n indices, and return the folder for the next stage"""
     fs = _get_file_system(src_folder)
     nb_indices_on_src_folder = len(fs.ls(src_folder, detail=False))
-    if nb_indices_on_src_folder <= n:
-        # merging does not happen, return the source folder
-        return src_folder
     batch_size = math.ceil(nb_indices_on_src_folder / n)
     n = math.ceil(nb_indices_on_src_folder / batch_size)
     merge_batches = _batch_loader(batch_size=batch_size, nb_batches=n)
+
     rdd = spark_session.sparkContext.parallelize(merge_batches, n)
-    rdd.foreach(
-        lambda x: _merge_index(
+
+    def merge(x):
+        _, metrics = _merge_index(
             small_indices_folder=src_folder,
             nb_batches=n,
             batch_id=x[0],
             start=x[1],
             end=x[2],
             tmp_output_folder=dst_folder,
+            index_optimizer=index_optimizer,
         )  # type: ignore
-    )
+        return metrics
+
+    metrics_rdd = rdd.map(merge)
+    metrics = list(metrics_rdd.collect())
+    if index_optimizer is not None:
+        metrics_dict = {metric_info["index_path"]: metric_info for metric_info in metrics}
+    else:
+        metrics_dict = None
     fs = _get_file_system(src_folder)
     for file in fs.ls(src_folder, detail=False):
         if fs.isfile(file):
             fs.rm(file)
-    return dst_folder
+    return dst_folder, metrics_dict
 
 
 def run(
@@ -229,7 +247,8 @@ def run(
     temporary_indices_folder="hdfs://root/tmp/distributed_autofaiss_indices",
     embedding_ids_df_handler: Optional[Callable[[pd.DataFrame, int], Any]] = None,
     nb_indices_to_keep: int = 1,
-) -> Tuple[Optional[faiss.Index], Optional[str]]:
+    index_optimizer: Optional[Callable] = None,
+) -> Tuple[Optional[faiss.Index], Optional[str], Optional[Dict[str, str]]]:
     """
     Create indices by pyspark.
 
@@ -287,16 +306,21 @@ def run(
 
     with Timeit("-> Merging indices", indent=2):
         stage2_folder = temporary_indices_folder.rstrip("/") + "/stage-2"
-        next_stage_folder = _merge_to_n_indices(
-            spark_session=ss, n=100, src_folder=stage1_folder, dst_folder=stage2_folder
+        next_stage_folder, _ = _merge_to_n_indices(
+            spark_session=ss, n=100, src_folder=stage1_folder, dst_folder=stage2_folder, index_optimizer=None
         )
         if nb_indices_to_keep == 1:
-            merged_index = _merge_index(small_indices_folder=next_stage_folder, nb_batches=1)
+            merged_index, _ = _merge_index(small_indices_folder=next_stage_folder, nb_batches=1)
             fs.rm(temporary_indices_folder, recursive=True)
-            return merged_index, None
+            metrics = index_optimizer(merged_index, "")
+            return merged_index, metrics
         else:
             final_folder = temporary_indices_folder.rstrip("/") + "/final"
-            next_stage_folder = _merge_to_n_indices(
-                spark_session=ss, n=nb_indices_to_keep, src_folder=next_stage_folder, dst_folder=final_folder
+            next_stage_folder, metrics = _merge_to_n_indices(
+                spark_session=ss,
+                n=nb_indices_to_keep,
+                src_folder=next_stage_folder,
+                dst_folder=final_folder,
+                index_optimizer=index_optimizer,
             )
-            return None, next_stage_folder
+            return None, metrics

@@ -13,7 +13,7 @@ from autofaiss import build_index
 # You'd better create a spark session before calling build_index,
 # otherwise, a spark session would be created by autofaiss with the least configuration.
 
-index_path2_metric_infos: Dict[str, Dict] = build_index(
+_, index_path2_metric_infos = build_index(
     embeddings="hdfs://root/path/to/your/embeddings/folder",
     distributed="pyspark",
     file_format="parquet",

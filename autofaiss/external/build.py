@@ -1,7 +1,6 @@
 """ gather functions necessary to build an index """
-import re
 import logging
-from typing import Optional, Tuple, Union, Callable, Any
+from typing import Dict, Optional, Tuple, Union, Callable, Any
 
 import faiss
 import pandas as pd
@@ -14,7 +13,6 @@ from autofaiss.external.optimize import (
     get_optimal_batch_size,
     get_optimal_index_keys_v2,
     get_optimal_train_size,
-    set_search_hyperparameters,
 )
 from autofaiss.indices.index_factory import index_factory
 from autofaiss.utils.cast import (
@@ -103,7 +101,8 @@ def create_index(
     distributed: Optional[str] = None,
     temporary_indices_folder: str = "hdfs://root/tmp/distributed_autofaiss_indices",
     nb_indices_to_keep: int = 1,
-) -> Tuple[Optional[faiss.Index], Optional[str]]:
+    index_optimizer: Callable = None,
+) -> Tuple[Optional[faiss.Index], Optional[str], Dict[str, str]]:
     """
     Function that returns an index on the numpy arrays stored on disk in the embeddings_path path.
     """
@@ -201,21 +200,18 @@ def create_index(
                 index.add(vec_batch)
                 if embedding_ids_df_handler:
                     embedding_ids_df_handler(ids_batch, batch_id)
-            indices_path = None
+            metric_infos = index_optimizer(index, "")
         elif distributed == "pyspark":
-            index, indices_path = run(
+            index, metric_infos = run(
                 faiss_index=index,
                 embedding_reader=embedding_reader,
                 memory_available_for_adding=memory_available_for_adding,
                 embedding_ids_df_handler=embedding_ids_df_handler,
                 temporary_indices_folder=temporary_indices_folder,
                 nb_indices_to_keep=nb_indices_to_keep,
+                index_optimizer=index_optimizer,
             )
         else:
             raise ValueError(f'Distributed by {distributed} is not supported, only "pyspark" is supported')
-    if nb_indices_to_keep == 1:
-        # Give standard values for index hyperparameters if possible.
-        if any(re.findall(r"OPQ\d+_\d+,IVF\d+_HNSW\d+,PQ\d+", index_key)):
-            set_search_hyperparameters(index, f"nprobe={64},efSearch={128},ht={2048}", use_gpu)
     # return the index.
-    return index, indices_path
+    return index, metric_infos
