@@ -76,7 +76,7 @@ def compute_medium_metrics(
     if ground_truth is None:
         if isinstance(embedding_reader, EmbeddingReader):
             ground_truth_path = f"{embedding_reader.embeddings_folder}/small_ground_truth_test.gt"
-            fs, path = fsspec.core.url_to_fs(ground_truth_path)
+            fs, path = fsspec.core.url_to_fs(ground_truth_path, use_listings_cache=False)
             if not fs.exists(path):
 
                 with Timeit("-> Compute small ground truth", indent=1):

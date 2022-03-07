@@ -253,7 +253,7 @@ def build_index(
             logger.info(f"Id columns provided {id_columns} - will be reading the corresponding columns")
             if ids_path is not None:
                 logger.info(f"\tWill be writing the Ids DataFrame in parquet format to {ids_path}")
-                fs, _ = fsspec.core.url_to_fs(ids_path)
+                fs, _ = fsspec.core.url_to_fs(ids_path, use_listings_cache=False)
                 if fs.exists(ids_path):
                     fs.rm(ids_path, recursive=True)
                 fs.mkdirs(ids_path)
@@ -310,7 +310,7 @@ def build_index(
             for path, metric_infos in index_path2_metric_infos.items():
                 logger.info(f"Recap for index: {path}")
                 _log_output_dict(metric_infos)
-            fs, _ = fsspec.core.url_to_fs(temporary_indices_folder)
+            fs, _ = fsspec.core.url_to_fs(temporary_indices_folder, use_listings_cache=False)
             fs.rm(temporary_indices_folder, recursive=True)
             return index_path2_metric_infos
 
@@ -432,13 +432,13 @@ def score_index(
         index_path = make_path_absolute(index_path)
         with fsspec.open(index_path, "rb").open() as f:
             index = faiss.read_index(faiss.PyCallbackIOReader(f.read))
-        fs, path_in_fs = fsspec.core.url_to_fs(index_path)
+        fs, path_in_fs = fsspec.core.url_to_fs(index_path, use_listings_cache=False)
         index_memory = fs.size(path_in_fs)
     else:
         index = index_path
         with tempfile.NamedTemporaryFile("wb") as f:
             faiss.write_index(index, faiss.PyCallbackIOWriter(f.write))
-            fs, path_in_fs = fsspec.core.url_to_fs(f.name)
+            fs, path_in_fs = fsspec.core.url_to_fs(f.name, use_listings_cache=False)
             index_memory = fs.size(path_in_fs)
 
     if isinstance(embeddings, np.ndarray):

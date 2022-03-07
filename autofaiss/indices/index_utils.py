@@ -150,7 +150,10 @@ def parallel_download_indices_from_remote(
 
     def _download_one(src_dst_path: Tuple[str, str], fs: fsspec.AbstractFileSystem):
         src_path, dst_path = src_dst_path
-        fs.get(src_path, dst_path)
+        try:
+            fs.get(src_path, dst_path)
+        except Exception as e:
+            raise Exception(f"Failed to download {src_path} to {dst_path}") from e
 
     if len(indices_file_paths) == 0:
         return

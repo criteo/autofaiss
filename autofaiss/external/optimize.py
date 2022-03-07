@@ -473,7 +473,7 @@ def optimize_and_measure_indices(
         raise ValueError("index_infos_path is None")
 
     indices_folder = make_path_absolute(indices_folder)
-    fs, path_in_fs = fsspec.core.url_to_fs(indices_folder)
+    fs, path_in_fs = fsspec.core.url_to_fs(indices_folder, use_listings_cache=False)
     # Need prefix because fsspec.ls does not keep prefix for some file systems
     prefix = indices_folder[: indices_folder.index(path_in_fs)]
     indices_file_paths = fs.ls(indices_folder, detail=False)
@@ -483,7 +483,7 @@ def optimize_and_measure_indices(
     ]
 
     def _read_one_index(index_file_path: str):
-        with fsspec.open(index_file_path, "rb").open() as f:
+        with fs.open(index_file_path, "rb") as f:
             return faiss.read_index(faiss.PyCallbackIOReader(f.read))
 
     index_path2_metric_infos: Dict[str, Dict] = {}

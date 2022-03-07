@@ -128,11 +128,6 @@ def _batch_loader(batch_size: int, nb_batches: int) -> Iterator[Tuple[int, int, 
         yield batch_id, start, end
 
 
-def _get_stage2_folder(tmp_folder: str) -> str:
-    """Get the temporary folder path used for the 2nd stage of merging"""
-    return tmp_folder.rstrip("/") + "/stage-2/"
-
-
 def _merge_index(
     small_indices_folder: str,
     nb_batches: int,
@@ -195,17 +190,16 @@ def _merge_index(
 
 
 def _get_file_system(path: str) -> fsspec.AbstractFileSystem:
-    return fsspec.core.url_to_fs(path)[0]
+    return fsspec.core.url_to_fs(path, use_listings_cache=False)[0]
 
 
-def _merge_to_n_indices(spark_session, n: int, src_folder: str):
+def _merge_to_n_indices(spark_session, n: int, src_folder: str, dst_folder: str):
     """Merge all the indices from src_folder into n indices, and return the folder for the next stage"""
     fs = _get_file_system(src_folder)
     nb_indices_on_src_folder = len(fs.ls(src_folder, detail=False))
     if nb_indices_on_src_folder <= n:
         # merging does not happen, return the source folder
         return src_folder
-    dst_folder = _get_stage2_folder(src_folder)
     batch_size = math.ceil(nb_indices_on_src_folder / n)
     n = math.ceil(nb_indices_on_src_folder / batch_size)
     merge_batches = _batch_loader(batch_size=batch_size, nb_batches=n)
@@ -260,7 +254,7 @@ def run(
     fs = _get_file_system(temporary_indices_folder)
     if fs.exists(temporary_indices_folder):
         fs.rm(temporary_indices_folder, recursive=True)
-
+    stage1_folder = temporary_indices_folder.rstrip("/") + "/stage-1"
     ss = _get_pyspark_active_session()
     # broadcast the index bytes
     trained_index_bytes = get_bytes_from_index(faiss_index)
@@ -284,7 +278,7 @@ def run(
                 memory_available_for_adding=memory_available_for_adding,
                 broadcast_trained_index_bytes=broadcast_trained_index_bytes,
                 embedding_reader=embedding_reader,
-                small_indices_folder=temporary_indices_folder,
+                small_indices_folder=stage1_folder,
                 num_cores=num_cores_per_executor,
                 embedding_ids_df_handler=embedding_ids_df_handler,
                 nb_batches=nb_batches,
@@ -292,13 +286,17 @@ def run(
         )
 
     with Timeit("-> Merging indices", indent=2):
-        next_stage_folder = _merge_to_n_indices(spark_session=ss, n=100, src_folder=temporary_indices_folder,)
+        stage2_folder = temporary_indices_folder.rstrip("/") + "/stage-2"
+        next_stage_folder = _merge_to_n_indices(
+            spark_session=ss, n=100, src_folder=stage1_folder, dst_folder=stage2_folder
+        )
         if nb_indices_to_keep == 1:
             merged_index = _merge_index(small_indices_folder=next_stage_folder, nb_batches=1)
             fs.rm(temporary_indices_folder, recursive=True)
             return merged_index, None
         else:
+            final_folder = temporary_indices_folder.rstrip("/") + "/final"
             next_stage_folder = _merge_to_n_indices(
-                spark_session=ss, n=nb_indices_to_keep, src_folder=next_stage_folder,
+                spark_session=ss, n=nb_indices_to_keep, src_folder=next_stage_folder, dst_folder=final_folder
             )
             return None, next_stage_folder
