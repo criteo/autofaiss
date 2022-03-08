@@ -3,12 +3,12 @@
 import json
 import logging
 import logging.config
-import math
 import multiprocessing
 import os
+import re
 import tempfile
 import uuid
-from typing import Any, Dict, List, Optional, Tuple, Union, cast
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from embedding_reader import EmbeddingReader
 
@@ -26,7 +26,6 @@ from autofaiss.external.optimize import (
     get_optimal_hyperparameters,
     get_optimal_index_keys_v2,
     optimize_and_measure_index,
-    optimize_and_measure_indices,
 )
 from autofaiss.external.scores import compute_fast_metrics, compute_medium_metrics
 from autofaiss.indices.index_utils import set_search_hyperparameters
@@ -74,7 +73,7 @@ def build_index(
     temporary_indices_folder: str = "hdfs://root/tmp/distributed_autofaiss_indices",
     verbose: int = logging.INFO,
     nb_indices_to_keep: int = 1,
-) -> Union[Tuple[Optional[Any], Optional[Dict[str, Union[str, float, int]]]], Dict[str, Dict]]:
+) -> Tuple[Optional[Any], Optional[Dict[str, str]]]:
     """
     Reads embeddings and creates a quantized index from them.
     The index is stored on the current machine at the given output path.
@@ -270,8 +269,26 @@ def build_index(
                 logger.debug(f"Writing id DataFrame to file {output_file}")
                 ids.to_parquet(f)
 
+        def index_optimizer(index, index_suffix):
+            cur_index_path = index_path + index_suffix
+            cur_index_infos_path = index_infos_path + index_suffix
+            if any(re.findall(r"OPQ\d+_\d+,IVF\d+_HNSW\d+,PQ\d+", index_key)):
+                set_search_hyperparameters(index, f"nprobe={64},efSearch={128},ht={2048}", use_gpu)
+            metric_infos = optimize_and_measure_index(
+                embedding_reader,
+                index,
+                cur_index_infos_path,
+                index_key,
+                index_param,
+                cur_index_path,
+                max_index_query_time_ms,
+                save_on_disk,
+                use_gpu,
+            )
+            return metric_infos
+
         with Timeit("Creating the index", indent=1):
-            index, indices_folder = create_index(
+            index, metric_infos = create_index(
                 embedding_reader,
                 index_key,
                 metric_type,
@@ -282,51 +299,8 @@ def build_index(
                 distributed=distributed,
                 temporary_indices_folder=temporary_indices_folder,
                 nb_indices_to_keep=nb_indices_to_keep,
+                index_optimizer=index_optimizer,
             )
-        if nb_indices_to_keep > 1:
-            indices_folder = cast(str, indices_folder)
-            max_nb_threads = min(
-                multiprocessing.cpu_count(),
-                max(
-                    1,
-                    math.floor(
-                        cast_memory_to_bytes(current_memory_available)
-                        / (cast_memory_to_bytes(max_index_memory_usage) / nb_indices_to_keep)
-                    ),
-                ),
-            )
-            index_path2_metric_infos = optimize_and_measure_indices(
-                indices_folder,
-                embedding_reader,
-                index_infos_path,
-                index_key,
-                index_param,
-                index_path,
-                max_index_query_time_ms,
-                save_on_disk,
-                use_gpu,
-                max_nb_threads,
-            )
-            for path, metric_infos in index_path2_metric_infos.items():
-                logger.info(f"Recap for index: {path}")
-                _log_output_dict(metric_infos)
-            fs, _ = fsspec.core.url_to_fs(temporary_indices_folder, use_listings_cache=False)
-            fs.rm(temporary_indices_folder, recursive=True)
-            return index_path2_metric_infos
-
-        else:
-            metric_infos = optimize_and_measure_index(
-                embedding_reader,
-                index,
-                index_infos_path,
-                index_key,
-                index_param,
-                index_path,
-                max_index_query_time_ms,
-                save_on_disk,
-                use_gpu,
-            )
-            logger.info("Recap:")
             _log_output_dict(metric_infos)
             return index, metric_infos
 

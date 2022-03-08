@@ -1,13 +1,11 @@
 """ Functions to find optimal index parameters """
 import json
 import logging
-import math
 import re
 from functools import partial, reduce
 from math import floor, log2, sqrt
-from multiprocessing.pool import ThreadPool
 from operator import mul
-from typing import Callable, List, Optional, TypeVar, Dict, Union
+from typing import Callable, List, Optional, TypeVar
 
 import faiss
 import fsspec
@@ -19,7 +17,6 @@ from autofaiss.indices.index_utils import (
     set_search_hyperparameters,
     speed_test_ms_per_query,
 )
-from autofaiss.utils.path import make_path_absolute
 from autofaiss.utils.algorithms import discrete_binary_search
 from autofaiss.utils.cast import cast_memory_to_bytes
 from autofaiss.utils.decorators import Timeit
@@ -441,7 +438,11 @@ def optimize_and_measure_index(
     # Set search hyperparameters for the index
     set_search_hyperparameters(index, index_param, use_gpu)
     logger.info(f"The best hyperparameters are: {index_param}")
-    metric_infos: Dict[str, Union[str, float, int]] = {"index_key": index_key, "index_param": index_param}
+    metric_infos = {
+        "index_key": index_key,
+        "index_param": index_param,
+        "index_path": index_path,
+    }
     with Timeit("Compute fast metrics", indent=1):
         metric_infos.update(compute_fast_metrics(embedding_reader, index))
     if save_on_disk:
@@ -452,51 +453,3 @@ def optimize_and_measure_index(
                 json.dump(metric_infos, f)
 
     return metric_infos
-
-
-def optimize_and_measure_indices(
-    indices_folder: str,
-    embedding_reader: EmbeddingReader,
-    index_infos_path: Optional[str],
-    index_key: str,
-    index_param: Optional[str],
-    index_path: Optional[str],
-    max_index_query_time_ms: float,
-    save_on_disk: bool,
-    use_gpu: bool,
-    max_nb_threads: int,
-):
-    """Optimize a list of indices by selecting the best hyperparameters and calculate their metrics"""
-    if index_path is None:
-        raise ValueError("index_path is None")
-    if index_infos_path is None:
-        raise ValueError("index_infos_path is None")
-
-    indices_folder = make_path_absolute(indices_folder)
-    fs, path_in_fs = fsspec.core.url_to_fs(indices_folder, use_listings_cache=False)
-    indices_file_paths = sorted(fs.ls(path_in_fs, detail=False))
-    suffix_width = int(math.log10(len(indices_file_paths))) + 1
-
-    def _read_one_index(index_file_path: str):
-        with fs.open(index_file_path, "rb") as f:
-            return faiss.read_index(faiss.PyCallbackIOReader(f.read))
-
-    index_path2_metric_infos: Dict[str, Dict] = {}
-    for i in range(0, len(indices_file_paths), max_nb_threads):
-        with ThreadPool(min(16, max_nb_threads, len(indices_file_paths))) as pool:
-            for index in pool.imap(_read_one_index, indices_file_paths[i : i + max_nb_threads]):
-                cur_index_path = index_path + str(i + 1).zfill(suffix_width)
-                cur_index_infos_path = index_infos_path + str(i + 1)
-                metric_infos = optimize_and_measure_index(
-                    embedding_reader,
-                    index,
-                    cur_index_infos_path,
-                    index_key,
-                    index_param,
-                    cur_index_path,
-                    max_index_query_time_ms,
-                    save_on_disk,
-                    use_gpu,
-                )
-                index_path2_metric_infos[cur_index_path] = metric_infos
-    return index_path2_metric_infos

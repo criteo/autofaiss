@@ -384,7 +384,7 @@ def test_index_correctness_in_distributed_mode_with_multiple_indices(tmpdir):
     )
     temporary_indices_folder = os.path.join(tmpdir.strpath, "distributed_autofaiss_indices")
     ids_path = os.path.join(tmpdir.strpath, "ids")
-    index_path2_metric_infos = build_index(
+    _, index_path2_metric_infos = build_index(
         embeddings=tmp_dir,
         distributed="pyspark",
         file_format="parquet",
@@ -425,7 +425,7 @@ def test_index_correctness_in_distributed_mode_with_multiple_indices(tmpdir):
     )
 
     temporary_indices_folder = os.path.join(tmpdir.strpath, "distributed_autofaiss_indices")
-    index_path2_metric_infos = build_index(
+    _, index_path2_metric_infos = build_index(
         embeddings=tmp_dir,
         distributed="pyspark",
         file_format="npy",

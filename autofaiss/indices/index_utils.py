@@ -88,13 +88,13 @@ def search_speed_test(
         if time.perf_counter() - test_start_time_s > timout_s:
             break
 
-    speed_list_ms = np.array(speed_list_ms)
+    speed_list_ms2 = np.array(speed_list_ms)
 
     # avg2 = 1000 * (time.perf_counter() - test_start_time_s) / len(speed_list_ms)
 
     speed_infos = {
-        "avg_search_speed_ms": np.average(speed_list_ms),
-        "99p_search_speed_ms": np.quantile(speed_list_ms, 0.99),
+        "avg_search_speed_ms": np.average(speed_list_ms2),
+        "99p_search_speed_ms": np.quantile(speed_list_ms2, 0.99),
     }
 
     return speed_infos
