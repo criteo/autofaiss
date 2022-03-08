@@ -138,7 +138,7 @@ def _merge_index(
     batch_id: Optional[int] = None,
     start: Optional[int] = None,
     end: Optional[int] = None,
-    max_size_on_disk: str = "100GB",
+    max_size_on_disk: str = "50GB",
     tmp_output_folder: Optional[str] = None,
     index_optimizer: Callable = None,
 ) -> Tuple[faiss.Index, Dict[str, str]]:
@@ -176,7 +176,7 @@ def _merge_index(
     first_index_file = small_indices_files[0]
     first_index_size = fs.size(first_index_file)
     max_sizes_in_bytes = cast_memory_to_bytes(max_size_on_disk)
-    nb_files_each_time = math.floor(max_sizes_in_bytes / first_index_size)
+    nb_files_each_time = math.ceil(max_sizes_in_bytes / first_index_size)
     merged_index = None
     n = len(small_indices_files)
     nb_iterations = max(math.ceil(n / nb_files_each_time), 1)
