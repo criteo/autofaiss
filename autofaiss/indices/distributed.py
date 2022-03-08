@@ -176,7 +176,7 @@ def _merge_index(
     first_index_file = small_indices_files[0]
     first_index_size = fs.size(first_index_file)
     max_sizes_in_bytes = cast_memory_to_bytes(max_size_on_disk)
-    nb_files_each_time = math.ceil(max_sizes_in_bytes / first_index_size)
+    nb_files_each_time = max(1, int(max_sizes_in_bytes / first_index_size))
     merged_index = None
     n = len(small_indices_files)
     nb_iterations = max(math.ceil(n / nb_files_each_time), 1)
@@ -217,7 +217,7 @@ def _merge_to_n_indices(spark_session, n: int, src_folder: str, dst_folder: str,
         # no need to merge
         return src_folder, None
 
-    batch_size = math.ceil(nb_indices_on_src_folder / n)
+    batch_size = max(1, int(nb_indices_on_src_folder / n))
     n = math.ceil(nb_indices_on_src_folder / batch_size)
     merge_batches = _batch_loader(batch_size=batch_size, nb_batches=n)
 
@@ -293,7 +293,7 @@ def run(
 
     # maximum between the number of spark workers, 100M embeddings per task and the number of indices to keep
     estimated_nb_batches = max(n_workers, int(embedding_reader.count / (10 ** 7)), nb_indices_to_keep)
-    batch_size = math.ceil(embedding_reader.count / estimated_nb_batches)
+    batch_size = max(1, int(embedding_reader.count / estimated_nb_batches))
     nb_batches = math.ceil(embedding_reader.count / batch_size)
 
     batches = _batch_loader(batch_size=batch_size, nb_batches=nb_batches)
