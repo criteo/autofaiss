@@ -321,7 +321,8 @@ def run(
         )
         if nb_indices_to_keep == 1:
             merged_index, _ = _merge_index(small_indices_folder=next_stage_folder, nb_batches=1)
-            fs.rm(temporary_indices_folder, recursive=True)
+            if fs.exists(temporary_indices_folder):
+                fs.rm(temporary_indices_folder, recursive=True)
             metrics = index_optimizer(merged_index, "")  # type: ignore
             return merged_index, metrics
         else:
@@ -333,5 +334,6 @@ def run(
                 dst_folder=final_folder,
                 index_optimizer=index_optimizer,
             )
-            fs.rm(temporary_indices_folder, recursive=True)
+            if fs.exists(temporary_indices_folder):
+                fs.rm(temporary_indices_folder, recursive=True)
             return None, metrics
