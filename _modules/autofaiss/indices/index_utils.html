@@ -172,13 +172,13 @@
         <span class="k">if</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span> <span class="o">-</span> <span class="n">test_start_time_s</span> <span class="o">&gt;</span> <span class="n">timout_s</span><span class="p">:</span>
             <span class="k">break</span>
 
-    <span class="n">speed_list_ms</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">speed_list_ms</span><span class="p">)</span>
+    <span class="n">speed_list_ms2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">speed_list_ms</span><span class="p">)</span>
 
     <span class="c1"># avg2 = 1000 * (time.perf_counter() - test_start_time_s) / len(speed_list_ms)</span>
 
     <span class="n">speed_infos</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s2">&quot;avg_search_speed_ms&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">speed_list_ms</span><span class="p">),</span>
-        <span class="s2">&quot;99p_search_speed_ms&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">quantile</span><span class="p">(</span><span class="n">speed_list_ms</span><span class="p">,</span> <span class="mf">0.99</span><span class="p">),</span>
+        <span class="s2">&quot;avg_search_speed_ms&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">speed_list_ms2</span><span class="p">),</span>
+        <span class="s2">&quot;99p_search_speed_ms&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">quantile</span><span class="p">(</span><span class="n">speed_list_ms2</span><span class="p">,</span> <span class="mf">0.99</span><span class="p">),</span>
     <span class="p">}</span>
 
     <span class="k">return</span> <span class="n">speed_infos</span></div>

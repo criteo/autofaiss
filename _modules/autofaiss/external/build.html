@@ -83,9 +83,8 @@
              
   <h1>Source code for autofaiss.external.build</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot; gather functions necessary to build an index &quot;&quot;&quot;</span>
-<span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">import</span> <span class="nn">logging</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Any</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Any</span>
 
 <span class="kn">import</span> <span class="nn">faiss</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
@@ -98,7 +97,6 @@
     <span class="n">get_optimal_batch_size</span><span class="p">,</span>
     <span class="n">get_optimal_index_keys_v2</span><span class="p">,</span>
     <span class="n">get_optimal_train_size</span><span class="p">,</span>
-    <span class="n">set_search_hyperparameters</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span> <span class="nn">autofaiss.indices.index_factory</span> <span class="kn">import</span> <span class="n">index_factory</span>
 <span class="kn">from</span> <span class="nn">autofaiss.utils.cast</span> <span class="kn">import</span> <span class="p">(</span>
@@ -187,7 +185,8 @@
     <span class="n">distributed</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">temporary_indices_folder</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;hdfs://root/tmp/distributed_autofaiss_indices&quot;</span><span class="p">,</span>
     <span class="n">nb_indices_to_keep</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="n">faiss</span><span class="o">.</span><span class="n">Index</span><span class="p">],</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+    <span class="n">index_optimizer</span><span class="p">:</span> <span class="n">Callable</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="n">faiss</span><span class="o">.</span><span class="n">Index</span><span class="p">],</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Function that returns an index on the numpy arrays stored on disk in the embeddings_path path.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -285,24 +284,21 @@
                 <span class="n">index</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">vec_batch</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">embedding_ids_df_handler</span><span class="p">:</span>
                     <span class="n">embedding_ids_df_handler</span><span class="p">(</span><span class="n">ids_batch</span><span class="p">,</span> <span class="n">batch_id</span><span class="p">)</span>
-            <span class="n">indices_path</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">metric_infos</span> <span class="o">=</span> <span class="n">index_optimizer</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
         <span class="k">elif</span> <span class="n">distributed</span> <span class="o">==</span> <span class="s2">&quot;pyspark&quot;</span><span class="p">:</span>
-            <span class="n">index</span><span class="p">,</span> <span class="n">indices_path</span> <span class="o">=</span> <span class="n">run</span><span class="p">(</span>
+            <span class="n">index</span><span class="p">,</span> <span class="n">metric_infos</span> <span class="o">=</span> <span class="n">run</span><span class="p">(</span>
                 <span class="n">faiss_index</span><span class="o">=</span><span class="n">index</span><span class="p">,</span>
                 <span class="n">embedding_reader</span><span class="o">=</span><span class="n">embedding_reader</span><span class="p">,</span>
                 <span class="n">memory_available_for_adding</span><span class="o">=</span><span class="n">memory_available_for_adding</span><span class="p">,</span>
                 <span class="n">embedding_ids_df_handler</span><span class="o">=</span><span class="n">embedding_ids_df_handler</span><span class="p">,</span>
                 <span class="n">temporary_indices_folder</span><span class="o">=</span><span class="n">temporary_indices_folder</span><span class="p">,</span>
                 <span class="n">nb_indices_to_keep</span><span class="o">=</span><span class="n">nb_indices_to_keep</span><span class="p">,</span>
+                <span class="n">index_optimizer</span><span class="o">=</span><span class="n">index_optimizer</span><span class="p">,</span>
             <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Distributed by </span><span class="si">{</span><span class="n">distributed</span><span class="si">}</span><span class="s1"> is not supported, only &quot;pyspark&quot; is supported&#39;</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">nb_indices_to_keep</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-        <span class="c1"># Give standard values for index hyperparameters if possible.</span>
-        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;OPQ\d+_\d+,IVF\d+_HNSW\d+,PQ\d+&quot;</span><span class="p">,</span> <span class="n">index_key</span><span class="p">)):</span>
-            <span class="n">set_search_hyperparameters</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;nprobe=</span><span class="si">{</span><span class="mi">64</span><span class="si">}</span><span class="s2">,efSearch=</span><span class="si">{</span><span class="mi">128</span><span class="si">}</span><span class="s2">,ht=</span><span class="si">{</span><span class="mi">2048</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">use_gpu</span><span class="p">)</span>
     <span class="c1"># return the index.</span>
-    <span class="k">return</span> <span class="n">index</span><span class="p">,</span> <span class="n">indices_path</span></div>
+    <span class="k">return</span> <span class="n">index</span><span class="p">,</span> <span class="n">metric_infos</span></div>
 </pre></div>
 
            </div>
