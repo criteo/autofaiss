@@ -145,10 +145,13 @@ def build_index(
         If it is not equal to 1,
             - You are expected to have at most `nb_indices_to_keep` indices with the following names:
                 "{index_path}i" where i ranges from 1 to `nb_indices_to_keep`
-            - `build_index` returns a mapping from index path to metrics instead of a tuple (index, metrics)
+            - `build_index` returns a mapping from index path to metrics
         Default to 1.
     """
     setup_logging(verbose)
+    # if using distributed mode, it doesn't make sense to use indices that are not memory mappable
+    if distributed == "pyspark":
+        should_be_memory_mappable = True
     if index_path is not None:
         index_path = make_path_absolute(index_path)
     elif save_on_disk:
