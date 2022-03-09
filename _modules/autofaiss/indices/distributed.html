@@ -178,7 +178,9 @@
 
     <span class="n">ids_total</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="p">(</span><span class="n">vec_batch</span><span class="p">,</span> <span class="n">ids_batch</span><span class="p">)</span> <span class="ow">in</span> <span class="n">embedding_reader</span><span class="p">(</span><span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="n">end</span><span class="p">):</span>
-        <span class="n">empty_index</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">vec_batch</span><span class="p">)</span>
+        <span class="n">consecutive_ids</span> <span class="o">=</span> <span class="n">ids_batch</span><span class="p">[</span><span class="s2">&quot;i&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span>
+        <span class="c1"># using add_with_ids makes it possible to have consecutive and unique ids over all the N indices</span>
+        <span class="n">empty_index</span><span class="o">.</span><span class="n">add_with_ids</span><span class="p">(</span><span class="n">vec_batch</span><span class="p">,</span> <span class="n">consecutive_ids</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">embedding_ids_df_handler</span><span class="p">:</span>
             <span class="n">ids_total</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ids_batch</span><span class="p">)</span>
 
@@ -253,7 +255,7 @@
             <span class="c1"># so, we have to check whether it is file or not</span>
             <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">rest_index_file</span><span class="p">):</span>
                 <span class="n">index</span> <span class="o">=</span> <span class="n">faiss</span><span class="o">.</span><span class="n">read_index</span><span class="p">(</span><span class="n">rest_index_file</span><span class="p">)</span>
-                <span class="n">faiss</span><span class="o">.</span><span class="n">merge_into</span><span class="p">(</span><span class="n">merged</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">shift_ids</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">faiss</span><span class="o">.</span><span class="n">merge_into</span><span class="p">(</span><span class="n">merged</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">shift_ids</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">merged</span>
 
     <span class="c1"># estimate index size by taking the first index</span>

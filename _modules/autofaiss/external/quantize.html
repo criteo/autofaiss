@@ -229,10 +229,13 @@
 <span class="sd">        If it is not equal to 1,</span>
 <span class="sd">            - You are expected to have at most `nb_indices_to_keep` indices with the following names:</span>
 <span class="sd">                &quot;{index_path}i&quot; where i ranges from 1 to `nb_indices_to_keep`</span>
-<span class="sd">            - `build_index` returns a mapping from index path to metrics instead of a tuple (index, metrics)</span>
+<span class="sd">            - `build_index` returns a mapping from index path to metrics</span>
 <span class="sd">        Default to 1.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">setup_logging</span><span class="p">(</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="c1"># if using distributed mode, it doesn&#39;t make sense to use indices that are not memory mappable</span>
+    <span class="k">if</span> <span class="n">distributed</span> <span class="o">==</span> <span class="s2">&quot;pyspark&quot;</span><span class="p">:</span>
+        <span class="n">should_be_memory_mappable</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="k">if</span> <span class="n">index_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">index_path</span> <span class="o">=</span> <span class="n">make_path_absolute</span><span class="p">(</span><span class="n">index_path</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">save_on_disk</span><span class="p">:</span>
