@@ -27,7 +27,6 @@ def build_test_collection_numpy(
 ):
     tmp_path = tmpdir.mkdir(tmpdir_name)
     sizes = [random.randint(min_size, max_size) for _ in range(nb_files)]
-    dim = dim
     all_arrays = []
     file_paths = []
     for i, size in enumerate(sizes):
@@ -346,14 +345,12 @@ def test_index_correctness_in_distributed_mode(tmpdir):
 
 
 def _search_from_multiple_indices(index_paths, query, k):
-    n = 0
     all_distances, all_ids, NB_QUERIES = [], [], 1
     for rest_index_file in index_paths:
         index = faiss.read_index(rest_index_file)
         distances, ids = index.search(query, k=k)
         all_distances.append(distances)
-        all_ids.append(ids + n)
-        n += index.ntotal
+        all_ids.append(ids)
 
     dists_arr = np.stack(all_distances, axis=1).reshape(NB_QUERIES, -1)
     knn_ids_arr = np.stack(all_ids, axis=1).reshape(NB_QUERIES, -1)
@@ -368,7 +365,7 @@ def _merge_indices(index_paths):
     merged = faiss.read_index(index_paths[0])
     for rest_index_file in index_paths[1:]:
         index = faiss.read_index(rest_index_file)
-        faiss.merge_into(merged, index, shift_ids=True)
+        faiss.merge_into(merged, index, shift_ids=False)
     return merged
 
 
@@ -400,14 +397,14 @@ def test_index_correctness_in_distributed_mode_with_multiple_indices(tmpdir):
         id_columns=["id"],
     )
     index_paths = sorted(index_path2_metric_infos.keys())
-    K, all_distances, all_ids, NB_QUERIES = 5, [], [], 1
+    K, NB_QUERIES = 5, 1
     query = faiss.rand((NB_QUERIES, dim))
 
     ground_truth_index = faiss.index_factory(dim, "IVF1,Flat", faiss.METRIC_INNER_PRODUCT)
     expected_array = np.stack(expected_df["embedding"])
     ground_truth_index.train(expected_array)
     ground_truth_index.add(expected_array)
-    ground_truth_distances, ground_truth_ids = ground_truth_index.search(query, k=K)
+    _, ground_truth_ids = ground_truth_index.search(query, k=K)
 
     ids_mappings = pd.read_parquet(ids_path)["id"]
     assert len(ids_mappings) == len(expected_df)
@@ -415,7 +412,7 @@ def test_index_correctness_in_distributed_mode_with_multiple_indices(tmpdir):
 
     _, sorted_k_ids = _search_from_multiple_indices(index_paths=index_paths, query=query, k=K)
     merged = _merge_indices(index_paths)
-    distances, ids = merged.search(query, k=K)
+    _, ids = merged.search(query, k=K)
     assert_array_equal(ids, ground_truth_ids)
     assert_array_equal(sorted_k_ids, ground_truth_ids)
 
@@ -441,12 +438,12 @@ def test_index_correctness_in_distributed_mode_with_multiple_indices(tmpdir):
     ground_truth_index = faiss.index_factory(dim, "IVF1,Flat", faiss.METRIC_INNER_PRODUCT)
     ground_truth_index.train(expected_array)
     ground_truth_index.add(expected_array)
-    ground_truth_distances, ground_truth_ids = ground_truth_index.search(query, k=K)
+    _, ground_truth_ids = ground_truth_index.search(query, k=K)
 
     index_paths = sorted(index_path2_metric_infos.keys())
     _, sorted_k_ids = _search_from_multiple_indices(index_paths=index_paths, query=query, k=K)
 
     merged = _merge_indices(index_paths)
-    distances, ids = merged.search(query, k=K)
+    _, ids = merged.search(query, k=K)
     assert_array_equal(ids, ground_truth_ids)
     assert_array_equal(sorted_k_ids, ground_truth_ids)

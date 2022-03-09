@@ -94,7 +94,9 @@ def _add_index(
 
     ids_total = []
     for (vec_batch, ids_batch) in embedding_reader(batch_size=batch_size, start=start, end=end):
-        empty_index.add(vec_batch)
+        consecutive_ids = ids_batch["i"].to_numpy()
+        # using add_with_ids makes it possible to have consecutive and unique ids over all the N indices
+        empty_index.add_with_ids(vec_batch, consecutive_ids)
         if embedding_ids_df_handler:
             ids_total.append(ids_batch)
 
@@ -169,7 +171,7 @@ def _merge_index(
             # so, we have to check whether it is file or not
             if os.path.isfile(rest_index_file):
                 index = faiss.read_index(rest_index_file)
-                faiss.merge_into(merged, index, shift_ids=True)
+                faiss.merge_into(merged, index, shift_ids=False)
         return merged
 
     # estimate index size by taking the first index
