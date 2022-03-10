@@ -78,3 +78,52 @@ merge_ondisk(empty_index, block_fnames, "merged_index.ivfdata")
 faiss.write_index(empty_index, "populated.index")
 
 pop = faiss.read_index("populated.index", faiss.IO_FLAG_MMAP)
+
+########################################################
+# Use case 4: use N indices using  HStackInvertedLists #
+########################################################
+
+# This allows using N indices as a single combined index
+# without changing anything on disk or loading anything to memory
+# it works well but it's slower than first using merge_ondisk
+# because it requires explore N pieces of inverted list for each
+# list to explore
+import os
+
+
+class CombinedIndex:
+    """
+    combines a set of inverted lists into a hstack
+    adds these inverted lists to an empty index that contains
+    the info on how to perform searches
+    """
+
+    def __init__(self, invlist_fnames):
+        ilv = faiss.InvertedListsPtrVector()
+
+        for fname in invlist_fnames:
+            if os.path.exists(fname):
+                index = faiss.read_index(fname, faiss.IO_FLAG_MMAP)
+                index_ivf = faiss.extract_index_ivf(index)
+                il = index_ivf.invlists
+                index_ivf.own_invlists = False
+            else:
+                raise FileNotFoundError
+            ilv.push_back(il)
+
+        self.big_il = faiss.HStackInvertedLists(ilv.size(), ilv.data())
+        ntotal = self.big_il.compute_ntotal()
+
+        self.index = faiss.read_index(invlist_fnames[0], faiss.IO_FLAG_MMAP)
+
+        index_ivf = faiss.extract_index_ivf(self.index)
+        index_ivf.replace_invlists(self.big_il, True)
+        index_ivf.ntotal = self.index.ntotal = ntotal
+
+    def search(self, x, k):
+        D, I = self.index.search(x, k)
+        return D, I
+
+
+index = CombinedIndex(index_paths)
+index.search(queries, K)
