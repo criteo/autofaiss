@@ -8,7 +8,6 @@ from multiprocessing.pool import ThreadPool
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 from typing import Dict, Optional, Union, List, Tuple
-import random
 import logging
 
 import faiss
@@ -20,16 +19,9 @@ logger = logging.getLogger("autofaiss")
 
 def get_index_size(index: faiss.Index) -> int:
     """Returns the size in RAM of a given index"""
-
-    index_file = "/tmp/tmp_index" + str(random.randrange(100000)) + ".idx"
-
-    if os.path.exists(index_file):
-        os.remove(index_file)
-
-    faiss.write_index(index, index_file)
-
-    size_in_bytes = Path(index_file).stat().st_size
-    os.remove(index_file)
+    with NamedTemporaryFile() as tmp_file:
+        faiss.write_index(index, tmp_file.name)
+        size_in_bytes = Path(tmp_file.name).stat().st_size
 
     return size_in_bytes
 
