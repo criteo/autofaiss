@@ -293,7 +293,7 @@ def run(
     sc = ss._jsc.sc()  # pylint: disable=protected-access
     n_workers = len(sc.statusTracker().getExecutorInfos()) - 1
 
-    # maximum between the number of spark workers, 100M embeddings per task and the number of indices to keep
+    # maximum between the number of spark workers, 10M embeddings per task and the number of indices to keep
     estimated_nb_batches = max(n_workers, int(embedding_reader.count / (10 ** 7)), nb_indices_to_keep)
     batch_size = max(1, int(embedding_reader.count / estimated_nb_batches))
     nb_batches = math.ceil(embedding_reader.count / batch_size)
