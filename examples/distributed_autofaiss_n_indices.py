@@ -77,7 +77,7 @@ merge_ondisk(empty_index, block_fnames, "merged_index.ivfdata")
 
 faiss.write_index(empty_index, "populated.index")
 
-pop = faiss.read_index("populated.index", faiss.IO_FLAG_MMAP)
+pop = faiss.read_index("populated.index", faiss.IO_FLAG_ONDISK_SAME_DIR)
 
 ########################################################
 # Use case 4: use N indices using  HStackInvertedLists #
