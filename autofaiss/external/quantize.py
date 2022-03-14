@@ -270,7 +270,7 @@ def build_index(
             output_file = os.path.join(ids_path, filename)  # type: ignore
             with fsspec.open(output_file, "wb") as f:
                 logger.debug(f"Writing id DataFrame to file {output_file}")
-                ids.to_parquet(f)
+                ids.to_parquet(f, index=False)
 
         def index_optimizer(index, index_suffix):
             cur_index_path = index_path + index_suffix
