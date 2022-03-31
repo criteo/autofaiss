@@ -93,17 +93,14 @@
 
 <span class="kn">import</span> <span class="nn">faiss</span>
 <span class="kn">import</span> <span class="nn">fsspec</span>
-<span class="kn">from</span> <span class="nn">embedding_reader</span> <span class="kn">import</span> <span class="n">EmbeddingReader</span>
-
-<span class="kn">from</span> <span class="nn">autofaiss.external.metadata</span> <span class="kn">import</span> <span class="n">compute_memory_necessary_for_training_wrapper</span><span class="p">,</span> <span class="n">IndexMetadata</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">autofaiss.external.metadata</span> <span class="kn">import</span> <span class="n">IndexMetadata</span><span class="p">,</span> <span class="n">compute_memory_necessary_for_training_wrapper</span>
 <span class="kn">from</span> <span class="nn">autofaiss.external.scores</span> <span class="kn">import</span> <span class="n">compute_fast_metrics</span>
-<span class="kn">from</span> <span class="nn">autofaiss.indices.index_utils</span> <span class="kn">import</span> <span class="p">(</span>
-    <span class="n">set_search_hyperparameters</span><span class="p">,</span>
-    <span class="n">speed_test_ms_per_query</span><span class="p">,</span>
-<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">autofaiss.indices.index_utils</span> <span class="kn">import</span> <span class="n">set_search_hyperparameters</span><span class="p">,</span> <span class="n">speed_test_ms_per_query</span>
 <span class="kn">from</span> <span class="nn">autofaiss.utils.algorithms</span> <span class="kn">import</span> <span class="n">discrete_binary_search</span>
 <span class="kn">from</span> <span class="nn">autofaiss.utils.cast</span> <span class="kn">import</span> <span class="n">cast_memory_to_bytes</span>
 <span class="kn">from</span> <span class="nn">autofaiss.utils.decorators</span> <span class="kn">import</span> <span class="n">Timeit</span>
+<span class="kn">from</span> <span class="nn">embedding_reader</span> <span class="kn">import</span> <span class="n">EmbeddingReader</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;autofaiss&quot;</span><span class="p">)</span>
 
@@ -375,6 +372,118 @@
 <span class="n">T</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;T&quot;</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span>
 
 
+<div class="viewcode-block" id="get_min_param_value_for_best_neighbors_coverage"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.optimize.get_min_param_value_for_best_neighbors_coverage">[docs]</a><span class="k">def</span> <span class="nf">get_min_param_value_for_best_neighbors_coverage</span><span class="p">(</span>
+    <span class="n">index</span><span class="p">:</span> <span class="n">faiss</span><span class="o">.</span><span class="n">Index</span><span class="p">,</span>
+    <span class="n">parameter_range</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">T</span><span class="p">],</span>
+    <span class="n">hyperparameter_str_from_param</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">T</span><span class="p">],</span> <span class="nb">str</span><span class="p">],</span>
+    <span class="n">targeted_nb_neighbors_to_query</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">targeted_coverage</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.99</span><span class="p">,</span>
+    <span class="n">use_gpu</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">T</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This function returns the minimal value to set in the index hyperparameters so that,</span>
+<span class="sd">    on average, the index retrieves 99% of the requested k=targeted_nb_neighbors_to_query nearest neighbors.</span>
+
+<span class="sd">            1 ^       ------------------------</span>
+<span class="sd">              |     /</span>
+<span class="sd">    nearest   |    /</span>
+<span class="sd">    neighbors |   /</span>
+<span class="sd">    coverage  |  /</span>
+<span class="sd">              | /</span>
+<span class="sd">            0 +--[--------------------------]--&gt;  param_value</span>
+<span class="sd">                 ^  ^                       ^</span>
+<span class="sd">                 |  |                       |</span>
+<span class="sd">                 |  min_param_value         |</span>
+<span class="sd">                 |                          |</span>
+<span class="sd">                 min(parameter_range)      max(parameter_range)</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    index: faiss.Index</span>
+<span class="sd">        Index to search on.</span>
+<span class="sd">    parameter_range: List[T]</span>
+<span class="sd">        List of possible values for the hyperparameter. This list is sorted.</span>
+<span class="sd">    hyperparameter_str_from_param: Callable[[T], str]</span>
+<span class="sd">        Function to generate a hyperparameter string from the hyperparameter value</span>
+<span class="sd">        on which we do a binary search.</span>
+<span class="sd">    targeted_nb_neighbors_to_query: int</span>
+<span class="sd">        Targeted number of neighbors to query.</span>
+<span class="sd">    targeted_coverage: float</span>
+<span class="sd">        Targeted nearest neighbors coverage. The average ratio of neighbors really retrived</span>
+<span class="sd">        when asking for k=targeted_nb_neighbors_to_query nearest neighbors.</span>
+<span class="sd">    use_gpu: bool</span>
+<span class="sd">        Whether the index is on the GPU.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Initialize query vectors to run the benchmark</span>
+    <span class="n">query_vectors</span> <span class="o">=</span> <span class="n">index</span><span class="o">.</span><span class="n">reconstruct_n</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">index</span><span class="o">.</span><span class="n">ntotal</span><span class="p">,</span> <span class="mi">100</span><span class="p">))</span>
+
+    <span class="c1"># Function to compute the coverage of the nearest neighbors</span>
+    <span class="k">def</span> <span class="nf">get_nearest_neighbors_coverage</span><span class="p">(</span><span class="n">k</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="n">ind</span> <span class="o">=</span> <span class="n">index</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">query_vectors</span><span class="p">,</span> <span class="n">k</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">return</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">ind</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="n">ind</span><span class="o">.</span><span class="n">size</span>
+
+    <span class="c1"># Display a warning if the targeted number of nearest neighbors is incoherent with the index size</span>
+    <span class="k">if</span> <span class="n">targeted_nb_neighbors_to_query</span> <span class="o">&gt;</span> <span class="n">index</span><span class="o">.</span><span class="n">ntotal</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;The targeted number of nearest neighbors (</span><span class="si">{</span><span class="n">targeted_nb_neighbors_to_query</span><span class="si">}</span><span class="s2">) &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;is greater than the total number of vectors in the index (</span><span class="si">{</span><span class="n">index</span><span class="o">.</span><span class="n">ntotal</span><span class="si">}</span><span class="s2">). &quot;</span>
+            <span class="s2">&quot;We set the targeted number of nearest neighbors to the total number of vectors.&quot;</span>
+        <span class="p">)</span>
+        <span class="n">targeted_nb_neighbors_to_query</span> <span class="o">=</span> <span class="n">index</span><span class="o">.</span><span class="n">ntotal</span>
+
+    <span class="c1"># Compute the max nearest neighbors coverage possible with the given hyperparameters</span>
+    <span class="n">param_str</span> <span class="o">=</span> <span class="n">hyperparameter_str_from_param</span><span class="p">(</span><span class="n">parameter_range</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">set_search_hyperparameters</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">param_str</span><span class="p">,</span> <span class="n">use_gpu</span><span class="p">)</span>
+    <span class="n">max_nearest_neighbors_coverage</span> <span class="o">=</span> <span class="n">get_nearest_neighbors_coverage</span><span class="p">(</span><span class="n">targeted_nb_neighbors_to_query</span><span class="p">)</span>
+
+    <span class="c1"># If the index cannot reach the targeted coverage, we adapt it.</span>
+    <span class="k">if</span> <span class="n">max_nearest_neighbors_coverage</span> <span class="o">&lt;</span> <span class="n">targeted_coverage</span><span class="p">:</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;The maximum nearest neighbors coverage is </span><span class="si">{</span><span class="mi">100</span><span class="o">*</span><span class="n">max_nearest_neighbors_coverage</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">% for this index. &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;It means that when requesting </span><span class="si">{</span><span class="n">targeted_nb_neighbors_to_query</span><span class="si">}</span><span class="s2"> nearest neighbors, the average number &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;of retrieved neighbors will be </span><span class="si">{</span><span class="nb">round</span><span class="p">(</span><span class="n">targeted_nb_neighbors_to_query</span><span class="o">*</span><span class="n">max_nearest_neighbors_coverage</span><span class="p">)</span><span class="si">}</span><span class="s2">. &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;The program will try to find the best hyperparameters to reach 95% of this max coverage at least, &quot;</span>
+            <span class="s2">&quot;and then will optimize the search time for this target. &quot;</span>
+            <span class="s2">&quot;The index search speed could be higher than the requested max search speed.&quot;</span>
+        <span class="p">)</span>
+
+        <span class="c1"># In that case there is a hard limit on the maximal nearest neighbors coverage.</span>
+        <span class="c1"># We redefine the new targeted coverage to reach the begining of the inflexion point</span>
+        <span class="c1">#</span>
+        <span class="c1">#          1 ^                               &lt;---- Initial target: 99% coverage</span>
+        <span class="c1">#            |</span>
+        <span class="c1">#  nearest   |     ------------------------- &lt;---- New target 0.95*max_nearest_neighbors_coverage</span>
+        <span class="c1">#  neighbors |   /</span>
+        <span class="c1">#  coverage  |  /</span>
+        <span class="c1">#            | /</span>
+        <span class="c1">#          0 +--[--------------------------]--&gt;  param_value</span>
+        <span class="c1">#               ^  ^                       ^</span>
+        <span class="c1">#               |  |                       |</span>
+        <span class="c1">#               |  min_param_value         |</span>
+        <span class="c1">#               |                          |</span>
+        <span class="c1">#               min(parameter_range)      max(parameter_range)</span>
+
+        <span class="n">targeted_coverage</span> <span class="o">=</span> <span class="mf">0.95</span> <span class="o">*</span> <span class="n">max_nearest_neighbors_coverage</span>
+
+    <span class="c1"># Intialize the binary search</span>
+    <span class="k">def</span> <span class="nf">is_meeting_constraint</span><span class="p">(</span><span class="n">rank</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+
+        <span class="n">parameter_value</span> <span class="o">=</span> <span class="n">parameter_range</span><span class="p">[</span><span class="n">rank</span><span class="p">]</span>
+        <span class="n">param_str</span> <span class="o">=</span> <span class="n">hyperparameter_str_from_param</span><span class="p">(</span><span class="n">parameter_value</span><span class="p">)</span>
+        <span class="n">set_search_hyperparameters</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">param_str</span><span class="p">,</span> <span class="n">use_gpu</span><span class="p">)</span>
+        <span class="n">nearest_neighbors_coverage</span> <span class="o">=</span> <span class="n">get_nearest_neighbors_coverage</span><span class="p">(</span><span class="n">targeted_nb_neighbors_to_query</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">nearest_neighbors_coverage</span> <span class="o">&gt;=</span> <span class="n">targeted_coverage</span>
+
+    <span class="c1"># Find the min param_value that reaches the targeted coverage</span>
+    <span class="n">best_rank</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">discrete_binary_search</span><span class="p">(</span><span class="n">is_meeting_constraint</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">parameter_range</span><span class="p">))</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">parameter_range</span><span class="p">[</span><span class="n">best_rank</span><span class="p">]</span></div>
+
+
 <div class="viewcode-block" id="binary_search_on_param"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.optimize.binary_search_on_param">[docs]</a><span class="k">def</span> <span class="nf">binary_search_on_param</span><span class="p">(</span>
     <span class="n">index</span><span class="p">:</span> <span class="n">faiss</span><span class="o">.</span><span class="n">Index</span><span class="p">,</span>
     <span class="n">parameter_range</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">T</span><span class="p">],</span>
@@ -383,7 +492,7 @@
     <span class="n">timeout_boost_for_precision_search</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">6.0</span><span class="p">,</span>
     <span class="n">use_gpu</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">max_timeout_per_iteration_s</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>  <span class="c1"># seconds</span>
-<span class="p">):</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">T</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Apply a binary search on a given hyperparameter to maximize the recall given</span>
 <span class="sd">    a query speed constraint in milliseconds/query.</span>
@@ -393,7 +502,7 @@
 <span class="sd">    index: faiss.Index</span>
 <span class="sd">        Index to search on.</span>
 <span class="sd">    parameter_range: List[T]</span>
-<span class="sd">        List of possible values for the hyperparameter.</span>
+<span class="sd">        List of possible values for the hyperparameter. This list is sorted.</span>
 <span class="sd">    max_speed_ms: float</span>
 <span class="sd">        Maximum query speed in milliseconds/query.</span>
 <span class="sd">    hyperparameter_str_from_param: Callable[[T], str]</span>
@@ -451,6 +560,7 @@
     <span class="n">use_gpu</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">max_timeout_per_iteration_s</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>  <span class="c1"># seconds</span>
     <span class="n">min_ef_search</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">32</span><span class="p">,</span>
+    <span class="n">min_nearest_neighbors_to_retrieve</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">20</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Find the optimal hyperparameters to maximize the recall given a query speed in milliseconds/query&quot;&quot;&quot;</span>
 
@@ -491,6 +601,13 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;we don&#39;t have heuristics for that kind or index (</span><span class="si">{</span><span class="n">index_key</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
 
+    <span class="n">min_param_value</span> <span class="o">=</span> <span class="n">get_min_param_value_for_best_neighbors_coverage</span><span class="p">(</span>
+        <span class="n">index</span><span class="p">,</span> <span class="n">parameter_range</span><span class="p">,</span> <span class="n">hyperparameter_str_from_param</span><span class="p">,</span> <span class="n">min_nearest_neighbors_to_retrieve</span><span class="p">,</span> <span class="n">use_gpu</span><span class="o">=</span><span class="n">use_gpu</span>
+    <span class="p">)</span>
+
+    <span class="n">parameter_range</span> <span class="o">=</span> <span class="p">[</span><span class="n">param_value</span> <span class="k">for</span> <span class="n">param_value</span> <span class="ow">in</span> <span class="n">parameter_range</span> <span class="k">if</span> <span class="n">param_value</span> <span class="o">&gt;=</span> <span class="n">min_param_value</span><span class="p">]</span>
+    <span class="n">parameter_range</span> <span class="o">=</span> <span class="n">parameter_range</span> <span class="ow">or</span> <span class="p">[</span><span class="n">min_param_value</span><span class="p">]</span>
+
     <span class="n">optimal_param</span> <span class="o">=</span> <span class="n">binary_search_on_param</span><span class="p">(</span>
         <span class="n">index</span><span class="p">,</span>
         <span class="n">parameter_range</span><span class="p">,</span>
@@ -511,14 +628,22 @@
     <span class="n">index_key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">index_param</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
     <span class="n">index_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+    <span class="o">*</span><span class="p">,</span>
     <span class="n">max_index_query_time_ms</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">min_nearest_neighbors_to_retrieve</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="n">save_on_disk</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
     <span class="n">use_gpu</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
 <span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Optimize one index by selecting the best hyperparameters and calculate its metrics&quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">index_param</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">with</span> <span class="n">Timeit</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Computing best hyperparameters for index </span><span class="si">{</span><span class="n">index_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
-            <span class="n">index_param</span> <span class="o">=</span> <span class="n">get_optimal_hyperparameters</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">index_key</span><span class="p">,</span> <span class="n">max_speed_ms</span><span class="o">=</span><span class="n">max_index_query_time_ms</span><span class="p">)</span>
+            <span class="n">index_param</span> <span class="o">=</span> <span class="n">get_optimal_hyperparameters</span><span class="p">(</span>
+                <span class="n">index</span><span class="p">,</span>
+                <span class="n">index_key</span><span class="p">,</span>
+                <span class="n">max_speed_ms</span><span class="o">=</span><span class="n">max_index_query_time_ms</span><span class="p">,</span>
+                <span class="n">min_nearest_neighbors_to_retrieve</span><span class="o">=</span><span class="n">min_nearest_neighbors_to_retrieve</span><span class="p">,</span>
+                <span class="n">use_gpu</span><span class="o">=</span><span class="n">use_gpu</span><span class="p">,</span>
+            <span class="p">)</span>
     <span class="c1"># Set search hyperparameters for the index</span>
     <span class="n">set_search_hyperparameters</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">index_param</span><span class="p">,</span> <span class="n">use_gpu</span><span class="p">)</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The best hyperparameters are: </span><span class="si">{</span><span class="n">index_param</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>

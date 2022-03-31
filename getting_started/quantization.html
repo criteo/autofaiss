@@ -200,43 +200,47 @@ recall scores given a memory and query speed constraint.</p>
 <td><p>10</p></td>
 <td><p>(Optional) Bound on the query time for KNN search, this bound is approximative.</p></td>
 </tr>
-<tr class="row-even"><td><p>–index_key</p></td>
+<tr class="row-even"><td><p>–min_nearest_neighbors_to_retrieve</p></td>
+<td><p>20</p></td>
+<td><p>(Optional) Minimum number of nearest neighbors to retrieve when querying the index. Parameter used only during index hyperparameter finetuning step, it is not taken into account to select the indexing algorithm. This parameter has the priority over the max_index_query_time_ms constraint.</p></td>
+</tr>
+<tr class="row-odd"><td><p>–index_key</p></td>
 <td><p>None</p></td>
 <td><p>(Optional) If present, the Faiss index will be build using this description string in the index_factory, more detail in the [Faiss documentation](<a class="reference external" href="https://github.com/facebookresearch/faiss/wiki/The-index-factory">https://github.com/facebookresearch/faiss/wiki/The-index-factory</a>)</p></td>
 </tr>
-<tr class="row-odd"><td><p>–index_param</p></td>
+<tr class="row-even"><td><p>–index_param</p></td>
 <td><p>None</p></td>
 <td><p>(Optional) If present, the Faiss index will be set using this description string of hyperparameters, more detail in the [Faiss documentation](<a class="reference external" href="https://github.com/facebookresearch/faiss/wiki/Index-IO,-cloning-and-hyper-parameter-tuning">https://github.com/facebookresearch/faiss/wiki/Index-IO,-cloning-and-hyper-parameter-tuning</a>)</p></td>
 </tr>
-<tr class="row-even"><td><p>–use_gpu</p></td>
+<tr class="row-odd"><td><p>–use_gpu</p></td>
 <td><p>False</p></td>
 <td><p>(Optional) Experimental, gpu training can be faster, but this feature is not tested so far.</p></td>
 </tr>
-<tr class="row-odd"><td><p>–nb_cores</p></td>
+<tr class="row-even"><td><p>–nb_cores</p></td>
 <td><p>None</p></td>
 <td><p>(Optional) The number of cores to use, by default will use all cores</p></td>
 </tr>
-<tr class="row-even"><td><p>–make_direct_map</p></td>
+<tr class="row-odd"><td><p>–make_direct_map</p></td>
 <td><p>False</p></td>
 <td><p>(Optional) If set to True and that the created index is an IVF, call .make_direct_map() on the index to build a mapping (stored on RAM only) that speeds up greatly the calls to .reconstruct().</p></td>
 </tr>
-<tr class="row-odd"><td><p>–should_be_memory_mappable</p></td>
+<tr class="row-even"><td><p>–should_be_memory_mappable</p></td>
 <td><p>False</p></td>
 <td><p>(Optional) If set to true, the created index will be selected only among the indices that can be memory-mapped on disk. This makes it possible to use 50GB indices on a machine with only 1GB of RAM.</p></td>
 </tr>
-<tr class="row-even"><td><p>–distributed</p></td>
+<tr class="row-odd"><td><p>–distributed</p></td>
 <td><p>None</p></td>
 <td><p>(Optional) If “pyspark”, create the index using pyspark. Otherwise, the index is created on your local machine.</p></td>
 </tr>
-<tr class="row-odd"><td><p>–temporary_indices_folder</p></td>
+<tr class="row-even"><td><p>–temporary_indices_folder</p></td>
 <td><p>“hdfs://root/tmp/distributed_autofaiss_indices”</p></td>
 <td><p>(Optional) Folder to save the temporary small indices, only used when distributed = “pyspark”</p></td>
 </tr>
-<tr class="row-even"><td><p>–verbose</p></td>
+<tr class="row-odd"><td><p>–verbose</p></td>
 <td><p>20</p></td>
 <td><p>(Optional) Set verbosity of logging output: DEBUG=10, INFO=20, WARN=30, ERROR=40, CRITICAL=50</p></td>
 </tr>
-<tr class="row-odd"><td><p>–nb_indices_to_keep</p></td>
+<tr class="row-even"><td><p>–nb_indices_to_keep</p></td>
 <td><p>1</p></td>
 <td><p>(Optional) Number of indices to keep at most when distributed is “pyspark”.</p></td>
 </tr>
@@ -286,9 +290,13 @@ If None, the hyper-parameters are chosen based on an heuristic.</p>
 </dd>
 <dt>save_on_disk: bool</dt><dd><p>Whether to save the index on disk, default to True.</p>
 </dd>
+<dt>min_nearest_neighbors_to_retrieve: int</dt><dd><p>Minimum number of nearest neighbors to retrieve when querying the index.</p>
+</dd>
 <dt>max_index_query_time_ms: float</dt><dd><p>Query speed constraint for the index to create.</p>
 </dd>
 <dt>use_gpu: bool</dt><dd><p>Experimental, gpu training is faster, not tested so far.</p>
+</dd>
+<dt>verbose: int</dt><dd><p>set verbosity of outputs via logging level, default is <cite>logging.INFO</cite></p>
 </dd>
 </dl>
 </section>
@@ -343,6 +351,8 @@ Be careful, computing accurate metrics is slow.</p>
 </dd>
 <dt>current_memory_available: str</dt><dd><p>Memory available on the current machine, having more memory is a boost
 because it reduces the swipe between RAM and disk.</p>
+</dd>
+<dt>verbose: int</dt><dd><p>set verbosity of outputs via logging level, default is <cite>logging.INFO</cite></p>
 </dd>
 </dl>
 </section>

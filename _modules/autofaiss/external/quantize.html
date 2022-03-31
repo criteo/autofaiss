@@ -92,7 +92,7 @@
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">import</span> <span class="nn">tempfile</span>
 <span class="kn">import</span> <span class="nn">uuid</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
 
 <span class="kn">from</span> <span class="nn">embedding_reader</span> <span class="kn">import</span> <span class="n">EmbeddingReader</span>
 
@@ -147,6 +147,7 @@
     <span class="n">index_param</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">max_index_query_time_ms</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">10.0</span><span class="p">,</span>
     <span class="n">max_index_memory_usage</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;16G&quot;</span><span class="p">,</span>
+    <span class="n">min_nearest_neighbors_to_retrieve</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">20</span><span class="p">,</span>
     <span class="n">current_memory_available</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;32G&quot;</span><span class="p">,</span>
     <span class="n">use_gpu</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">metric_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;ip&quot;</span><span class="p">,</span>
@@ -157,7 +158,7 @@
     <span class="n">temporary_indices_folder</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;hdfs://root/tmp/distributed_autofaiss_indices&quot;</span><span class="p">,</span>
     <span class="n">verbose</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span>
     <span class="n">nb_indices_to_keep</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">],</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]]:</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="n">faiss</span><span class="o">.</span><span class="n">Index</span><span class="p">],</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]]:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Reads embeddings and creates a quantized index from them.</span>
 <span class="sd">    The index is stored on the current machine at the given output path.</span>
@@ -198,6 +199,11 @@
 <span class="sd">        Bound on the query time for KNN search, this bound is approximative</span>
 <span class="sd">    max_index_memory_usage: str</span>
 <span class="sd">        Maximum size allowed for the index, this bound is strict</span>
+<span class="sd">    min_nearest_neighbors_to_retrieve: int</span>
+<span class="sd">        Minimum number of nearest neighbors to retrieve when querying the index.</span>
+<span class="sd">        Parameter used only during index hyperparameter finetuning step, it is</span>
+<span class="sd">        not taken into account to select the indexing algorithm.</span>
+<span class="sd">        This parameter has the priority over the max_index_query_time_ms constraint.</span>
 <span class="sd">    current_memory_available: str</span>
 <span class="sd">        Memory available on the machine creating the index, having more memory is a boost</span>
 <span class="sd">        because it reduces the swipe between RAM and disk.</span>
@@ -368,9 +374,10 @@
                 <span class="n">index_key</span><span class="p">,</span>
                 <span class="n">index_param</span><span class="p">,</span>
                 <span class="n">cur_index_path</span><span class="p">,</span>
-                <span class="n">max_index_query_time_ms</span><span class="p">,</span>
-                <span class="n">save_on_disk</span><span class="p">,</span>
-                <span class="n">use_gpu</span><span class="p">,</span>
+                <span class="n">max_index_query_time_ms</span><span class="o">=</span><span class="n">max_index_query_time_ms</span><span class="p">,</span>
+                <span class="n">min_nearest_neighbors_to_retrieve</span><span class="o">=</span><span class="n">min_nearest_neighbors_to_retrieve</span><span class="p">,</span>
+                <span class="n">save_on_disk</span><span class="o">=</span><span class="n">save_on_disk</span><span class="p">,</span>
+                <span class="n">use_gpu</span><span class="o">=</span><span class="n">use_gpu</span><span class="p">,</span>
             <span class="p">)</span>
             <span class="k">return</span> <span class="n">metric_infos</span>
 
@@ -393,15 +400,16 @@
 
 
 <div class="viewcode-block" id="tune_index"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.quantize.tune_index">[docs]</a><span class="k">def</span> <span class="nf">tune_index</span><span class="p">(</span>
-    <span class="n">index_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+    <span class="n">index_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">faiss</span><span class="o">.</span><span class="n">Index</span><span class="p">],</span>
     <span class="n">index_key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">index_param</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">output_index_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">save_on_disk</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">min_nearest_neighbors_to_retrieve</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">20</span><span class="p">,</span>
     <span class="n">max_index_query_time_ms</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">10.0</span><span class="p">,</span>
     <span class="n">use_gpu</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">verbose</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">],</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]]]:</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">faiss</span><span class="o">.</span><span class="n">Index</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Set hyperparameters to the given index.</span>
 
@@ -410,7 +418,7 @@
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    index_path : Union[str, Any]</span>
+<span class="sd">    index_path : Union[str, faiss.Index]</span>
 <span class="sd">        Path to .index file</span>
 <span class="sd">        Can also be an index</span>
 <span class="sd">    index_key: str</span>
@@ -422,6 +430,8 @@
 <span class="sd">        Path to the newly created .index file</span>
 <span class="sd">    save_on_disk: bool</span>
 <span class="sd">        Whether to save the index on disk, default to True.</span>
+<span class="sd">    min_nearest_neighbors_to_retrieve: int</span>
+<span class="sd">        Minimum number of nearest neighbors to retrieve when querying the index.</span>
 <span class="sd">    max_index_query_time_ms: float</span>
 <span class="sd">        Query speed constraint for the index to create.</span>
 <span class="sd">    use_gpu: bool</span>
@@ -445,22 +455,28 @@
 
     <span class="k">if</span> <span class="n">index_param</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">with</span> <span class="n">Timeit</span><span class="p">(</span><span class="s2">&quot;Compute best hyperparameters&quot;</span><span class="p">):</span>
-            <span class="n">index_param</span> <span class="o">=</span> <span class="n">get_optimal_hyperparameters</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">index_key</span><span class="p">,</span> <span class="n">max_speed_ms</span><span class="o">=</span><span class="n">max_index_query_time_ms</span><span class="p">)</span>
+            <span class="n">index_param</span> <span class="o">=</span> <span class="n">get_optimal_hyperparameters</span><span class="p">(</span>
+                <span class="n">index</span><span class="p">,</span>
+                <span class="n">index_key</span><span class="p">,</span>
+                <span class="n">max_speed_ms</span><span class="o">=</span><span class="n">max_index_query_time_ms</span><span class="p">,</span>
+                <span class="n">min_nearest_neighbors_to_retrieve</span><span class="o">=</span><span class="n">min_nearest_neighbors_to_retrieve</span><span class="p">,</span>
+            <span class="p">)</span>
 
     <span class="k">with</span> <span class="n">Timeit</span><span class="p">(</span><span class="s2">&quot;Set search hyperparameters for the index&quot;</span><span class="p">):</span>
         <span class="n">set_search_hyperparameters</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">index_param</span><span class="p">,</span> <span class="n">use_gpu</span><span class="p">)</span>
 
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The optimal hyperparameters are </span><span class="si">{</span><span class="n">index_param</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+
     <span class="k">if</span> <span class="n">save_on_disk</span><span class="p">:</span>
         <span class="k">with</span> <span class="n">fsspec</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">output_index_path</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">open</span><span class="p">()</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="n">faiss</span><span class="o">.</span><span class="n">write_index</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">faiss</span><span class="o">.</span><span class="n">PyCallbackIOWriter</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">))</span>
-
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The optimal hyperparameters are </span><span class="si">{</span><span class="n">index_param</span><span class="si">}</span><span class="s2">, the index with these parameters has been saved.&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;The index with these parameters has been saved on disk.&quot;</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">index</span></div>
 
 
 <div class="viewcode-block" id="score_index"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.quantize.score_index">[docs]</a><span class="k">def</span> <span class="nf">score_index</span><span class="p">(</span>
-    <span class="n">index_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+    <span class="n">index_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">faiss</span><span class="o">.</span><span class="n">Index</span><span class="p">],</span>
     <span class="n">embeddings</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span>
     <span class="n">save_on_disk</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="n">output_index_info_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;infos.json&quot;</span><span class="p">,</span>
@@ -472,7 +488,7 @@
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    index_path : Union[str, Any]</span>
+<span class="sd">    index_path : Union[str, faiss.Index]</span>
 <span class="sd">        Path to .index file. Or in memory index</span>
 <span class="sd">    embeddings: Union[str, np.ndarray]</span>
 <span class="sd">        Path containing all preprocessed vectors and cached files. Can also be an in memory array.</span>
@@ -485,6 +501,11 @@
 <span class="sd">        because it reduces the swipe between RAM and disk.</span>
 <span class="sd">    verbose: int</span>
 <span class="sd">        set verbosity of outputs via logging level, default is `logging.INFO`</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    metric_infos: Optional[Dict[str, Union[str, float, int]]]</span>
+<span class="sd">        Metric infos of the index.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">setup_logging</span><span class="p">(</span><span class="n">verbose</span><span class="p">)</span>
     <span class="n">faiss</span><span class="o">.</span><span class="n">omp_set_num_threads</span><span class="p">(</span><span class="n">multiprocessing</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">())</span>
