@@ -301,7 +301,7 @@ def get_min_param_value_for_best_neighbors_coverage(
     This function returns the minimal value to set in the index hyperparameters so that,
     on average, the index retrieves 99% of the requested k=targeted_nb_neighbors_to_query nearest neighbors.
 
-            1 ^      _________________________
+            1 ^       ------------------------
               |     /
     nearest   |    /
     neighbors |   /
@@ -385,7 +385,7 @@ def get_min_param_value_for_best_neighbors_coverage(
         targeted_coverage = 0.95 * max_nearest_neighbors_coverage
 
     # Intialize the binary search
-    def is_not_meeting_constraint(rank: int) -> bool:
+    def is_meeting_constraint(rank: int) -> bool:
 
         parameter_value = parameter_range[rank]
         param_str = hyperparameter_str_from_param(parameter_value)
@@ -395,7 +395,7 @@ def get_min_param_value_for_best_neighbors_coverage(
         return nearest_neighbors_coverage >= targeted_coverage
 
     # Find the min param_value that reaches the targeted coverage
-    best_rank = max(0, discrete_binary_search(is_not_meeting_constraint, len(parameter_range)) - 1)
+    best_rank = max(0, discrete_binary_search(is_meeting_constraint, len(parameter_range)) - 1)
 
     return parameter_range[best_rank]
 
