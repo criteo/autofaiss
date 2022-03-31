@@ -353,7 +353,6 @@ def get_min_param_value_for_best_neighbors_coverage(
     param_str = hyperparameter_str_from_param(parameter_range[-1])
     set_search_hyperparameters(index, param_str, use_gpu)
     max_nearest_neighbors_coverage = get_nearest_neighbors_coverage(targeted_nb_neighbors_to_query)
-    print("computed")
 
     # If the index cannot reach the targeted coverage, we adapt it.
     if max_nearest_neighbors_coverage < targeted_coverage:
