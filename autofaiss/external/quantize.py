@@ -8,7 +8,7 @@ import os
 import re
 import tempfile
 import uuid
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 from embedding_reader import EmbeddingReader
 
@@ -63,6 +63,7 @@ def build_index(
     index_param: Optional[str] = None,
     max_index_query_time_ms: float = 10.0,
     max_index_memory_usage: str = "16G",
+    min_nearest_neighbors_to_retrieve: int = 20,
     current_memory_available: str = "32G",
     use_gpu: bool = False,
     metric_type: str = "ip",
@@ -73,7 +74,7 @@ def build_index(
     temporary_indices_folder: str = "hdfs://root/tmp/distributed_autofaiss_indices",
     verbose: int = logging.INFO,
     nb_indices_to_keep: int = 1,
-) -> Tuple[Optional[Any], Optional[Dict[str, str]]]:
+) -> Tuple[Optional[faiss.Index], Optional[Dict[str, str]]]:
     """
     Reads embeddings and creates a quantized index from them.
     The index is stored on the current machine at the given output path.
@@ -114,6 +115,11 @@ def build_index(
         Bound on the query time for KNN search, this bound is approximative
     max_index_memory_usage: str
         Maximum size allowed for the index, this bound is strict
+    min_nearest_neighbors_to_retrieve: int
+        Minimum number of nearest neighbors to retrieve when querying the index.
+        Parameter used only during index hyperparameter finetuning step, it is
+        not taken into account to select the indexing algorithm.
+        This parameter has the priority over the max_index_query_time_ms constraint.
     current_memory_available: str
         Memory available on the machine creating the index, having more memory is a boost
         because it reduces the swipe between RAM and disk.
@@ -284,9 +290,10 @@ def build_index(
                 index_key,
                 index_param,
                 cur_index_path,
-                max_index_query_time_ms,
-                save_on_disk,
-                use_gpu,
+                max_index_query_time_ms=max_index_query_time_ms,
+                min_nearest_neighbors_to_retrieve=min_nearest_neighbors_to_retrieve,
+                save_on_disk=save_on_disk,
+                use_gpu=use_gpu,
             )
             return metric_infos
 
@@ -309,15 +316,16 @@ def build_index(
 
 
 def tune_index(
-    index_path: Union[str, Any],
+    index_path: Union[str, faiss.Index],
     index_key: str,
     index_param: Optional[str] = None,
     output_index_path: Optional[str] = None,
     save_on_disk: bool = True,
+    min_nearest_neighbors_to_retrieve: int = 20,
     max_index_query_time_ms: float = 10.0,
     use_gpu: bool = False,
     verbose: int = logging.INFO,
-) -> Tuple[Optional[Any], Optional[Dict[str, Union[str, float, int]]]]:
+) -> faiss.Index:
     """
     Set hyperparameters to the given index.
 
@@ -326,7 +334,7 @@ def tune_index(
 
     Parameters
     ----------
-    index_path : Union[str, Any]
+    index_path : Union[str, faiss.Index]
         Path to .index file
         Can also be an index
     index_key: str
@@ -338,6 +346,8 @@ def tune_index(
         Path to the newly created .index file
     save_on_disk: bool
         Whether to save the index on disk, default to True.
+    min_nearest_neighbors_to_retrieve: int
+        Minimum number of nearest neighbors to retrieve when querying the index.
     max_index_query_time_ms: float
         Query speed constraint for the index to create.
     use_gpu: bool
@@ -361,22 +371,28 @@ def tune_index(
 
     if index_param is None:
         with Timeit("Compute best hyperparameters"):
-            index_param = get_optimal_hyperparameters(index, index_key, max_speed_ms=max_index_query_time_ms)
+            index_param = get_optimal_hyperparameters(
+                index,
+                index_key,
+                max_speed_ms=max_index_query_time_ms,
+                min_nearest_neighbors_to_retrieve=min_nearest_neighbors_to_retrieve,
+            )
 
     with Timeit("Set search hyperparameters for the index"):
         set_search_hyperparameters(index, index_param, use_gpu)
 
+    logger.info(f"The optimal hyperparameters are {index_param}.")
+
     if save_on_disk:
         with fsspec.open(output_index_path, "wb").open() as f:
             faiss.write_index(index, faiss.PyCallbackIOWriter(f.write))
-
-    logger.info(f"The optimal hyperparameters are {index_param}, the index with these parameters has been saved.")
+        logger.info("The index with these parameters has been saved on disk.")
 
     return index
 
 
 def score_index(
-    index_path: Union[str, Any],
+    index_path: Union[str, faiss.Index],
     embeddings: Union[str, np.ndarray],
     save_on_disk: bool = True,
     output_index_info_path: str = "infos.json",
@@ -388,7 +404,7 @@ def score_index(
 
     Parameters
     ----------
-    index_path : Union[str, Any]
+    index_path : Union[str, faiss.Index]
         Path to .index file. Or in memory index
     embeddings: Union[str, np.ndarray]
         Path containing all preprocessed vectors and cached files. Can also be an in memory array.
@@ -401,6 +417,11 @@ def score_index(
         because it reduces the swipe between RAM and disk.
     verbose: int
         set verbosity of outputs via logging level, default is `logging.INFO`
+
+    Returns
+    -------
+    metric_infos: Optional[Dict[str, Union[str, float, int]]]
+        Metric infos of the index.
     """
     setup_logging(verbose)
     faiss.omp_set_num_threads(multiprocessing.cpu_count())

@@ -9,17 +9,14 @@ from typing import Callable, List, Optional, TypeVar
 
 import faiss
 import fsspec
-from embedding_reader import EmbeddingReader
-
-from autofaiss.external.metadata import compute_memory_necessary_for_training_wrapper, IndexMetadata
+import numpy as np
+from autofaiss.external.metadata import IndexMetadata, compute_memory_necessary_for_training_wrapper
 from autofaiss.external.scores import compute_fast_metrics
-from autofaiss.indices.index_utils import (
-    set_search_hyperparameters,
-    speed_test_ms_per_query,
-)
+from autofaiss.indices.index_utils import set_search_hyperparameters, speed_test_ms_per_query
 from autofaiss.utils.algorithms import discrete_binary_search
 from autofaiss.utils.cast import cast_memory_to_bytes
 from autofaiss.utils.decorators import Timeit
+from embedding_reader import EmbeddingReader
 
 logger = logging.getLogger("autofaiss")
 
@@ -291,6 +288,119 @@ def get_optimal_quantization(
 T = TypeVar("T", int, float)
 
 
+def get_min_param_value_for_best_neighbors_coverage(
+    index: faiss.Index,
+    parameter_range: List[T],
+    hyperparameter_str_from_param: Callable[[T], str],
+    targeted_nb_neighbors_to_query: int,
+    *,
+    targeted_coverage: float = 0.99,
+    use_gpu: bool = False,
+) -> T:
+    """
+    This function returns the minimal value to set in the index hyperparameters so that,
+    on average, the index retrieves 99% of the requested k=targeted_nb_neighbors_to_query nearest neighbors.
+
+            1 ^      _________________________
+              |     /
+    nearest   |    /
+    neighbors |   /
+    coverage  |  /
+              | /
+            0 +--[--------------------------]-->  param_value
+                 ^  ^                       ^
+                 |  |                       |
+                 |  min_param_value         |
+                 |                          |
+                 min(parameter_range)      max(parameter_range)
+
+    Parameters
+    ----------
+    index: faiss.Index
+        Index to search on.
+    parameter_range: List[T]
+        List of possible values for the hyperparameter. This list is sorted.
+    hyperparameter_str_from_param: Callable[[T], str]
+        Function to generate a hyperparameter string from the hyperparameter value
+        on which we do a binary search.
+    targeted_nb_neighbors_to_query: int
+        Targeted number of neighbors to query.
+    targeted_coverage: float
+        Targeted nearest neighbors coverage. The average ratio of neighbors really retrived
+        when asking for k=targeted_nb_neighbors_to_query nearest neighbors.
+    use_gpu: bool
+        Whether the index is on the GPU.
+    """
+
+    # Initialize query vectors to run the benchmark
+    query_vectors = index.reconstruct_n(0, min(index.ntotal, 100))
+
+    # Function to compute the coverage of the nearest neighbors
+    def get_nearest_neighbors_coverage(k: int) -> float:
+        ind = index.search(query_vectors, k)[1]
+        return 1 - np.sum(ind == -1) / ind.size
+
+    # Display a warning if the targeted number of nearest neighbors is incoherent with the index size
+    if targeted_nb_neighbors_to_query > index.ntotal:
+        logger.warning(
+            f"The targeted number of nearest neighbors ({targeted_nb_neighbors_to_query}) "
+            f"is greater than the total number of vectors in the index ({index.ntotal}). "
+            "We set the targeted number of nearest neighbors to the total number of vectors."
+        )
+        targeted_nb_neighbors_to_query = index.ntotal
+
+    # Compute the max nearest neighbors coverage possible with the given hyperparameters
+    param_str = hyperparameter_str_from_param(parameter_range[-1])
+    set_search_hyperparameters(index, param_str, use_gpu)
+    max_nearest_neighbors_coverage = get_nearest_neighbors_coverage(targeted_nb_neighbors_to_query)
+    print("computed")
+
+    # If the index cannot reach the targeted coverage, we adapt it.
+    if max_nearest_neighbors_coverage < targeted_coverage:
+
+        logger.warning(
+            f"The maximum nearest neighbors coverage is {100*max_nearest_neighbors_coverage:.2f}% for this index. "
+            f"It means that when requesting {targeted_nb_neighbors_to_query} nearest neighbors, the average number "
+            f"of retrieved neighbors will be {round(targeted_nb_neighbors_to_query*max_nearest_neighbors_coverage)}. "
+            f"The program will try to find the best hyperparameters to reach 95% of this max coverage at least, "
+            "and then will optimize the search time for this target. "
+            "The index search speed could be higher than the requested max search speed."
+        )
+
+        # In that case there is a hard limit on the maximal nearest neighbors coverage.
+        # We redefine the new targeted coverage to reach the begining of the inflexion point
+        #
+        #          1 ^                               <---- Initial target: 99% coverage
+        #            |
+        #  nearest   |     ------------------------- <---- New target 0.95*max_nearest_neighbors_coverage
+        #  neighbors |   /
+        #  coverage  |  /
+        #            | /
+        #          0 +--[--------------------------]-->  param_value
+        #               ^  ^                       ^
+        #               |  |                       |
+        #               |  min_param_value         |
+        #               |                          |
+        #               min(parameter_range)      max(parameter_range)
+
+        targeted_coverage = 0.95 * max_nearest_neighbors_coverage
+
+    # Intialize the binary search
+    def is_not_meeting_constraint(rank: int) -> bool:
+
+        parameter_value = parameter_range[rank]
+        param_str = hyperparameter_str_from_param(parameter_value)
+        set_search_hyperparameters(index, param_str, use_gpu)
+        nearest_neighbors_coverage = get_nearest_neighbors_coverage(targeted_nb_neighbors_to_query)
+
+        return nearest_neighbors_coverage >= targeted_coverage
+
+    # Find the min param_value that reaches the targeted coverage
+    best_rank = max(0, discrete_binary_search(is_not_meeting_constraint, len(parameter_range)) - 1)
+
+    return parameter_range[best_rank]
+
+
 def binary_search_on_param(
     index: faiss.Index,
     parameter_range: List[T],
@@ -299,7 +409,7 @@ def binary_search_on_param(
     timeout_boost_for_precision_search: float = 6.0,
     use_gpu: bool = False,
     max_timeout_per_iteration_s: float = 1.0,  # seconds
-):
+) -> T:
     """
     Apply a binary search on a given hyperparameter to maximize the recall given
     a query speed constraint in milliseconds/query.
@@ -309,7 +419,7 @@ def binary_search_on_param(
     index: faiss.Index
         Index to search on.
     parameter_range: List[T]
-        List of possible values for the hyperparameter.
+        List of possible values for the hyperparameter. This list is sorted.
     max_speed_ms: float
         Maximum query speed in milliseconds/query.
     hyperparameter_str_from_param: Callable[[T], str]
@@ -367,6 +477,7 @@ def get_optimal_hyperparameters(
     use_gpu: bool = False,
     max_timeout_per_iteration_s: float = 1.0,  # seconds
     min_ef_search: int = 32,
+    min_nearest_neighbors_to_retrieve: int = 20,
 ) -> str:
     """Find the optimal hyperparameters to maximize the recall given a query speed in milliseconds/query"""
 
@@ -407,6 +518,13 @@ def get_optimal_hyperparameters(
     else:
         raise NotImplementedError(f"we don't have heuristics for that kind or index ({index_key})")
 
+    min_param_value = get_min_param_value_for_best_neighbors_coverage(
+        index, parameter_range, hyperparameter_str_from_param, min_nearest_neighbors_to_retrieve, use_gpu=use_gpu
+    )
+
+    parameter_range = [param_value for param_value in parameter_range if param_value >= min_param_value]
+    parameter_range = parameter_range or [min_param_value]
+
     optimal_param = binary_search_on_param(
         index,
         parameter_range,
@@ -427,14 +545,22 @@ def optimize_and_measure_index(
     index_key: str,
     index_param: Optional[str],
     index_path: Optional[str],
+    *,
     max_index_query_time_ms: float,
+    min_nearest_neighbors_to_retrieve: int,
     save_on_disk: bool,
     use_gpu: bool,
 ):
     """Optimize one index by selecting the best hyperparameters and calculate its metrics"""
     if index_param is None:
         with Timeit(f"Computing best hyperparameters for index {index_path}", indent=1):
-            index_param = get_optimal_hyperparameters(index, index_key, max_speed_ms=max_index_query_time_ms)
+            index_param = get_optimal_hyperparameters(
+                index,
+                index_key,
+                max_speed_ms=max_index_query_time_ms,
+                min_nearest_neighbors_to_retrieve=min_nearest_neighbors_to_retrieve,
+                use_gpu=use_gpu,
+            )
     # Set search hyperparameters for the index
     set_search_hyperparameters(index, index_param, use_gpu)
     logger.info(f"The best hyperparameters are: {index_param}")
