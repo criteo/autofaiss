@@ -57,6 +57,9 @@ The ``autofaiss build_index`` command takes the following parameters:
     * - --max_index_query_time_ms
       - 10
       - (Optional) Bound on the query time for KNN search, this bound is approximative.
+    * - --min_nearest_neighbors_to_retrieve
+      - 20
+      - (Optional) Minimum number of nearest neighbors to retrieve when querying the index. Parameter used only during index hyperparameter finetuning step, it is not taken into account to select the indexing algorithm. This parameter has the priority over the max_index_query_time_ms constraint.
     * - --index_key
       - None
       - (Optional) If present, the Faiss index will be build using this description string in the index_factory, more detail in the [Faiss documentation](https://github.com/facebookresearch/faiss/wiki/The-index-factory)
@@ -137,10 +140,14 @@ output_index_path: str
     Path to the newly created .index file
 save_on_disk: bool
     Whether to save the index on disk, default to True.
+min_nearest_neighbors_to_retrieve: int
+    Minimum number of nearest neighbors to retrieve when querying the index.
 max_index_query_time_ms: float
     Query speed constraint for the index to create.
 use_gpu: bool
     Experimental, gpu training is faster, not tested so far.
+verbose: int
+    set verbosity of outputs via logging level, default is `logging.INFO`
 
 Returns
 -------
@@ -199,6 +206,8 @@ save_on_disk : bool
 current_memory_available: str
     Memory available on the current machine, having more memory is a boost
     because it reduces the swipe between RAM and disk.
+verbose: int
+    set verbosity of outputs via logging level, default is `logging.INFO`
 
 
 Time required

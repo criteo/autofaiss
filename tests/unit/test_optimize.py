@@ -3,7 +3,12 @@ import logging
 import faiss
 import numpy as np
 import pytest
-from autofaiss.external.optimize import get_optimal_hyperparameters, get_optimal_index_keys_v2
+from autofaiss.external.optimize import (
+    get_min_param_value_for_best_neighbors_coverage,
+    get_optimal_hyperparameters,
+    get_optimal_index_keys_v2,
+)
+from autofaiss.external.quantize import build_index
 from autofaiss.indices.index_factory import index_factory
 from autofaiss.indices.index_utils import set_search_hyperparameters, speed_test_ms_per_query
 
@@ -43,6 +48,47 @@ def test_get_optimal_index_keys_v2_with_large_nb_vectors(nb_vectors: int, use_gp
         )[0]
         == expected
     )
+
+
+def test_get_min_param_value_for_best_neighbors_coverage() -> None:
+    """
+    Check that get_min_param_value_for_best_neighbors_coverage works as expected.
+    """
+
+    # We only test on hnsw because this index is fast to build
+    embeddings = np.float32(np.random.rand(30001, 512))
+    hyperparameter_str_from_param = lambda ef_search: f"efSearch={ef_search}"
+    parameter_range = list(range(16, 2 ** 14))
+    index, _ = build_index(embeddings, save_on_disk=False, index_key="HNSW15")
+
+    embeddings = np.float32(np.random.rand(66, 512))
+    for targeted_nb_neighbors_to_query in [10, 3000, 31000]:
+
+        for targeted_coverage in [0.99, 0.5]:
+
+            # Compute max coverage ratio
+            param_str = hyperparameter_str_from_param(parameter_range[-1])
+            set_search_hyperparameters(index, param_str)
+            ind = index.search(embeddings, targeted_nb_neighbors_to_query)[1]
+            max_coverage = 1 - np.sum(ind == -1) / ind.size
+
+            # Compute optimal param value
+            param = get_min_param_value_for_best_neighbors_coverage(
+                index, parameter_range, hyperparameter_str_from_param, targeted_nb_neighbors_to_query
+            )
+            set_search_hyperparameters(index, hyperparameter_str_from_param(param))
+
+            # Compute coverage for optimal param value
+            ind = index.search(embeddings, targeted_nb_neighbors_to_query)[1]
+            coverage = 1 - np.sum(ind == -1) / ind.size
+
+            epsilon = 0.02
+
+            # Check that the coverage is close to the targeted coverage
+            if max_coverage == 1:
+                assert coverage >= targeted_coverage - epsilon
+            else:
+                assert coverage >= 0.95 * max_coverage - epsilon
 
 
 @pytest.mark.skip(reason="This test takes too long to run (11m)")
