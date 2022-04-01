@@ -319,7 +319,7 @@ def tune_index(
     index_path: Union[str, faiss.Index],
     index_key: str,
     index_param: Optional[str] = None,
-    output_index_path: Optional[str] = None,
+    output_index_path: Optional[str] = "tuned_knn.index",
     save_on_disk: bool = True,
     min_nearest_neighbors_to_retrieve: int = 20,
     max_index_query_time_ms: float = 10.0,
