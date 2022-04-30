@@ -219,7 +219,7 @@ def _merge_to_n_indices(spark_session, n: int, src_folder: str, dst_folder: str,
         # no need to merge
         return src_folder, None
 
-    batch_size = max(1, int(nb_indices_on_src_folder / n))
+    batch_size = max(1, math.ceil(nb_indices_on_src_folder / n))
     n = math.ceil(nb_indices_on_src_folder / batch_size)
     merge_batches = _batch_loader(batch_size=batch_size, nb_batches=n)
 
