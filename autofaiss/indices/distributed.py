@@ -126,11 +126,13 @@ def _get_pyspark_active_session():
     return ss
 
 
-def _batch_loader(batch_size: int, nb_batches: int) -> Iterator[Tuple[int, int, int]]:
-    """Yield [batch id, batch start position, batch end position]"""
+def _batch_loader(nb_batches: int, total_size: int) -> Iterator[Tuple[int, int, int]]:
+    """Yield [batch id, batch start position, batch end position (excluded)]"""
+    # Thanks to https://stackoverflow.com/a/2135920
+    batch_size, mod = divmod(total_size, nb_batches)
     for batch_id in range(nb_batches):
-        start = batch_size * batch_id
-        end = batch_size * (batch_id + 1)
+        start = batch_size * batch_id + min(batch_id, mod)
+        end = batch_size * (batch_id + 1) + min(batch_id + 1, mod)
         yield batch_id, start, end
 
 
@@ -219,7 +221,7 @@ def _merge_to_n_indices(spark_session, n: int, src_folder: str, dst_folder: str,
         # no need to merge
         return src_folder, None
 
-    merge_batches = _get_merge_batches(input_size=nb_indices_on_src_folder, output_size=n)
+    merge_batches = _batch_loader(nb_batches=n, total_size=nb_indices_on_src_folder)
 
     rdd = spark_session.sparkContext.parallelize(merge_batches, n)
 
@@ -245,12 +247,6 @@ def _merge_to_n_indices(spark_session, n: int, src_folder: str, dst_folder: str,
         if fs.isfile(file):
             fs.rm(file)
     return dst_folder, metrics_dict
-
-
-def _get_merge_batches(input_size: int, output_size: int) -> Iterator[Tuple[int, int, int]]:
-    batch_size = max(1, math.ceil(input_size / output_size))
-    merge_batches = _batch_loader(batch_size=batch_size, nb_batches=output_size)
-    return merge_batches
 
 
 def run(
@@ -299,11 +295,8 @@ def run(
 
     # maximum between the number of spark workers, 10M embeddings per task and the number of indices to keep
     estimated_nb_batches = max(n_workers, int(embedding_reader.count / (10 ** 7)), nb_indices_to_keep)
-    batch_size = max(1, int(embedding_reader.count / estimated_nb_batches))
-    nb_batches = math.ceil(embedding_reader.count / batch_size)
-
-    batches = _batch_loader(batch_size=batch_size, nb_batches=nb_batches)
-    rdd = ss.sparkContext.parallelize(batches, nb_batches)
+    batches = _batch_loader(total_size=embedding_reader.count, nb_batches=estimated_nb_batches)
+    rdd = ss.sparkContext.parallelize(batches, estimated_nb_batches)
     with Timeit("-> Adding indices", indent=2):
         rdd.foreach(
             lambda x: _add_index(
@@ -316,7 +309,7 @@ def run(
                 small_indices_folder=stage1_folder,
                 num_cores=num_cores_per_executor,
                 embedding_ids_df_handler=embedding_ids_df_handler,
-                nb_batches=nb_batches,
+                nb_batches=estimated_nb_batches,
             )
         )
 

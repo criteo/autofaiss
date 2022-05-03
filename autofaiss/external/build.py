@@ -64,9 +64,11 @@ def estimate_memory_required_for_index_creation(
     else:
         memory_for_training = 0
 
-    index_memory_with_n_indices = index_memory / nb_indices_to_keep
+    # the calculation for max_index_memory_in_one_index comes from the way we split batches
+    # see _batch_loader in distributed.py
+    max_index_memory_in_one_index = index_memory // nb_indices_to_keep + index_memory % nb_indices_to_keep
 
-    return int(max(index_memory_with_n_indices + needed_for_adding, memory_for_training)), index_key
+    return int(max(max_index_memory_in_one_index + needed_for_adding, memory_for_training)), index_key
 
 
 def get_estimated_construction_time_infos(nb_vectors: int, vec_dim: int, indent: int = 0) -> str:
