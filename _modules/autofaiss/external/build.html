@@ -148,9 +148,11 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="n">memory_for_training</span> <span class="o">=</span> <span class="mi">0</span>
 
-    <span class="n">index_memory_with_n_indices</span> <span class="o">=</span> <span class="n">index_memory</span> <span class="o">/</span> <span class="n">nb_indices_to_keep</span>
+    <span class="c1"># the calculation for max_index_memory_in_one_index comes from the way we split batches</span>
+    <span class="c1"># see _batch_loader in distributed.py</span>
+    <span class="n">max_index_memory_in_one_index</span> <span class="o">=</span> <span class="n">index_memory</span> <span class="o">//</span> <span class="n">nb_indices_to_keep</span> <span class="o">+</span> <span class="n">index_memory</span> <span class="o">%</span> <span class="n">nb_indices_to_keep</span>
 
-    <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">index_memory_with_n_indices</span> <span class="o">+</span> <span class="n">needed_for_adding</span><span class="p">,</span> <span class="n">memory_for_training</span><span class="p">)),</span> <span class="n">index_key</span></div>
+    <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">max_index_memory_in_one_index</span> <span class="o">+</span> <span class="n">needed_for_adding</span><span class="p">,</span> <span class="n">memory_for_training</span><span class="p">)),</span> <span class="n">index_key</span></div>
 
 
 <div class="viewcode-block" id="get_estimated_construction_time_infos"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.build.get_estimated_construction_time_infos">[docs]</a><span class="k">def</span> <span class="nf">get_estimated_construction_time_infos</span><span class="p">(</span><span class="n">nb_vectors</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">vec_dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">indent</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
