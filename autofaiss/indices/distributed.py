@@ -6,7 +6,8 @@ import multiprocessing
 import os
 import logging
 from tempfile import TemporaryDirectory
-from typing import Dict, Optional, Iterator, Tuple, Callable, Any
+import tempfile
+from typing import Dict, Optional, Iterator, Tuple, Callable, Any, Union
 
 import faiss
 import fsspec
@@ -46,10 +47,19 @@ def _save_small_index(index: faiss.Index, batch_id: int, small_indices_folder: s
         faiss.write_index(index, faiss.PyCallbackIOWriter(f.write))
 
 
+def _load_index(index_src_path: str, index_dst_path: str) -> faiss.Index:
+    fs = _get_file_system(index_src_path)
+    try:
+        fs.get(index_src_path, index_dst_path)
+    except Exception as e:
+        raise Exception(f"Failed to download index from {index_src_path} to {index_dst_path}") from e
+    return faiss.read_index(index_dst_path)
+
+
 def _add_index(
     start: int,
     end: int,
-    broadcast_trained_index_bytes,
+    broadcasted_index_or_path,
     memory_available_for_adding: str,
     embedding_reader: EmbeddingReader,
     batch_id: int,
@@ -67,8 +77,8 @@ def _add_index(
         Start position of this batch
     end: int
         End position of this batch
-    broadcast_trained_index_bytes: pyspark.Broadcast
-        Trained yet empty index
+    broadcasted_index_or_path: pyspark.Broadcast or str
+        Broadcasted index or path to an index
     memory_available_for_adding: str
         Memory available for adding embeddings
     embedding_reader: EmbeddingReader
@@ -87,25 +97,30 @@ def _add_index(
 
     faiss.omp_set_num_threads(num_cores)
 
-    # load empty trained index
-    empty_index = get_index_from_bytes(broadcast_trained_index_bytes.value)
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        # load empty trained index
+        if isinstance(broadcasted_index_or_path, str):
+            local_index_path = os.path.join(tmp_dir, "index")
+            empty_index = _load_index(broadcasted_index_or_path, local_index_path)
+        else:
+            empty_index = get_index_from_bytes(broadcasted_index_or_path.value)
 
-    batch_size = get_optimal_batch_size(embedding_reader.dimension, memory_available_for_adding)
+        batch_size = get_optimal_batch_size(embedding_reader.dimension, memory_available_for_adding)
 
-    ids_total = []
-    for (vec_batch, ids_batch) in embedding_reader(batch_size=batch_size, start=start, end=end):
-        consecutive_ids = ids_batch["i"].to_numpy()
-        # using add_with_ids makes it possible to have consecutive and unique ids over all the N indices
-        empty_index.add_with_ids(vec_batch, consecutive_ids)
+        ids_total = []
+        for (vec_batch, ids_batch) in embedding_reader(batch_size=batch_size, start=start, end=end):
+            consecutive_ids = ids_batch["i"].to_numpy()
+            # using add_with_ids makes it possible to have consecutive and unique ids over all the N indices
+            empty_index.add_with_ids(vec_batch, consecutive_ids)
+            if embedding_ids_df_handler:
+                ids_total.append(ids_batch)
+
         if embedding_ids_df_handler:
-            ids_total.append(ids_batch)
+            embedding_ids_df_handler(pd.concat(ids_total), batch_id)
 
-    if embedding_ids_df_handler:
-        embedding_ids_df_handler(pd.concat(ids_total), batch_id)
-
-    _save_small_index(
-        index=empty_index, small_indices_folder=small_indices_folder, batch_id=batch_id, nb_batches=nb_batches
-    )
+        _save_small_index(
+            index=empty_index, small_indices_folder=small_indices_folder, batch_id=batch_id, nb_batches=nb_batches
+        )
 
 
 def _get_pyspark_active_session():
@@ -249,8 +264,8 @@ def _merge_to_n_indices(spark_session, n: int, src_folder: str, dst_folder: str,
     return dst_folder, metrics_dict
 
 
-def run(
-    faiss_index: faiss.Index,
+def add_embeddings_to_index(
+    faiss_index_or_path: Union[faiss.Index, str],
     embedding_reader: EmbeddingReader,
     memory_available_for_adding: str,
     num_cores_per_executor: Optional[int] = None,
@@ -264,7 +279,7 @@ def run(
 
     Parameters
     ----------
-    faiss_index: faiss.Index
+    faiss_index_or_path: faiss.Index or path to a faiss index
         Trained faiss index
     embedding_reader: EmbeddingReader
         Embedding reader.
@@ -287,9 +302,11 @@ def run(
         fs.rm(temporary_indices_folder, recursive=True)
     stage1_folder = temporary_indices_folder.rstrip("/") + "/stage-1"
     ss = _get_pyspark_active_session()
-    # broadcast the index bytes
-    trained_index_bytes = get_bytes_from_index(faiss_index)
-    broadcast_trained_index_bytes = ss.sparkContext.broadcast(trained_index_bytes)
+
+    # Broadcast index
+    broadcasted_index_or_path = faiss_index_or_path if isinstance(faiss_index_or_path, str) \
+        else ss.sparkContext.broadcast(get_bytes_from_index(faiss_index_or_path))
+    
     sc = ss._jsc.sc()  # pylint: disable=protected-access
     n_workers = len(sc.statusTracker().getExecutorInfos()) - 1
 
@@ -304,7 +321,7 @@ def run(
                 start=x[1],
                 end=x[2],
                 memory_available_for_adding=memory_available_for_adding,
-                broadcast_trained_index_bytes=broadcast_trained_index_bytes,
+                broadcasted_index_or_path=broadcasted_index_or_path,
                 embedding_reader=embedding_reader,
                 small_indices_folder=stage1_folder,
                 num_cores=num_cores_per_executor,
