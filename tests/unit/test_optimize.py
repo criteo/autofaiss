@@ -93,7 +93,7 @@ def test_get_min_param_value_for_best_neighbors_coverage() -> None:
 
 @pytest.mark.skip(reason="This test takes too long to run (11m)")
 @pytest.mark.parametrize(
-    "index_key", ["OPQ64_128,IVF1024_HNSW32,PQ64x8", "OPQ64_128,IVF1024,PQ64x8", "IVF256,Flat", "HNSW15",],
+    "index_key", ["OPQ64_128,IVF1024_HNSW32,PQ64x8", "OPQ64_128,IVF1024,PQ64x8", "IVF256,Flat", "HNSW15"]
 )
 @pytest.mark.parametrize("d", [100])
 def test_get_optimal_hyperparameters(index_key: str, d: int) -> None:
@@ -123,17 +123,12 @@ def test_get_optimal_hyperparameters(index_key: str, d: int) -> None:
         for target_speed_ms in target_speed_ms_list:
 
             hyperparameters_str = get_optimal_hyperparameters(
-                index,
-                index_key,
-                target_speed_ms,
-                use_gpu,
-                max_timeout_per_iteration_s=1.0,
-                min_ef_search=min_ef_search,
+                index, index_key, target_speed_ms, use_gpu, max_timeout_per_iteration_s=1.0, min_ef_search=min_ef_search
             )
 
             set_search_hyperparameters(index, hyperparameters_str, use_gpu)
 
-            avg_query_time_ms = speed_test_ms_per_query(index,)
+            avg_query_time_ms = speed_test_ms_per_query(index)
 
             LOGGER.debug(
                 f"nb_vectors={target_nb_vec}, max_mem={index_key}, target_speed_ms {target_speed_ms} -> avg_query_time_ms: {avg_query_time_ms}, {hyperparameters_str}"

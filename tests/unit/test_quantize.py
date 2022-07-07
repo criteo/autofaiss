@@ -241,9 +241,7 @@ def test_quantize_with_empty_file():
             df = pd.DataFrame({"embedding": [], "id": []})
             df.to_parquet(os.path.join(tmp_dir, tmp_file.name))
             with pytest.raises(ValueError):
-                build_index(
-                    embeddings=tmp_dir, file_format="parquet", embedding_column_name="embedding",
-                )
+                build_index(embeddings=tmp_dir, file_format="parquet", embedding_column_name="embedding")
 
 
 def test_quantize_with_empty_and_non_empty_files(tmpdir):

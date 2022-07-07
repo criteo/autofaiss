@@ -1,6 +1,5 @@
 """ main file to create an index from the the begining """
 
-from functools import partial
 import json
 import logging
 import logging.config
@@ -17,15 +16,12 @@ import fsspec
 import numpy as np
 from autofaiss.external.build import (
     create_index,
-    write_ids_df_to_parquet,
-    optimize_index,
+    get_write_ids_df_to_parquet_fn,
+    get_optimize_index_fn,
     estimate_memory_required_for_index_creation,
     get_estimated_construction_time_infos,
 )
-from autofaiss.external.optimize import (
-    get_optimal_hyperparameters,
-    get_optimal_index_keys_v2,
-)
+from autofaiss.external.optimize import get_optimal_hyperparameters, get_optimal_index_keys_v2
 from autofaiss.external.scores import compute_fast_metrics, compute_medium_metrics
 from autofaiss.indices.index_utils import set_search_hyperparameters
 from autofaiss.utils.path import make_path_absolute
@@ -270,25 +266,19 @@ def build_index(
                 )
                 logger.error("\tPlease provide a value ids_path for the Ids to be written")
 
-        write_ids_df_to_parquet_fn = \
-            partial(
-                write_ids_df_to_parquet, 
-                ids_root_dir=ids_path
-            ) if ids_path and id_columns else None
+        write_ids_df_to_parquet_fn = get_write_ids_df_to_parquet_fn(ids_path) if ids_path and id_columns else None
 
-        optimize_index_fn = \
-            partial(
-                optimize_index,
-                embedding_reader=embedding_reader,
-                index_key=index_key,
-                index_path=index_path,
-                index_infos_path=index_infos_path,
-                use_gpu=use_gpu,
-                save_on_disk=save_on_disk,
-                max_index_query_time_ms=max_index_query_time_ms,
-                min_nearest_neighbors_to_retrieve=min_nearest_neighbors_to_retrieve,
-                index_param=index_param
-            )
+        optimize_index_fn = get_optimize_index_fn(
+            embedding_reader=embedding_reader,
+            index_key=index_key,
+            index_path=index_path,
+            index_infos_path=index_infos_path,
+            use_gpu=use_gpu,
+            save_on_disk=save_on_disk,
+            max_index_query_time_ms=max_index_query_time_ms,
+            min_nearest_neighbors_to_retrieve=min_nearest_neighbors_to_retrieve,
+            index_param=index_param,
+        )
 
         with Timeit("Creating the index", indent=1):
             index, metric_infos = create_index(
@@ -299,12 +289,13 @@ def build_index(
                 use_gpu=use_gpu,
                 embedding_ids_df_handler=write_ids_df_to_parquet_fn,
                 make_direct_map=make_direct_map,
-                distributed=distributed,
+                distributed_engine=distributed,
                 temporary_indices_folder=temporary_indices_folder,
                 nb_indices_to_keep=nb_indices_to_keep,
                 index_optimizer=optimize_index_fn,
             )
-            _log_output_dict(metric_infos)
+            if metric_infos:
+                _log_output_dict(metric_infos)
             return index, metric_infos
 
 

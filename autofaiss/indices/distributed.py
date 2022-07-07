@@ -20,7 +20,7 @@ from autofaiss.indices.index_utils import (
     get_index_from_bytes,
     get_bytes_from_index,
     parallel_download_indices_from_remote,
-    initialize_direct_map
+    initialize_direct_map,
 )
 from autofaiss.utils.path import make_path_absolute
 from autofaiss.utils.cast import cast_memory_to_bytes
@@ -306,9 +306,12 @@ def add_embeddings_to_index(
     ss = _get_pyspark_active_session()
 
     # Broadcast index
-    broadcasted_index_or_path = faiss_index_or_path if isinstance(faiss_index_or_path, str) \
+    broadcasted_index_or_path = (
+        faiss_index_or_path
+        if isinstance(faiss_index_or_path, str)
         else ss.sparkContext.broadcast(get_bytes_from_index(faiss_index_or_path))
-    
+    )
+
     sc = ss._jsc.sc()  # pylint: disable=protected-access
     n_workers = len(sc.statusTracker().getExecutorInfos()) - 1
 
@@ -329,7 +332,7 @@ def add_embeddings_to_index(
                 num_cores=num_cores_per_executor,
                 embedding_ids_df_handler=embedding_ids_df_handler,
                 nb_batches=estimated_nb_batches,
-                make_direct_map=make_direct_map
+                make_direct_map=make_direct_map,
             )
         )
 

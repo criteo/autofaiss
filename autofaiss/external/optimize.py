@@ -57,7 +57,7 @@ def index_key_to_nb_cluster(index_key: str) -> int:
 
 
 def get_optimal_train_size(
-    nb_vectors: int, index_key: str, current_memory_available: Optional[str], vec_dim: Optional[int],
+    nb_vectors: int, index_key: str, current_memory_available: Optional[str], vec_dim: Optional[int]
 ) -> int:
     """
     Function that determines the number of training points necessary to
@@ -436,7 +436,7 @@ def binary_search_on_param(
     timout_s = 15 * max_speed_ms / 1000
 
     get_speed = partial(
-        speed_test_ms_per_query, query=query_vectors, ksearch=40, timout_s=min(max_timeout_per_iteration_s, timout_s),
+        speed_test_ms_per_query, query=query_vectors, ksearch=40, timout_s=min(max_timeout_per_iteration_s, timout_s)
     )
 
     def is_not_acceptable_speed(rank: int) -> bool:
@@ -563,11 +563,7 @@ def optimize_and_measure_index(
     # Set search hyperparameters for the index
     set_search_hyperparameters(index, index_param, use_gpu)
     logger.info(f"The best hyperparameters are: {index_param}")
-    metric_infos = {
-        "index_key": index_key,
-        "index_param": index_param,
-        "index_path": index_path,
-    }
+    metric_infos = {"index_key": index_key, "index_param": index_param, "index_path": index_path}
     with Timeit("Compute fast metrics", indent=1):
         metric_infos.update(compute_fast_metrics(embedding_reader, index))
     if save_on_disk:

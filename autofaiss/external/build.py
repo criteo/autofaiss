@@ -3,6 +3,7 @@ import logging
 from typing import Dict, Optional, Tuple, Union, Callable, Any
 import uuid
 import re
+import os
 
 import fsspec
 import faiss
@@ -15,7 +16,7 @@ from autofaiss.external.optimize import (
     get_optimal_batch_size,
     get_optimal_index_keys_v2,
     get_optimal_train_size,
-    optimize_and_measure_index
+    optimize_and_measure_index,
 )
 from autofaiss.indices.index_factory import index_factory
 from autofaiss.utils.cast import (
@@ -98,53 +99,55 @@ def get_estimated_construction_time_infos(nb_vectors: int, vec_dim: int, indent:
     return infos
 
 
-def write_ids_df_to_parquet(ids_root_dir: str, ids: pd.DataFrame, batch_id: int):
-    filename = f"part-{batch_id:08d}-{uuid.uuid1()}.parquet"
-    output_file = os.path.join(ids_root_dir, filename)  # type: ignore
-    with fsspec.open(output_file, "wb") as f:
-        logger.debug(f"Writing id DataFrame to file {output_file}")
-        ids.to_parquet(f, index=False)
+def get_write_ids_df_to_parquet_fn(ids_root_dir: str) -> Callable[[pd.DataFrame, int], None]:
+    """Create function to write ids from Pandas dataframe to parquet"""
+
+    def _write_ids_df_to_parquet_fn(ids: pd.DataFrame, batch_id: int):
+        filename = f"part-{batch_id:08d}-{uuid.uuid1()}.parquet"
+        output_file = os.path.join(ids_root_dir, filename)  # type: ignore
+        with fsspec.open(output_file, "wb") as f:
+            logger.debug(f"Writing id DataFrame to file {output_file}")
+            ids.to_parquet(f, index=False)
+
+    return _write_ids_df_to_parquet_fn
 
 
-def optimize_index(
+def get_optimize_index_fn(
     embedding_reader: EmbeddingReader,
-    index: faiss.Index,
     index_key: str,
-    index_path: str,
-    index_infos_path: str,
-    index_suffix: str,
+    index_path: Optional[str],
+    index_infos_path: Optional[str],
     use_gpu: bool,
     save_on_disk: bool,
     max_index_query_time_ms: float,
     min_nearest_neighbors_to_retrieve: int,
-    index_param: Optional[str] = None
-):
-    index_path = make_path_absolute(index_path)
-    cur_index_path = index_path + index_suffix
-    index_infos_path = make_path_absolute(index_infos_path)
-    cur_index_infos_path = index_infos_path + index_suffix
-    if any(re.findall(r"OPQ\d+_\d+,IVF\d+_HNSW\d+,PQ\d+", index_key)):
-        set_search_hyperparameters(index, f"nprobe={64},efSearch={128},ht={2048}", use_gpu)
-    metric_infos = optimize_and_measure_index(
-        embedding_reader,
-        index,
-        cur_index_infos_path,
-        index_key,
-        index_param,
-        cur_index_path,
-        max_index_query_time_ms=max_index_query_time_ms,
-        min_nearest_neighbors_to_retrieve=min_nearest_neighbors_to_retrieve,
-        save_on_disk=save_on_disk,
-        use_gpu=use_gpu,
-    )
-    return metric_infos
+    index_param: Optional[str] = None,
+) -> Callable[[faiss.Index, str], Dict]:
+    """Create function to optimize index by choosing best hyperparameters and calculating metrics"""
+
+    def _optimize_index_fn(index: faiss.Index, index_suffix: str):
+        cur_index_path = make_path_absolute(index_path) + index_suffix if index_path else None
+        cur_index_infos_path = make_path_absolute(index_infos_path) + index_suffix if index_infos_path else None
+        if any(re.findall(r"OPQ\d+_\d+,IVF\d+_HNSW\d+,PQ\d+", index_key)):
+            set_search_hyperparameters(index, f"nprobe={64},efSearch={128},ht={2048}", use_gpu)
+        metric_infos = optimize_and_measure_index(
+            embedding_reader,
+            index,
+            cur_index_infos_path,
+            index_key,
+            index_param,
+            cur_index_path,
+            max_index_query_time_ms=max_index_query_time_ms,
+            min_nearest_neighbors_to_retrieve=min_nearest_neighbors_to_retrieve,
+            save_on_disk=save_on_disk,
+            use_gpu=use_gpu,
+        )
+        return metric_infos
+
+    return _optimize_index_fn
 
 
-def create_empty_index(
-    vec_dim: int,
-    index_key: str,
-    metric_type: Union[str, int],
-) -> faiss.Index:
+def create_empty_index(vec_dim: int, index_key: str, metric_type: Union[str, int]) -> faiss.Index:
     """Create empty index"""
 
     with Timeit(f"-> Instanciate the index {index_key}", indent=2):
@@ -161,8 +164,8 @@ def train_index(
     index_key: str,
     index: faiss.Index,
     metadata: IndexMetadata,
-    current_memory_available: int,
-    use_gpu: bool
+    current_memory_available: str,
+    use_gpu: bool,
 ) -> faiss.Index:
     """Train index"""
 
@@ -216,7 +219,7 @@ def create_and_train_index(
     metadata: IndexMetadata,
     metric_type: Union[str, int],
     current_memory_available: str,
-    use_gpu: bool = False
+    use_gpu: bool = False,
 ) -> faiss.Index:
     """Create and train index"""
 
@@ -225,14 +228,7 @@ def create_and_train_index(
 
     # Train index if needed
     if check_if_index_needs_training(index_key):
-        index = train_index(
-            embedding_reader,
-            index_key,
-            index,
-            metadata,
-            current_memory_available,
-            use_gpu
-        )
+        index = train_index(embedding_reader, index_key, index, metadata, current_memory_available, use_gpu)
     return index
 
 
@@ -242,7 +238,7 @@ def add_embeddings_to_index_local(
     memory_available_for_adding: str,
     make_direct_map: bool,
     embedding_ids_df_handler: Optional[Callable[[pd.DataFrame, int], Any]] = None,
-    index_optimizer: Callable = None
+    index_optimizer: Callable = None,
 ) -> Tuple[faiss.Index, Dict[str, str]]:
     """Add embeddings to index from driver"""
 
@@ -272,8 +268,8 @@ def add_embeddings_to_index(
     distributed_engine: Optional[str] = None,
     temporary_indices_folder: str = "hdfs://root/tmp/distributed_autofaiss_indices",
     nb_indices_to_keep: int = 1,
-    index_optimizer: Callable = None
-) -> Tuple[faiss.Index, Dict[str, str]]:
+    index_optimizer: Callable = None,
+) -> Tuple[Optional[faiss.Index], Optional[Dict[str, str]]]:
     """Add embeddings to the index"""
 
     with Timeit("-> Adding the vectors to the index", indent=2):
@@ -296,7 +292,7 @@ def add_embeddings_to_index(
                 memory_available_for_adding,
                 make_direct_map,
                 embedding_ids_df_handler,
-                index_optimizer
+                index_optimizer,
             )
         elif distributed_engine == "pyspark":
             return distributed.add_embeddings_to_index(
@@ -307,6 +303,7 @@ def add_embeddings_to_index(
                 temporary_indices_folder=temporary_indices_folder,
                 nb_indices_to_keep=nb_indices_to_keep,
                 index_optimizer=index_optimizer,
+                make_direct_map=make_direct_map,
             )
         else:
             raise ValueError(f'Distributed by {distributed_engine} is not supported, only "pyspark" is supported')
@@ -324,7 +321,7 @@ def create_index(
     temporary_indices_folder: str = "hdfs://root/tmp/distributed_autofaiss_indices",
     nb_indices_to_keep: int = 1,
     index_optimizer: Callable = None,
-) -> Tuple[faiss.Index, Dict[str, str]]:
+) -> Tuple[Optional[faiss.Index], Optional[Dict[str, str]]]:
     """
     Create an index and add embeddings to the index
     """
@@ -333,12 +330,7 @@ def create_index(
 
     # Create and train index
     index = create_and_train_index(
-        embedding_reader,
-        index_key,
-        metadata,
-        metric_type,
-        current_memory_available,
-        use_gpu
+        embedding_reader, index_key, metadata, metric_type, current_memory_available, use_gpu
     )
 
     # Add embeddings to index
@@ -352,5 +344,5 @@ def create_index(
         distributed_engine,
         temporary_indices_folder,
         nb_indices_to_keep,
-        index_optimizer
+        index_optimizer,
     )
