@@ -1,10 +1,12 @@
 """ gather functions necessary to build an index """
 import logging
 from typing import Dict, Optional, Tuple, Union, Callable, Any
+import uuid
+import re
 
+import fsspec
 import faiss
 import pandas as pd
-from faiss import extract_index_ivf
 from embedding_reader import EmbeddingReader
 
 from autofaiss.external.metadata import IndexMetadata
@@ -13,6 +15,7 @@ from autofaiss.external.optimize import (
     get_optimal_batch_size,
     get_optimal_index_keys_v2,
     get_optimal_train_size,
+    optimize_and_measure_index
 )
 from autofaiss.indices.index_factory import index_factory
 from autofaiss.utils.cast import (
@@ -23,6 +26,9 @@ from autofaiss.utils.cast import (
 )
 from autofaiss.utils.decorators import Timeit
 from autofaiss.indices import distributed
+from autofaiss.indices.index_utils import set_search_hyperparameters, initialize_direct_map
+from autofaiss.utils.path import make_path_absolute
+
 
 logger = logging.getLogger("autofaiss")
 
@@ -90,6 +96,48 @@ def get_estimated_construction_time_infos(nb_vectors: int, vec_dim: int, indent:
     infos = tab + infos.replace("\n", "\n" + tab)
 
     return infos
+
+
+def write_ids_df_to_parquet(ids_root_dir: str, ids: pd.DataFrame, batch_id: int):
+    filename = f"part-{batch_id:08d}-{uuid.uuid1()}.parquet"
+    output_file = os.path.join(ids_root_dir, filename)  # type: ignore
+    with fsspec.open(output_file, "wb") as f:
+        logger.debug(f"Writing id DataFrame to file {output_file}")
+        ids.to_parquet(f, index=False)
+
+
+def optimize_index(
+    embedding_reader: EmbeddingReader,
+    index: faiss.Index,
+    index_key: str,
+    index_path: str,
+    index_infos_path: str,
+    index_suffix: str,
+    use_gpu: bool,
+    save_on_disk: bool,
+    max_index_query_time_ms: float,
+    min_nearest_neighbors_to_retrieve: int,
+    index_param: Optional[str] = None
+):
+    index_path = make_path_absolute(index_path)
+    cur_index_path = index_path + index_suffix
+    index_infos_path = make_path_absolute(index_infos_path)
+    cur_index_infos_path = index_infos_path + index_suffix
+    if any(re.findall(r"OPQ\d+_\d+,IVF\d+_HNSW\d+,PQ\d+", index_key)):
+        set_search_hyperparameters(index, f"nprobe={64},efSearch={128},ht={2048}", use_gpu)
+    metric_infos = optimize_and_measure_index(
+        embedding_reader,
+        index,
+        cur_index_infos_path,
+        index_key,
+        index_param,
+        cur_index_path,
+        max_index_query_time_ms=max_index_query_time_ms,
+        min_nearest_neighbors_to_retrieve=min_nearest_neighbors_to_retrieve,
+        save_on_disk=save_on_disk,
+        use_gpu=use_gpu,
+    )
+    return metric_infos
 
 
 def create_empty_index(
@@ -192,10 +240,14 @@ def add_embeddings_to_index_local(
     embedding_reader: EmbeddingReader,
     index: faiss.Index,
     memory_available_for_adding: str,
+    make_direct_map: bool,
     embedding_ids_df_handler: Optional[Callable[[pd.DataFrame, int], Any]] = None,
     index_optimizer: Callable = None
 ) -> Tuple[faiss.Index, Dict[str, str]]:
     """Add embeddings to index from driver"""
+
+    if make_direct_map:
+        initialize_direct_map(index)
 
     vec_dim = embedding_reader.dimension
     batch_size = get_optimal_batch_size(vec_dim, memory_available_for_adding)
@@ -212,7 +264,7 @@ def add_embeddings_to_index_local(
 
 def add_embeddings_to_index(
     embedding_reader: EmbeddingReader,
-    index: faiss.Index,
+    faiss_index_or_path: Union[str, faiss.Index],
     metadata: IndexMetadata,
     current_memory_available: str,
     embedding_ids_df_handler: Optional[Callable[[pd.DataFrame, int], Any]] = None,
@@ -226,15 +278,6 @@ def add_embeddings_to_index(
 
     with Timeit("-> Adding the vectors to the index", indent=2):
 
-        # Memory map index
-        if make_direct_map:
-            # Retrieve the embedded index if we are in an IndexPreTransform state
-            embedded_index = extract_index_ivf(index) if isinstance(index, faiss.swigfaiss.IndexPreTransform) else index
-
-            # Make direct map is only implemented for IndexIVF and IndexBinaryIVF, see built file faiss/swigfaiss.py
-            if isinstance(embedded_index, (faiss.swigfaiss.IndexIVF, faiss.swigfaiss.IndexBinaryIVF)):
-                embedded_index.make_direct_map()
-
         # Estimate memory available for adding embeddings to index
         size_per_index = metadata.estimated_index_size_in_bytes() / nb_indices_to_keep
         memory_available_for_adding = cast_bytes_to_memory_string(
@@ -246,16 +289,18 @@ def add_embeddings_to_index(
         )
 
         if distributed_engine is None:
+            assert isinstance(faiss_index_or_path, faiss.Index)
             return add_embeddings_to_index_local(
                 embedding_reader,
-                index,
+                faiss_index_or_path,
                 memory_available_for_adding,
+                make_direct_map,
                 embedding_ids_df_handler,
                 index_optimizer
             )
         elif distributed_engine == "pyspark":
             return distributed.add_embeddings_to_index(
-                faiss_index_or_path=index,
+                faiss_index_or_path=faiss_index_or_path,
                 embedding_reader=embedding_reader,
                 memory_available_for_adding=memory_available_for_adding,
                 embedding_ids_df_handler=embedding_ids_df_handler,

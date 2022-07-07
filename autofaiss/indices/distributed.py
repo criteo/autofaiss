@@ -20,6 +20,7 @@ from autofaiss.indices.index_utils import (
     get_index_from_bytes,
     get_bytes_from_index,
     parallel_download_indices_from_remote,
+    initialize_direct_map
 )
 from autofaiss.utils.path import make_path_absolute
 from autofaiss.utils.cast import cast_memory_to_bytes
@@ -37,14 +38,14 @@ def _generate_small_index_file_name(batch_id: int, nb_batches: int) -> str:
     return "index_" + _generate_suffix(batch_id, nb_batches)
 
 
-def _save_small_index(index: faiss.Index, batch_id: int, small_indices_folder: str, nb_batches: int) -> None:
-    """Save index for one batch."""
-    fs = _get_file_system(small_indices_folder)
-    fs.mkdirs(small_indices_folder, exist_ok=True)
-    small_index_filename = _generate_small_index_file_name(batch_id, nb_batches)
-    dest_filepath = os.path.join(small_indices_folder, small_index_filename)
-    with fsspec.open(dest_filepath, "wb").open() as f:
+def save_index(index: faiss.Index, root_dir: str, index_filename: str) -> str:
+    """Save index"""
+    fs = _get_file_system(root_dir)
+    fs.mkdirs(root_dir, exist_ok=True)
+    output_index_path = os.path.join(root_dir, index_filename)
+    with fsspec.open(output_index_path, "wb").open() as f:
         faiss.write_index(index, faiss.PyCallbackIOWriter(f.write))
+    return output_index_path
 
 
 def _load_index(index_src_path: str, index_dst_path: str) -> faiss.Index:
@@ -65,6 +66,7 @@ def _add_index(
     batch_id: int,
     small_indices_folder: str,
     nb_batches: int,
+    make_direct_map: bool,
     num_cores: Optional[int] = None,
     embedding_ids_df_handler: Optional[Callable[[pd.DataFrame, int], Any]] = None,
 ):
@@ -105,6 +107,9 @@ def _add_index(
         else:
             empty_index = get_index_from_bytes(broadcasted_index_or_path.value)
 
+        if make_direct_map:
+            initialize_direct_map(empty_index)
+
         batch_size = get_optimal_batch_size(embedding_reader.dimension, memory_available_for_adding)
 
         ids_total = []
@@ -118,9 +123,7 @@ def _add_index(
         if embedding_ids_df_handler:
             embedding_ids_df_handler(pd.concat(ids_total), batch_id)
 
-        _save_small_index(
-            index=empty_index, small_indices_folder=small_indices_folder, batch_id=batch_id, nb_batches=nb_batches
-        )
+        save_index(empty_index, small_indices_folder, _generate_small_index_file_name(batch_id, nb_batches))
 
 
 def _get_pyspark_active_session():
@@ -215,9 +218,7 @@ def _merge_index(
             metric_infos = index_optimizer(merged_index, index_suffix=_generate_suffix(batch_id, nb_batches))
         else:
             metric_infos = None
-            _save_small_index(
-                index=merged_index, batch_id=batch_id, small_indices_folder=tmp_output_folder, nb_batches=nb_batches
-            )
+            save_index(merged_index, tmp_output_folder, _generate_small_index_file_name(batch_id, nb_batches))
     else:
         metric_infos = None
     return merged_index, metric_infos
@@ -268,6 +269,7 @@ def add_embeddings_to_index(
     faiss_index_or_path: Union[faiss.Index, str],
     embedding_reader: EmbeddingReader,
     memory_available_for_adding: str,
+    make_direct_map: bool,
     num_cores_per_executor: Optional[int] = None,
     temporary_indices_folder="hdfs://root/tmp/distributed_autofaiss_indices",
     embedding_ids_df_handler: Optional[Callable[[pd.DataFrame, int], Any]] = None,
@@ -327,6 +329,7 @@ def add_embeddings_to_index(
                 num_cores=num_cores_per_executor,
                 embedding_ids_df_handler=embedding_ids_df_handler,
                 nb_batches=estimated_nb_batches,
+                make_direct_map=make_direct_map
             )
         )
 

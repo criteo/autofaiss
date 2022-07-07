@@ -10,6 +10,7 @@ from tempfile import NamedTemporaryFile
 from typing import Dict, Optional, Union, List, Tuple
 import logging
 
+from faiss import extract_index_ivf
 import faiss
 import fsspec
 import numpy as np
@@ -155,3 +156,11 @@ def parallel_download_indices_from_remote(
     with ThreadPool(min(16, len(indices_file_paths))) as pool:
         for _ in pool.imap_unordered(partial(_download_one, fs=fs), src_dest_paths):
             pass
+
+
+def initialize_direct_map(index: faiss.Index) -> None:
+    nested_index = extract_index_ivf(index) if isinstance(index, faiss.swigfaiss.IndexPreTransform) else index
+
+    # Make direct map is only implemented for IndexIVF and IndexBinaryIVF, see built file faiss/swigfaiss.py
+    if isinstance(nested_index, (faiss.swigfaiss.IndexIVF, faiss.swigfaiss.IndexBinaryIVF)):
+        nested_index.make_direct_map()

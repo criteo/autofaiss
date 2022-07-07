@@ -1,13 +1,12 @@
 """ main file to create an index from the the begining """
 
+from functools import partial
 import json
 import logging
 import logging.config
 import multiprocessing
 import os
-import re
 import tempfile
-import uuid
 from typing import Dict, List, Optional, Tuple, Union
 
 from embedding_reader import EmbeddingReader
@@ -16,16 +15,16 @@ import faiss
 import fire
 import fsspec
 import numpy as np
-import pandas as pd
 from autofaiss.external.build import (
     create_index,
+    write_ids_df_to_parquet,
+    optimize_index,
     estimate_memory_required_for_index_creation,
     get_estimated_construction_time_infos,
 )
 from autofaiss.external.optimize import (
     get_optimal_hyperparameters,
     get_optimal_index_keys_v2,
-    optimize_and_measure_index,
 )
 from autofaiss.external.scores import compute_fast_metrics, compute_medium_metrics
 from autofaiss.indices.index_utils import set_search_hyperparameters
@@ -158,17 +157,17 @@ def build_index(
     # if using distributed mode, it doesn't make sense to use indices that are not memory mappable
     if distributed == "pyspark":
         should_be_memory_mappable = True
-    if index_path is not None:
+    if index_path:
         index_path = make_path_absolute(index_path)
     elif save_on_disk:
         logger.error("Please specify a index_path if you set save_on_disk as True")
         return None, None
-    if index_infos_path is not None:
+    if index_infos_path:
         index_infos_path = make_path_absolute(index_infos_path)
     elif save_on_disk:
         logger.error("Please specify a index_infos_path if you set save_on_disk as True")
         return None, None
-    if ids_path is not None:
+    if ids_path:
         ids_path = make_path_absolute(ids_path)
 
     if nb_indices_to_keep < 1:
@@ -271,31 +270,25 @@ def build_index(
                 )
                 logger.error("\tPlease provide a value ids_path for the Ids to be written")
 
-        def write_ids_df_to_parquet(ids: pd.DataFrame, batch_id: int):
-            filename = f"part-{batch_id:08d}-{uuid.uuid1()}.parquet"
-            output_file = os.path.join(ids_path, filename)  # type: ignore
-            with fsspec.open(output_file, "wb") as f:
-                logger.debug(f"Writing id DataFrame to file {output_file}")
-                ids.to_parquet(f, index=False)
+        write_ids_df_to_parquet_fn = \
+            partial(
+                write_ids_df_to_parquet, 
+                ids_root_dir=ids_path
+            ) if ids_path and id_columns else None
 
-        def index_optimizer(index, index_suffix):
-            cur_index_path = index_path + index_suffix
-            cur_index_infos_path = index_infos_path + index_suffix
-            if any(re.findall(r"OPQ\d+_\d+,IVF\d+_HNSW\d+,PQ\d+", index_key)):
-                set_search_hyperparameters(index, f"nprobe={64},efSearch={128},ht={2048}", use_gpu)
-            metric_infos = optimize_and_measure_index(
-                embedding_reader,
-                index,
-                cur_index_infos_path,
-                index_key,
-                index_param,
-                cur_index_path,
+        optimize_index_fn = \
+            partial(
+                optimize_index,
+                embedding_reader=embedding_reader,
+                index_key=index_key,
+                index_path=index_path,
+                index_infos_path=index_infos_path,
+                use_gpu=use_gpu,
+                save_on_disk=save_on_disk,
                 max_index_query_time_ms=max_index_query_time_ms,
                 min_nearest_neighbors_to_retrieve=min_nearest_neighbors_to_retrieve,
-                save_on_disk=save_on_disk,
-                use_gpu=use_gpu,
+                index_param=index_param
             )
-            return metric_infos
 
         with Timeit("Creating the index", indent=1):
             index, metric_infos = create_index(
@@ -304,12 +297,12 @@ def build_index(
                 metric_type,
                 current_memory_available,
                 use_gpu=use_gpu,
-                embedding_ids_df_handler=write_ids_df_to_parquet if ids_path and id_columns else None,
+                embedding_ids_df_handler=write_ids_df_to_parquet_fn,
                 make_direct_map=make_direct_map,
                 distributed=distributed,
                 temporary_indices_folder=temporary_indices_folder,
                 nb_indices_to_keep=nb_indices_to_keep,
-                index_optimizer=index_optimizer,
+                index_optimizer=optimize_index_fn,
             )
             _log_output_dict(metric_infos)
             return index, metric_infos
