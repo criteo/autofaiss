@@ -7,6 +7,7 @@ import multiprocessing
 import os
 import tempfile
 from typing import Dict, List, Optional, Tuple, Union
+from urllib.parse import urlparse
 
 from embedding_reader import EmbeddingReader
 
@@ -14,10 +15,13 @@ import faiss
 import fire
 import fsspec
 import numpy as np
+from autofaiss.indices.build import (
+    get_write_ids_df_to_parquet_fn,
+    get_optimize_index_fn
+)
 from autofaiss.external.build import (
     create_index,
-    get_write_ids_df_to_parquet_fn,
-    get_optimize_index_fn,
+    create_partitioned_indexes,
     estimate_memory_required_for_index_creation,
     get_estimated_construction_time_infos,
 )
@@ -299,6 +303,118 @@ def build_index(
             return index, metric_infos
 
 
+def build_partitioned_indexes(
+    embedding_root_dir: str,
+    output_root_dir: str,
+    embedding_column_name: str = "embedding",
+    id_columns: Optional[List[str]] = None,
+    max_index_query_time_ms: float = 10.0,
+    max_index_memory_usage: str = "16G",
+    min_nearest_neighbors_to_retrieve: int = 20,
+    current_memory_available: str = "32G",
+    use_gpu: bool = False,
+    metric_type: str = "ip",
+    nb_cores: Optional[int] = None,
+    make_direct_map: bool = False,
+    should_be_memory_mappable: bool = False,
+    temp_root_dir: str = "hdfs://root/tmp/distributed_autofaiss_indices",
+    verbose: int = logging.INFO,
+    nb_splits_per_big_index: int = 1,
+    big_index_threshold: int = 5_000_000
+) -> Tuple[Optional[faiss.Index], Optional[Dict[str, str]]]:
+    """
+    Create partitioned indexes from a partitioned parquet dataset, i.e. create one index per parquet partition
+    
+    Only supported with PySpark. A PySpark session must be active before calling this function
+
+    Parameters
+    ----------
+    embedding_root_dir : str
+        Path to partitioned data
+    output_root_dir: str
+        Output root directory where indexes, metrics and ids will be written
+    embedding_column_name: str
+        Parquet dataset column name containing embeddings
+    id_columns: Optional(List[str])
+        Parquet dataset column name(s) that are used as IDs for embeddings.
+        A mapping from these IDs to faiss indices will be written in separate files.
+    max_index_query_time_ms: float
+        Bound on the query time for KNN search, this bound is approximative
+    max_index_memory_usage: str
+        Maximum size allowed for the index, this bound is strict
+    min_nearest_neighbors_to_retrieve: int
+        Minimum number of nearest neighbors to retrieve when querying the index.
+        Parameter used only during index hyperparameter finetuning step, it is
+        not taken into account to select the indexing algorithm.
+        This parameter has the priority over the max_index_query_time_ms constraint.
+    current_memory_available: str
+        Memory available on the machine creating the index, having more memory is a boost
+        because it reduces the swipe between RAM and disk.
+    use_gpu: bool
+        Experimental, gpu training is faster, not tested so far
+    metric_type: str
+        Similarity function used for query:
+            - "ip" for inner product
+            - "l2" for euclidian distance
+    nb_cores: Optional[int]
+        Number of cores to use. Will try to guess the right number if not provided
+    make_direct_map: bool
+        Create a direct map allowing reconstruction of embeddings. This is only needed for IVF indices.
+        Note that might increase the RAM usage (approximately 8GB for 1 billion embeddings)
+    should_be_memory_mappable: bool
+        If set to true, the created index will be selected only among the indices that can be memory-mapped on disk.
+        This makes it possible to use 50GB indices on a machine with only 1GB of RAM. Default to False
+    temp_root_dir: str
+        Temporary directory that will be used to store intermediate results/computation
+    verbose: int
+        set verbosity of outputs via logging level, default is `logging.INFO`
+    nb_splits_per_big_index: int
+        Number of indices to split a big index into. This allows you building indices bigger than `current_memory_available`.
+    big_index_threshold: int
+        Threshold used to define big indexes. Indexes with more `than big_index_threshold` embeddings are considered big indexes.
+    """
+    setup_logging(verbose)
+    
+    # Sanity checks
+    check_not_null_not_empty("embedding_root_dir", embedding_root_dir)
+    check_not_null_not_empty("output_root_dir", output_root_dir)
+    check_not_null_not_empty("embedding_column_name", embedding_column_name)
+    if nb_splits_per_big_index < 1:
+        raise ValueError(f"nb_indices_to_keep must be > 0; Got {nb_splits_per_big_index}")
+    
+    # List partitions
+    scheme, netloc, _, _, _, _ = urlparse(embedding_root_dir)
+    hdfs_prefix = f"{scheme}://{netloc}"
+    fs, _ = fsspec.core.url_to_fs(embedding_root_dir)
+    partitions = [f"{hdfs_prefix}{p['name']}" for p in fs.ls(embedding_root_dir)]
+
+    # Create partitioned indexes
+    create_partitioned_indexes(
+        partitions=partitions,
+        output_root_dir=output_root_dir,
+        embedding_column_name=embedding_column_name,
+        id_columns=id_columns,
+        should_be_memory_mappable=should_be_memory_mappable,
+        max_index_query_time_ms=max_index_query_time_ms,
+        max_index_memory_usage=max_index_memory_usage,
+        min_nearest_neighbors_to_retrieve=min_nearest_neighbors_to_retrieve,
+        current_memory_available=current_memory_available,
+        use_gpu=use_gpu,
+        metric_type=metric_type,
+        nb_cores=nb_cores,
+        make_direct_map=make_direct_map,
+        temp_root_dir=temp_root_dir,
+        nb_splits_per_big_index=nb_splits_per_big_index,
+        big_index_threshold=big_index_threshold
+    )
+    
+
+
+def check_not_null_not_empty(name: str, value: str):
+    if not value:
+        raise ValueError(f"{name} can't be None or empty; Got {value}")
+
+
 def tune_index(
     index_path: Union[str, faiss.Index],
     index_key: str,
@@ -470,3 +586,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

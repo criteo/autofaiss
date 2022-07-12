@@ -1,11 +1,7 @@
 """ gather functions necessary to build an index """
 import logging
-from typing import Dict, Optional, Tuple, Union, Callable, Any
-import uuid
-import re
-import os
+from typing import Dict, Optional, Tuple, Union, Callable, Any, List
 
-import fsspec
 import faiss
 import pandas as pd
 from embedding_reader import EmbeddingReader
@@ -15,20 +11,17 @@ from autofaiss.external.optimize import (
     check_if_index_needs_training,
     get_optimal_batch_size,
     get_optimal_index_keys_v2,
-    get_optimal_train_size,
-    optimize_and_measure_index,
+    get_optimal_train_size
 )
-from autofaiss.indices.index_factory import index_factory
 from autofaiss.utils.cast import (
     cast_bytes_to_memory_string,
     cast_memory_to_bytes,
-    to_faiss_metric_type,
     to_readable_time,
 )
 from autofaiss.utils.decorators import Timeit
 from autofaiss.indices import distributed
-from autofaiss.indices.index_utils import set_search_hyperparameters, initialize_direct_map
-from autofaiss.utils.path import make_path_absolute
+from autofaiss.indices.index_utils import initialize_direct_map
+from autofaiss.indices.training import create_and_train_new_index
 
 
 logger = logging.getLogger("autofaiss")
@@ -99,139 +92,6 @@ def get_estimated_construction_time_infos(nb_vectors: int, vec_dim: int, indent:
     return infos
 
 
-def get_write_ids_df_to_parquet_fn(ids_root_dir: str) -> Callable[[pd.DataFrame, int], None]:
-    """Create function to write ids from Pandas dataframe to parquet"""
-
-    def _write_ids_df_to_parquet_fn(ids: pd.DataFrame, batch_id: int):
-        filename = f"part-{batch_id:08d}-{uuid.uuid1()}.parquet"
-        output_file = os.path.join(ids_root_dir, filename)  # type: ignore
-        with fsspec.open(output_file, "wb") as f:
-            logger.debug(f"Writing id DataFrame to file {output_file}")
-            ids.to_parquet(f, index=False)
-
-    return _write_ids_df_to_parquet_fn
-
-
-def get_optimize_index_fn(
-    embedding_reader: EmbeddingReader,
-    index_key: str,
-    index_path: Optional[str],
-    index_infos_path: Optional[str],
-    use_gpu: bool,
-    save_on_disk: bool,
-    max_index_query_time_ms: float,
-    min_nearest_neighbors_to_retrieve: int,
-    index_param: Optional[str] = None,
-) -> Callable[[faiss.Index, str], Dict]:
-    """Create function to optimize index by choosing best hyperparameters and calculating metrics"""
-
-    def _optimize_index_fn(index: faiss.Index, index_suffix: str):
-        cur_index_path = make_path_absolute(index_path) + index_suffix if index_path else None
-        cur_index_infos_path = make_path_absolute(index_infos_path) + index_suffix if index_infos_path else None
-        if any(re.findall(r"OPQ\d+_\d+,IVF\d+_HNSW\d+,PQ\d+", index_key)):
-            set_search_hyperparameters(index, f"nprobe={64},efSearch={128},ht={2048}", use_gpu)
-        metric_infos = optimize_and_measure_index(
-            embedding_reader,
-            index,
-            cur_index_infos_path,
-            index_key,
-            index_param,
-            cur_index_path,
-            max_index_query_time_ms=max_index_query_time_ms,
-            min_nearest_neighbors_to_retrieve=min_nearest_neighbors_to_retrieve,
-            save_on_disk=save_on_disk,
-            use_gpu=use_gpu,
-        )
-        return metric_infos
-
-    return _optimize_index_fn
-
-
-def create_empty_index(vec_dim: int, index_key: str, metric_type: Union[str, int]) -> faiss.Index:
-    """Create empty index"""
-
-    with Timeit(f"-> Instanciate the index {index_key}", indent=2):
-
-        # Convert metric_type to faiss type
-        metric_type = to_faiss_metric_type(metric_type)
-
-        # Instanciate the index
-        return index_factory(vec_dim, index_key, metric_type)
-
-
-def train_index(
-    embedding_reader: EmbeddingReader,
-    index_key: str,
-    index: faiss.Index,
-    metadata: IndexMetadata,
-    current_memory_available: str,
-    use_gpu: bool,
-) -> faiss.Index:
-    """Train index"""
-
-    logger.info(
-        f"The index size will be approximately {cast_bytes_to_memory_string(metadata.estimated_index_size_in_bytes())}"
-    )
-
-    # Extract training vectors
-    with Timeit("-> Extract training vectors", indent=2):
-
-        memory_available_for_training = cast_bytes_to_memory_string(cast_memory_to_bytes(current_memory_available))
-
-        # Determine the number of vectors necessary to train the index
-        train_size = get_optimal_train_size(
-            embedding_reader.count, index_key, memory_available_for_training, embedding_reader.dimension
-        )
-        memory_needed_for_training = metadata.compute_memory_necessary_for_training(train_size)
-        logger.info(
-            f"Will use {train_size} vectors to train the index, "
-            f"that will use {cast_bytes_to_memory_string(memory_needed_for_training)} of memory"
-        )
-
-        # Extract training vectors
-        train_vectors, _ = next(embedding_reader(batch_size=train_size, start=0, end=train_size))
-
-    # Instanciate the index and train it
-    # pylint: disable=no-member
-    if use_gpu:
-        # if this fails, it means that the GPU version was not comp.
-        assert (
-            faiss.StandardGpuResources
-        ), "FAISS was not compiled with GPU support, or loading _swigfaiss_gpu.so failed"
-        res = faiss.StandardGpuResources()
-        dev_no = 0
-        # transfer to GPU (may be partial).
-        index = faiss.index_cpu_to_gpu(res, dev_no, index)
-
-    with Timeit(
-        f"-> Training the index with {train_vectors.shape[0]} vectors of dim {train_vectors.shape[1]}", indent=2
-    ):
-        index.train(train_vectors)
-
-    del train_vectors
-
-    return index
-
-
-def create_and_train_index(
-    embedding_reader: EmbeddingReader,
-    index_key: str,
-    metadata: IndexMetadata,
-    metric_type: Union[str, int],
-    current_memory_available: str,
-    use_gpu: bool = False,
-) -> faiss.Index:
-    """Create and train index"""
-
-    # Instanciate the index
-    index = create_empty_index(embedding_reader.dimension, index_key, metric_type)
-
-    # Train index if needed
-    if check_if_index_needs_training(index_key):
-        index = train_index(embedding_reader, index_key, index, metadata, current_memory_available, use_gpu)
-    return index
-
-
 def add_embeddings_to_index_local(
     embedding_reader: EmbeddingReader,
     index: faiss.Index,
@@ -295,7 +155,7 @@ def add_embeddings_to_index(
                 index_optimizer,
             )
         elif distributed_engine == "pyspark":
-            return distributed.add_embeddings_to_index(
+            return distributed.add_embeddings_to_index_distributed(
                 faiss_index_or_path=faiss_index_or_path,
                 embedding_reader=embedding_reader,
                 memory_available_for_adding=memory_available_for_adding,
@@ -329,7 +189,7 @@ def create_index(
     metadata = IndexMetadata(index_key, embedding_reader.count, embedding_reader.dimension, make_direct_map)
 
     # Create and train index
-    index = create_and_train_index(
+    index = create_and_train_new_index(
         embedding_reader, index_key, metadata, metric_type, current_memory_available, use_gpu
     )
 
@@ -345,4 +205,60 @@ def create_index(
         temporary_indices_folder,
         nb_indices_to_keep,
         index_optimizer,
+    )
+
+
+def create_partitioned_indexes(
+    partitions: List[str],
+    output_root_dir: str,
+    embedding_column_name: str = "embedding",
+    id_columns: Optional[List[str]] = None,
+    should_be_memory_mappable: bool = False,
+    max_index_query_time_ms: float = 10.0,
+    max_index_memory_usage: str = "16G",
+    min_nearest_neighbors_to_retrieve: int = 20,
+    current_memory_available: str = "32G",
+    use_gpu: bool = False,
+    metric_type: str = "ip",
+    nb_cores: Optional[int] = None,
+    make_direct_map: bool = False,
+    temp_root_dir: str = "hdfs://root/tmp/distributed_autofaiss_indices",
+    big_index_threshold: int = 5_000_000,
+    nb_splits_per_big_index: int = 1,
+) -> Tuple[Optional[faiss.Index], Optional[Dict[str, str]]]:
+    """
+    Create partitioned indexes from a list of parquet partitions, i.e. create one index per parquet partition
+
+    Only supported with Pyspark. An active PySpark session must exist before calling this method
+    """
+
+    # Create and train indexes
+    trained_indexes = distributed.create_and_trained_partitioned_indexes(
+        partitions=partitions,
+        embedding_column_name=embedding_column_name,
+        max_index_memory_usage=max_index_memory_usage,
+        current_memory_available=current_memory_available,
+        use_gpu=use_gpu,
+        metric_type=metric_type,
+        nb_cores=nb_cores,
+        make_direct_map=make_direct_map,
+        should_be_memory_mappable=should_be_memory_mappable,
+        temp_root_dir=temp_root_dir,
+    )
+
+    # Add embeddings to trained indexes
+    return distributed.add_embeddings_to_indexes_from_hdfs(
+        trained_indexes=trained_indexes,
+        current_memory_available=current_memory_available,
+        embedding_column_name=embedding_column_name,
+        output_root_dir=output_root_dir,
+        max_index_query_time_ms=max_index_query_time_ms,
+        min_nearest_neighbors_to_retrieve=min_nearest_neighbors_to_retrieve,
+        use_gpu=use_gpu,
+        num_cores_per_executor=nb_cores,
+        temp_root_dir=temp_root_dir,
+        id_columns=id_columns,
+        big_index_threshold=big_index_threshold,
+        nb_splits_per_big_index=nb_splits_per_big_index,
+        make_direct_map=make_direct_map
     )
