@@ -452,18 +452,11 @@ def test_build_partitioned_indexes(tmpdir):
     embedding_root_dir = tmpdir.mkdir("embeddings")
     output_root_dir = tmpdir.mkdir("outputs")
     temp_root_dir = tmpdir.strpath
-    small_partitions = [
-        ("partnerId=123", 1),
-        ("partnerId=44", 2)
-    ]
-    big_partitions = [
-        ("partnerId=22", 3),
-    ]
+    small_partitions = [("partnerId=123", 1), ("partnerId=44", 2)]
+    big_partitions = [("partnerId=22", 3)]
     all_partitions = small_partitions + big_partitions
     expected_embeddings, partitions = _create_partitioned_parquet_embedding_dataset(
-        embedding_root_dir,
-        all_partitions,
-        n_dimensions=3
+        embedding_root_dir, all_partitions, n_dimensions=3
     )
 
     nb_splits_per_big_index = 2
@@ -475,7 +468,7 @@ def test_build_partitioned_indexes(tmpdir):
         temp_root_dir=str(temp_root_dir),
         nb_splits_per_big_index=nb_splits_per_big_index,
         big_index_threshold=3,
-        should_be_memory_mappable=True
+        should_be_memory_mappable=True,
     )
 
     assert len(all_partitions) == len(metrics)
@@ -507,9 +500,7 @@ def test_build_partitioned_indexes(tmpdir):
 
 
 def _create_partitioned_parquet_embedding_dataset(
-    embedding_root_dir: str,
-    partition_sizes: List[Tuple[str, int]],
-    n_dimensions: int = 512
+    embedding_root_dir: str, partition_sizes: List[Tuple[str, int]], n_dimensions: int = 512
 ):
     partition_embeddings = []
     partitions = []

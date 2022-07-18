@@ -130,8 +130,7 @@ def create_and_train_index_from_embedding_dir(
     # Read embeddings
     with Timeit("-> Reading embeddings", indent=2):
         embedding_reader = EmbeddingReader(
-            embedding_root_dir, file_format="parquet",
-            embedding_column=embedding_column_name, meta_columns=id_columns
+            embedding_root_dir, file_format="parquet", embedding_column=embedding_column_name, meta_columns=id_columns
         )
 
     # Define index key
