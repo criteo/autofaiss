@@ -1,9 +1,7 @@
 """ gather functions necessary to build an index """
 
-import os
 import logging
 from typing import Dict, Optional, Tuple, Union, Callable, Any, List
-from functools import partial
 
 import faiss
 import pandas as pd
@@ -15,11 +13,8 @@ from autofaiss.utils.cast import cast_bytes_to_memory_string, cast_memory_to_byt
 from autofaiss.utils.decorators import Timeit
 from autofaiss.indices import distributed
 from autofaiss.indices.index_utils import initialize_direct_map
-from autofaiss.indices.training import create_and_train_new_index, create_and_train_index_from_embedding_dir
-from autofaiss.indices.build import (
-    add_embeddings_to_index_local, get_write_ids_df_to_parquet_fn, get_optimize_index_fn
-)
-from autofaiss.utils.path import extract_partition_name_from_path
+from autofaiss.indices.training import create_and_train_new_index
+from autofaiss.indices.build import add_embeddings_to_index_local
 
 
 logger = logging.getLogger("autofaiss")
@@ -182,99 +177,6 @@ def create_index(
     return index, metrics
 
 
-def _add_embeddings_to_index_on_hdfs(
-    add_embeddings_fn: Callable,
-    embedding_reader: EmbeddingReader,
-    output_root_dir: str,
-    index_key: str,
-    current_memory_available: str,
-    id_columns: Optional[List[str]],
-    max_index_query_time_ms: float,
-    min_nearest_neighbors_to_retrieve: int,
-    use_gpu: bool,
-    make_direct_map: bool,
-) -> Tuple[Optional[faiss.Index], Optional[Dict[str, str]]]:
-    """Add embeddings to index on HDFS"""
-
-    partition = extract_partition_name_from_path(embedding_reader.embeddings_folder)
-    output_dir = os.path.join(output_root_dir, partition)
-    index_dest_path = os.path.join(output_dir, "knn.index")
-    ids_dest_dir = os.path.join(output_dir, "ids")
-    index_infos_dest_path = os.path.join(output_dir, "index_infos.json")
-
-    metadata = IndexMetadata(index_key, embedding_reader.count, embedding_reader.dimension, make_direct_map)
-    index_size = metadata.estimated_index_size_in_bytes()
-    memory_available_for_adding = cast_bytes_to_memory_string(
-        cast_memory_to_bytes(current_memory_available) - index_size
-    )
-
-    write_ids_df_to_parquet_fn = get_write_ids_df_to_parquet_fn(ids_root_dir=ids_dest_dir) if id_columns else None
-
-    optimize_index_fn = get_optimize_index_fn(
-        embedding_reader=embedding_reader,
-        index_key=index_key,
-        index_path=index_dest_path,
-        index_infos_path=index_infos_dest_path,
-        use_gpu=use_gpu,
-        save_on_disk=True,
-        max_index_query_time_ms=max_index_query_time_ms,
-        min_nearest_neighbors_to_retrieve=min_nearest_neighbors_to_retrieve,
-        make_direct_map=make_direct_map,
-        index_param=None,
-    )
-
-    # Add embeddings to index
-    return add_embeddings_fn(
-        embedding_reader=embedding_reader,
-        memory_available_for_adding=memory_available_for_adding,
-        embedding_ids_df_handler=write_ids_df_to_parquet_fn,
-        index_optimizer=optimize_index_fn,
-    )
-
-
-def create_small_index(
-    embedding_root_dir: str,
-    output_root_dir: str,
-    id_columns: Optional[List[str]] = None,
-    should_be_memory_mappable: bool = False,
-    max_index_query_time_ms: float = 10.0,
-    max_index_memory_usage: str = "16G",
-    min_nearest_neighbors_to_retrieve: int = 20,
-    embedding_column_name: str = "embedding",
-    current_memory_available: str = "32G",
-    use_gpu: bool = False,
-    metric_type: str = "ip",
-    nb_cores: Optional[int] = None,
-    make_direct_map: bool = False
-):
-    trained_index = create_and_train_index_from_embedding_dir(
-        embedding_root_dir=embedding_root_dir,
-        embedding_column_name=embedding_column_name,
-        max_index_memory_usage=max_index_memory_usage,
-        make_direct_map=make_direct_map,
-        should_be_memory_mappable=should_be_memory_mappable,
-        use_gpu=use_gpu,
-        metric_type=metric_type,
-        nb_cores=nb_cores,
-        current_memory_available=current_memory_available,
-    )
-
-    return _add_embeddings_to_index_on_hdfs(
-        add_embeddings_fn=partial(
-            add_embeddings_to_index_local, trained_index_or_path=trained_index.index_or_path, add_embeddings_with_ids=True
-        ),
-        embedding_reader=trained_index.embedding_reader_or_path,
-        output_root_dir=output_root_dir,
-        index_key=trained_index.index_key,
-        current_memory_available=current_memory_available,
-        id_columns=id_columns,
-        max_index_query_time_ms=max_index_query_time_ms,
-        min_nearest_neighbors_to_retrieve=min_nearest_neighbors_to_retrieve,
-        use_gpu=use_gpu,
-        make_direct_map=make_direct_map,
-    )
-
-
 def create_partitioned_indexes(
     partitions: List[str],
     output_root_dir: str,
@@ -303,7 +205,7 @@ def create_partitioned_indexes(
         partitions=partitions,
         big_index_threshold=big_index_threshold,
         output_root_dir=output_root_dir,
-        num_cores_per_executor=nb_cores,
+        nb_cores=nb_cores,
         nb_splits_per_big_index=nb_splits_per_big_index,
         id_columns=id_columns,
         max_index_query_time_ms=max_index_query_time_ms,
@@ -313,7 +215,6 @@ def create_partitioned_indexes(
         current_memory_available=current_memory_available,
         use_gpu=use_gpu,
         metric_type=metric_type,
-        nb_cores=nb_cores,
         make_direct_map=make_direct_map,
         should_be_memory_mappable=should_be_memory_mappable,
         temp_root_dir=temp_root_dir,

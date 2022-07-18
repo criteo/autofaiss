@@ -1,6 +1,6 @@
 """Index training"""
 
-from typing import Union, NamedTuple, Optional
+from typing import Union, NamedTuple, Optional, List
 import logging
 import multiprocessing
 
@@ -117,6 +117,7 @@ def create_and_train_index_from_embedding_dir(
     should_be_memory_mappable: bool,
     current_memory_available: str,
     use_gpu: bool = False,
+    id_columns: Optional[List[str]] = None,
     metric_type: str = "ip",
     nb_cores: Optional[int] = None,
 ) -> TrainedIndex:
@@ -129,7 +130,8 @@ def create_and_train_index_from_embedding_dir(
     # Read embeddings
     with Timeit("-> Reading embeddings", indent=2):
         embedding_reader = EmbeddingReader(
-            embedding_root_dir, file_format="parquet", embedding_column=embedding_column_name
+            embedding_root_dir, file_format="parquet",
+            embedding_column=embedding_column_name, meta_columns=id_columns
         )
 
     # Define index key

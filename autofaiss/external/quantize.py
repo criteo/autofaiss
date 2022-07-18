@@ -7,7 +7,6 @@ import multiprocessing
 import os
 import tempfile
 from typing import Dict, List, Optional, Tuple, Union
-from urllib.parse import urlparse
 
 from embedding_reader import EmbeddingReader
 
@@ -15,10 +14,7 @@ import faiss
 import fire
 import fsspec
 import numpy as np
-from autofaiss.indices.build import (
-    get_write_ids_df_to_parquet_fn,
-    get_optimize_index_fn
-)
+from autofaiss.indices.build import get_write_ids_df_to_parquet_fn, get_optimize_index_fn
 from autofaiss.external.build import (
     create_index,
     create_partitioned_indexes,
@@ -282,7 +278,7 @@ def build_index(
             max_index_query_time_ms=max_index_query_time_ms,
             min_nearest_neighbors_to_retrieve=min_nearest_neighbors_to_retrieve,
             index_param=index_param,
-            make_direct_map=make_direct_map
+            make_direct_map=make_direct_map,
         )
 
         with Timeit("Creating the index", indent=1):
@@ -305,7 +301,7 @@ def build_index(
 
 
 def build_partitioned_indexes(
-    embedding_root_dir: str,
+    partitions: List[str],
     output_root_dir: str,
     embedding_column_name: str = "embedding",
     id_columns: Optional[List[str]] = None,
@@ -321,17 +317,18 @@ def build_partitioned_indexes(
     temp_root_dir: str = "hdfs://root/tmp/distributed_autofaiss_indices",
     verbose: int = logging.INFO,
     nb_splits_per_big_index: int = 1,
-    big_index_threshold: int = 5_000_000
-) -> Tuple[Optional[faiss.Index], Optional[Dict[str, str]]]:
+    big_index_threshold: int = 5_000_000,
+) -> List[Optional[Dict[str, str]]]:
     """
-    Create partitioned indexes from a partitioned parquet dataset, i.e. create one index per parquet partition
-    
+    Create partitioned indexes from a partitioned parquet dataset,
+    i.e. create one index per parquet partition
+
     Only supported with PySpark. A PySpark session must be active before calling this function
 
     Parameters
     ----------
-    embedding_root_dir : str
-        Path to partitioned data
+    partitions : str
+        List of partitions containing embeddings
     output_root_dir: str
         Output root directory where indexes, metrics and ids will be written
     embedding_column_name: str
@@ -370,24 +367,21 @@ def build_partitioned_indexes(
     verbose: int
         set verbosity of outputs via logging level, default is `logging.INFO`
     nb_splits_per_big_index: int
-        Number of indices to split a big index into. This allows you building indices bigger than `current_memory_available`.
+        Number of indices to split a big index into.
+        This allows you building indices bigger than `current_memory_available`.
     big_index_threshold: int
-        Threshold used to define big indexes. Indexes with more `than big_index_threshold` embeddings are considered big indexes.
+        Threshold used to define big indexes.
+        Indexes with more `than big_index_threshold` embeddings are considered big indexes.
     """
     setup_logging(verbose)
-    
+
     # Sanity checks
-    check_not_null_not_empty("embedding_root_dir", embedding_root_dir)
     check_not_null_not_empty("output_root_dir", output_root_dir)
     check_not_null_not_empty("embedding_column_name", embedding_column_name)
     if nb_splits_per_big_index < 1:
         raise ValueError(f"nb_indices_to_keep must be > 0; Got {nb_splits_per_big_index}")
-    
-    # List partitions
-    scheme, netloc, _, _, _, _ = urlparse(embedding_root_dir)
-    hdfs_prefix = f"{scheme}://{netloc}"
-    fs, _ = fsspec.core.url_to_fs(embedding_root_dir)
-    partitions = [f"{hdfs_prefix}{p['name']}" for p in fs.ls(embedding_root_dir)]
+    if big_index_threshold < 1:
+        raise ValueError(f"big_index_threshold must be > 0; Got {big_index_threshold}")
 
     # Create partitioned indexes
     return create_partitioned_indexes(
@@ -406,9 +400,8 @@ def build_partitioned_indexes(
         make_direct_map=make_direct_map,
         temp_root_dir=temp_root_dir,
         nb_splits_per_big_index=nb_splits_per_big_index,
-        big_index_threshold=big_index_threshold
+        big_index_threshold=big_index_threshold,
     )
-    
 
 
 def check_not_null_not_empty(name: str, value: str):
