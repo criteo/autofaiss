@@ -164,3 +164,22 @@ def initialize_direct_map(index: faiss.Index) -> None:
     # Make direct map is only implemented for IndexIVF and IndexBinaryIVF, see built file faiss/swigfaiss.py
     if isinstance(nested_index, (faiss.swigfaiss.IndexIVF, faiss.swigfaiss.IndexBinaryIVF)):
         nested_index.make_direct_map()
+
+
+def save_index(index: faiss.Index, root_dir: str, index_filename: str) -> str:
+    """Save index"""
+    fs = fsspec.core.url_to_fs(root_dir, use_listings_cache=False)[0]
+    fs.mkdirs(root_dir, exist_ok=True)
+    output_index_path = os.path.join(root_dir, index_filename)
+    with fsspec.open(output_index_path, "wb").open() as f:
+        faiss.write_index(index, faiss.PyCallbackIOWriter(f.write))
+    return output_index_path
+
+
+def load_index(index_src_path: str, index_dst_path: str) -> faiss.Index:
+    fs = fsspec.core.url_to_fs(index_src_path, use_listings_cache=False)[0]
+    try:
+        fs.get(index_src_path, index_dst_path)
+    except Exception as e:
+        raise Exception(f"Failed to download index from {index_src_path} to {index_dst_path}") from e
+    return faiss.read_index(index_dst_path)

@@ -1,26 +1,27 @@
 """Index training"""
 
-from typing import Union
+from typing import Union, NamedTuple, Optional
 import logging
+import multiprocessing
 
 import faiss
 from embedding_reader import EmbeddingReader
 
 from autofaiss.external.metadata import IndexMetadata
-from autofaiss.external.optimize import (
-    check_if_index_needs_training,
-    get_optimal_train_size
-)
+from autofaiss.external.optimize import check_if_index_needs_training, get_optimal_train_size
 from autofaiss.indices.index_factory import index_factory
-from autofaiss.utils.cast import (
-    cast_bytes_to_memory_string,
-    cast_memory_to_bytes,
-    to_faiss_metric_type,
-)
+from autofaiss.utils.cast import cast_bytes_to_memory_string, cast_memory_to_bytes, to_faiss_metric_type
 from autofaiss.utils.decorators import Timeit
+from autofaiss.external.optimize import get_optimal_index_keys_v2
 
 
 logger = logging.getLogger("autofaiss")
+
+
+class TrainedIndex(NamedTuple):
+    index_or_path: Union[faiss.Index, str]
+    index_key: str
+    embedding_reader_or_path: Union[EmbeddingReader, str]
 
 
 def _create_empty_index(vec_dim: int, index_key: str, metric_type: Union[str, int]) -> faiss.Index:
@@ -106,3 +107,51 @@ def create_and_train_new_index(
     if check_if_index_needs_training(index_key):
         index = _train_index(embedding_reader, index_key, index, metadata, current_memory_available, use_gpu)
     return index
+
+
+def create_and_train_index_from_embedding_dir(
+    embedding_root_dir: str,
+    embedding_column_name: str,
+    max_index_memory_usage: str,
+    make_direct_map: bool,
+    should_be_memory_mappable: bool,
+    current_memory_available: str,
+    use_gpu: bool = False,
+    metric_type: str = "ip",
+    nb_cores: Optional[int] = None,
+) -> TrainedIndex:
+    """
+    Create and train index from embedding directory
+    """
+    nb_cores = nb_cores if nb_cores else multiprocessing.cpu_count()
+    faiss.omp_set_num_threads(nb_cores)
+
+    # Read embeddings
+    with Timeit("-> Reading embeddings", indent=2):
+        embedding_reader = EmbeddingReader(
+            embedding_root_dir, file_format="parquet", embedding_column=embedding_column_name
+        )
+
+    # Define index key
+    best_index_keys = get_optimal_index_keys_v2(
+        embedding_reader.count,
+        embedding_reader.dimension,
+        max_index_memory_usage,
+        make_direct_map=make_direct_map,
+        should_be_memory_mappable=should_be_memory_mappable,
+        use_gpu=use_gpu,
+    )
+    if not best_index_keys:
+        raise RuntimeError(f"Unable to find optimal index key from embedding directory {embedding_root_dir}")
+    index_key = best_index_keys[0]
+
+    # Create metadata
+    with Timeit("-> Reading metadata", indent=2):
+        metadata = IndexMetadata(index_key, embedding_reader.count, embedding_reader.dimension, make_direct_map)
+
+    # Create and train index
+    index = create_and_train_new_index(
+        embedding_reader, index_key, metadata, metric_type, current_memory_available, use_gpu
+    )
+
+    return TrainedIndex(index, index_key, embedding_reader)

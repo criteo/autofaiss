@@ -1,13 +1,14 @@
 """
 Building the index with pyspark.
 """
+
 import math
 import multiprocessing
 import os
 import logging
 from tempfile import TemporaryDirectory
 import tempfile
-from typing import Dict, Optional, Iterator, Tuple, Callable, Any, Union, List, NamedTuple
+from typing import Dict, Optional, Iterator, Tuple, Callable, Any, Union, List
 from functools import partial
 from multiprocessing.pool import ThreadPool
 
@@ -18,31 +19,22 @@ from embedding_reader import EmbeddingReader
 from tqdm import tqdm
 
 from autofaiss.external.metadata import IndexMetadata
-from autofaiss.external.optimize import get_optimal_batch_size, get_optimal_index_keys_v2
-from autofaiss.indices.build import (
-    get_write_ids_df_to_parquet_fn,
-    get_optimize_index_fn
-)
+from autofaiss.external.optimize import get_optimal_batch_size
+from autofaiss.indices.build import get_write_ids_df_to_parquet_fn, get_optimize_index_fn, add_embeddings_to_index_local
 from autofaiss.indices.index_utils import (
     get_index_from_bytes,
     get_bytes_from_index,
     parallel_download_indices_from_remote,
-    initialize_direct_map,
+    load_index,
+    save_index,
 )
 from autofaiss.utils.path import make_path_absolute, extract_partition_name_from_path
 from autofaiss.utils.cast import cast_memory_to_bytes, cast_bytes_to_memory_string
 from autofaiss.utils.decorators import Timeit
-from autofaiss.indices.training import create_and_train_new_index
+from autofaiss.indices.training import create_and_train_index_from_embedding_dir, TrainedIndex
 
 
 logger = logging.getLogger("autofaiss")
-
-
-class TrainedIndex(NamedTuple):
-    index_path: str
-    index_key: str
-    embedding_root_dir: str
-    embedding_count: int
 
 
 def _generate_suffix(batch_id: int, nb_batches: int) -> str:
@@ -54,29 +46,10 @@ def _generate_small_index_file_name(batch_id: int, nb_batches: int) -> str:
     return "index_" + _generate_suffix(batch_id, nb_batches)
 
 
-def save_index(index: faiss.Index, root_dir: str, index_filename: str) -> str:
-    """Save index"""
-    fs = _get_file_system(root_dir)
-    fs.mkdirs(root_dir, exist_ok=True)
-    output_index_path = os.path.join(root_dir, index_filename)
-    with fsspec.open(output_index_path, "wb").open() as f:
-        faiss.write_index(index, faiss.PyCallbackIOWriter(f.write))
-    return output_index_path
-
-
-def _load_index(index_src_path: str, index_dst_path: str) -> faiss.Index:
-    fs = _get_file_system(index_src_path)
-    try:
-        fs.get(index_src_path, index_dst_path)
-    except Exception as e:
-        raise Exception(f"Failed to download index from {index_src_path} to {index_dst_path}") from e
-    return faiss.read_index(index_dst_path)
-
-
 def _add_index(
     start: int,
     end: int,
-    broadcasted_index_or_path,
+    broadcasted_trained_index_or_path,
     memory_available_for_adding: str,
     embedding_reader: EmbeddingReader,
     batch_id: int,
@@ -94,8 +67,8 @@ def _add_index(
         Start position of this batch
     end: int
         End position of this batch
-    broadcasted_index_or_path: pyspark.Broadcast or str
-        Broadcasted index or path to an index
+    broadcasted_trained_index_or_path: pyspark.Broadcast or str
+        Broadcasted trained index or path to a trained index
     memory_available_for_adding: str
         Memory available for adding embeddings
     embedding_reader: EmbeddingReader
@@ -116,11 +89,11 @@ def _add_index(
 
     with tempfile.TemporaryDirectory() as tmp_dir:
         # load empty trained index
-        if isinstance(broadcasted_index_or_path, str):
+        if isinstance(broadcasted_trained_index_or_path, str):
             local_index_path = os.path.join(tmp_dir, "index")
-            empty_index = _load_index(broadcasted_index_or_path, local_index_path)
+            empty_index = load_index(broadcasted_trained_index_or_path, local_index_path)
         else:
-            empty_index = get_index_from_bytes(broadcasted_index_or_path.value)
+            empty_index = get_index_from_bytes(broadcasted_trained_index_or_path.value)
 
         batch_size = get_optimal_batch_size(embedding_reader.dimension, memory_available_for_adding)
 
@@ -169,7 +142,6 @@ def _batch_loader(nb_batches: int, total_size: int) -> Iterator[Tuple[int, int, 
 def _merge_index(
     small_indices_folder: str,
     nb_batches: int,
-    make_direct_map: bool = False,
     batch_id: Optional[int] = None,
     start: Optional[int] = None,
     end: Optional[int] = None,
@@ -234,8 +206,6 @@ def _merge_index(
             save_index(merged_index, tmp_output_folder, _generate_small_index_file_name(batch_id, nb_batches))
     else:
         metric_infos = None
-    if make_direct_map:
-        initialize_direct_map(merged_index)
     return merged_index, metric_infos
 
 
@@ -243,13 +213,7 @@ def _get_file_system(path: str) -> fsspec.AbstractFileSystem:
     return fsspec.core.url_to_fs(path, use_listings_cache=False)[0]
 
 
-def _merge_to_n_indices(
-    spark_session, n: int,
-    src_folder: str,
-    dst_folder: str,
-    make_direct_map: bool = False,
-    index_optimizer: Callable = None
-):
+def _merge_to_n_indices(spark_session, n: int, src_folder: str, dst_folder: str, index_optimizer: Callable = None):
     """Merge all the indices from src_folder into n indices, and return the folder for the next stage, as well as the metrics"""
     fs = _get_file_system(src_folder)
     nb_indices_on_src_folder = len(fs.ls(src_folder, detail=False))
@@ -271,7 +235,6 @@ def _merge_to_n_indices(
             end=x[2],
             tmp_output_folder=dst_folder,
             index_optimizer=index_optimizer,
-            make_direct_map=make_direct_map
         )  # type: ignore
         return metrics
 
@@ -288,10 +251,9 @@ def _merge_to_n_indices(
 
 
 def add_embeddings_to_index_distributed(
-    faiss_index_or_path: Union[faiss.Index, str],
+    trained_index_or_path: Union[faiss.Index, str],
     embedding_reader: EmbeddingReader,
     memory_available_for_adding: str,
-    make_direct_map: bool,
     num_cores_per_executor: Optional[int] = None,
     temporary_indices_folder="hdfs://root/tmp/distributed_autofaiss_indices",
     embedding_ids_df_handler: Optional[Callable[[pd.DataFrame, int], Any]] = None,
@@ -303,7 +265,7 @@ def add_embeddings_to_index_distributed(
 
     Parameters
     ----------
-    faiss_index_or_path: faiss.Index or path to a faiss index
+    trained_index_or_path: trained faiss.Index or path to a trained faiss index
         Trained faiss index
     embedding_reader: EmbeddingReader
         Embedding reader.
@@ -328,10 +290,10 @@ def add_embeddings_to_index_distributed(
     ss = _get_pyspark_active_session()
 
     # Broadcast index
-    broadcasted_index_or_path = (
-        faiss_index_or_path
-        if isinstance(faiss_index_or_path, str)
-        else ss.sparkContext.broadcast(get_bytes_from_index(faiss_index_or_path))
+    broadcasted_trained_index_or_path = (
+        trained_index_or_path
+        if isinstance(trained_index_or_path, str)
+        else ss.sparkContext.broadcast(get_bytes_from_index(trained_index_or_path))
     )
 
     sc = ss._jsc.sc()  # pylint: disable=protected-access
@@ -348,12 +310,12 @@ def add_embeddings_to_index_distributed(
                 start=x[1],
                 end=x[2],
                 memory_available_for_adding=memory_available_for_adding,
-                broadcasted_index_or_path=broadcasted_index_or_path,
+                broadcasted_trained_index_or_path=broadcasted_trained_index_or_path,
                 embedding_reader=embedding_reader,
                 small_indices_folder=stage1_folder,
                 num_cores=num_cores_per_executor,
                 embedding_ids_df_handler=embedding_ids_df_handler,
-                nb_batches=estimated_nb_batches
+                nb_batches=estimated_nb_batches,
             )
         )
 
@@ -363,11 +325,9 @@ def add_embeddings_to_index_distributed(
             spark_session=ss, n=100, src_folder=stage1_folder, dst_folder=stage2_folder, index_optimizer=None
         )
         if nb_indices_to_keep == 1:
-            merged_index, _ = _merge_index(small_indices_folder=next_stage_folder, nb_batches=1, make_direct_map=make_direct_map)
+            merged_index, _ = _merge_index(small_indices_folder=next_stage_folder, nb_batches=1)
             if fs.exists(temporary_indices_folder):
                 fs.rm(temporary_indices_folder, recursive=True)
-            if make_direct_map:
-                initialize_direct_map(merged_index)
             metrics = index_optimizer(merged_index, "")  # type: ignore
             return merged_index, metrics
         else:
@@ -378,14 +338,63 @@ def add_embeddings_to_index_distributed(
                 src_folder=next_stage_folder,
                 dst_folder=final_folder,
                 index_optimizer=index_optimizer,
-                make_direct_map=make_direct_map
             )
             if fs.exists(temporary_indices_folder):
                 fs.rm(temporary_indices_folder, recursive=True)
-            return None, metrics
+            return None, metrics 
 
 
-def _add_embeddings_to_index_from_hdfs(
+def _add_embeddings_to_index(
+    add_embeddings_fn: Callable,
+    embedding_reader: EmbeddingReader,
+    output_root_dir: str,
+    index_key: str,
+    current_memory_available: str,
+    id_columns: Optional[List[str]],
+    max_index_query_time_ms: float,
+    min_nearest_neighbors_to_retrieve: int,
+    use_gpu: bool,
+    make_direct_map: bool,
+) -> Tuple[Optional[faiss.Index], Optional[Dict[str, str]]]:
+    """Add embeddings to index on HDFS"""
+
+    partition = extract_partition_name_from_path(embedding_reader.embeddings_folder)
+    output_dir = os.path.join(output_root_dir, partition)
+    index_dest_path = os.path.join(output_dir, "knn.index")
+    ids_dest_dir = os.path.join(output_dir, "ids")
+    index_infos_dest_path = os.path.join(output_dir, "index_infos.json")
+
+    metadata = IndexMetadata(index_key, embedding_reader.count, embedding_reader.dimension, make_direct_map)
+    index_size = metadata.estimated_index_size_in_bytes()
+    memory_available_for_adding = cast_bytes_to_memory_string(
+        cast_memory_to_bytes(current_memory_available) - index_size
+    )
+
+    write_ids_df_to_parquet_fn = get_write_ids_df_to_parquet_fn(ids_root_dir=ids_dest_dir) if id_columns else None
+
+    optimize_index_fn = get_optimize_index_fn(
+        embedding_reader=embedding_reader,
+        index_key=index_key,
+        index_path=index_dest_path,
+        index_infos_path=index_infos_dest_path,
+        use_gpu=use_gpu,
+        save_on_disk=True,
+        max_index_query_time_ms=max_index_query_time_ms,
+        min_nearest_neighbors_to_retrieve=min_nearest_neighbors_to_retrieve,
+        make_direct_map=make_direct_map,
+        index_param=None,
+    )
+
+    # Add embeddings to index
+    return add_embeddings_fn(
+        embedding_reader=embedding_reader,
+        memory_available_for_adding=memory_available_for_adding,
+        embedding_ids_df_handler=write_ids_df_to_parquet_fn,
+        index_optimizer=optimize_index_fn,
+    )
+
+
+def _add_embeddings_from_dir_to_index(
     add_embeddings_fn: Callable,
     embedding_root_dir: str,
     output_root_dir: str,
@@ -396,111 +405,76 @@ def _add_embeddings_to_index_from_hdfs(
     max_index_query_time_ms: float,
     min_nearest_neighbors_to_retrieve: int,
     use_gpu: bool,
-    make_direct_map: bool
-) -> str:
-    partition = extract_partition_name_from_path(embedding_root_dir)
-    output_dir = os.path.join(output_root_dir, partition)
-    index_dest_path = os.path.join(output_dir, "knn.index")
-    ids_dest_dir = os.path.join(output_dir, "ids")
-    index_infos_dest_path = os.path.join(output_dir, "index_infos.json")
+    make_direct_map: bool,
+) -> Tuple[Optional[faiss.Index], Optional[Dict[str, str]]]:
+    """Add embeddings to index on HDFS"""
 
     # Read embeddings
     with Timeit("-> Reading embeddings", indent=2):
         embedding_reader = EmbeddingReader(
-            embedding_root_dir,
-            file_format="parquet",
-            embedding_column=embedding_column_name,
-            meta_columns=id_columns,
-        )
-    
-    # Compute memory available for adding embedding to index
-    metadata = IndexMetadata(index_key, embedding_reader.count, embedding_reader.dimension, make_direct_map)
-    index_size = metadata.estimated_index_size_in_bytes()
-    memory_available_for_adding = cast_bytes_to_memory_string(
-        cast_memory_to_bytes(current_memory_available) - index_size
-    )
-
-    write_ids_df_to_parquet_fn = \
-        get_write_ids_df_to_parquet_fn(
-            ids_root_dir=ids_dest_dir
-        ) if id_columns else None
-
-    optimize_index_fn = \
-        get_optimize_index_fn(
-            embedding_reader=embedding_reader,
-            index_key=index_key,
-            index_path=index_dest_path,
-            index_infos_path=index_infos_dest_path,
-            use_gpu=use_gpu,
-            save_on_disk=True,
-            max_index_query_time_ms=max_index_query_time_ms,
-            min_nearest_neighbors_to_retrieve=min_nearest_neighbors_to_retrieve
+            embedding_root_dir, file_format="parquet", embedding_column=embedding_column_name, meta_columns=id_columns
         )
 
-    # Add embeddings to index
-    return add_embeddings_fn(
+    return _add_embeddings_to_index(
+        add_embeddings_fn=add_embeddings_fn,
         embedding_reader=embedding_reader,
-        memory_available_for_adding=memory_available_for_adding,
-        embedding_ids_df_handler=write_ids_df_to_parquet_fn,
-        index_optimizer=optimize_index_fn
+        output_root_dir=output_root_dir,
+        index_key=index_key,
+        current_memory_available=current_memory_available,
+        id_columns=id_columns,
+        max_index_query_time_ms=max_index_query_time_ms,
+        min_nearest_neighbors_to_retrieve=min_nearest_neighbors_to_retrieve,
+        use_gpu=use_gpu,
+        make_direct_map=make_direct_map
     )
 
 
-def _add_embeddings_to_index_local(
-    trained_index_path: str,
-    embedding_reader: EmbeddingReader,
-    memory_available_for_adding: int,
-    make_direct_map: bool,
-    embedding_ids_df_handler: Optional[Callable[[pd.DataFrame, int], Any]],
-    index_optimizer: Optional[Callable]
-) -> Dict[str, str]:
-    """Add embeddings to small index"""
-
-    with tempfile.TemporaryDirectory() as tmp:
-        trained_index_tmp_path = os.path.join(tmp, "index")
-        trained_index = _load_index(trained_index_path, trained_index_tmp_path)
-        
-        batch_size = get_optimal_batch_size(embedding_reader.dimension, memory_available_for_adding)
-        all_ids = []
-        for (vec_batch, ids_batch) in embedding_reader(batch_size=batch_size):
-            consecutive_ids = ids_batch["i"].to_numpy()
-            trained_index.add_with_ids(vec_batch, consecutive_ids)
-            if embedding_ids_df_handler:
-                all_ids.append(ids_batch)
-
-        if embedding_ids_df_handler:
-            embedding_ids_df_handler(pd.concat(all_ids), 0)
-    
-        if make_direct_map:
-            trained_index.make_direct_map()
-
-        return index_optimizer(trained_index, "")
-
-def _add_embeddings_to_index_from_hdfs_distributed(
-    trained_index_path: str,
-    trained_index_key: str,
+def create_big_index(
     embedding_root_dir: str,
-    embedding_count: int,
-    current_memory_available: str,
-    embedding_column_name: str,
     output_root_dir: str,
-    max_index_query_time_ms: float,
-    min_nearest_neighbors_to_retrieve: int,
-    use_gpu: bool,
-    num_cores_per_executor: Optional[int],
-    temp_root_dir: str,
     id_columns: Optional[List[str]],
-    nb_splits_per_big_index,
+    should_be_memory_mappable: bool,
+    max_index_query_time_ms: float,
+    max_index_memory_usage: str,
+    min_nearest_neighbors_to_retrieve: int,
+    embedding_column_name: str,
+    current_memory_available: str,
+    num_cores_per_executor: Optional[int],
+    use_gpu: bool,
+    metric_type: str,
+    nb_cores: Optional[int],
+    nb_splits_per_big_index: int,
     make_direct_map: bool
 ):
-    partition = extract_partition_name_from_path(embedding_root_dir)
-    partition_temp_root_dir = os.path.join(temp_root_dir, "add_embeddings", partition)
+    def _create_and_train_index_from_embedding_dir():
+        trained_index = create_and_train_index_from_embedding_dir(
+            embedding_root_dir=embedding_root_dir,
+            embedding_column_name=embedding_column_name,
+            max_index_memory_usage=max_index_memory_usage,
+            make_direct_map=make_direct_map,
+            should_be_memory_mappable=should_be_memory_mappable,
+            use_gpu=use_gpu,
+            metric_type=metric_type,
+            nb_cores=nb_cores,
+            current_memory_available=current_memory_available,
+        )
 
-    return _add_embeddings_to_index_from_hdfs(
+        index_output_root_dir = os.path.join(output_root_dir, "training", partition)
+        output_index_path = save_index(trained_index, index_output_root_dir, "trained_index")
+        return TrainedIndex(output_index_path, trained_index.index_key, embedding_root_dir)
+
+    partition = extract_partition_name_from_path(embedding_root_dir)
+
+    ss = _get_pyspark_active_session()
+    rdd = ss.sparkContext.parallelize(embedding_root_dir, len(embedding_root_dir))
+    trained_index_path, trained_index_key, _, = rdd.foreach(lambda _: _create_and_train_index_from_embedding_dir()).collect()[0]
+
+    partition_temp_root_dir = os.path.join(output_root_dir, "add_embeddings", partition)
+
+    index, metrics = _add_embeddings_from_dir_to_index(
         add_embeddings_fn=partial(
             add_embeddings_to_index_distributed,
             faiss_index_or_path=trained_index_path,
-            make_direct_map=make_direct_map,
             num_cores_per_executor=num_cores_per_executor,
             temporary_indices_folder=partition_temp_root_dir,
             nb_indices_to_keep=nb_splits_per_big_index,
@@ -514,84 +488,67 @@ def _add_embeddings_to_index_from_hdfs_distributed(
         max_index_query_time_ms=max_index_query_time_ms,
         min_nearest_neighbors_to_retrieve=min_nearest_neighbors_to_retrieve,
         use_gpu=use_gpu,
-        make_direct_map=make_direct_map
+        make_direct_map=make_direct_map,
+    )
+
+    if index:
+        del index
+
+    return metrics
+
+
+def create_small_index(
+    embedding_root_dir: str,
+    output_root_dir: str,
+    id_columns: Optional[List[str]] = None,
+    should_be_memory_mappable: bool = False,
+    max_index_query_time_ms: float = 10.0,
+    max_index_memory_usage: str = "16G",
+    min_nearest_neighbors_to_retrieve: int = 20,
+    embedding_column_name: str = "embedding",
+    current_memory_available: str = "32G",
+    use_gpu: bool = False,
+    metric_type: str = "ip",
+    nb_cores: Optional[int] = None,
+    make_direct_map: bool = False
+):
+    trained_index = create_and_train_index_from_embedding_dir(
+        embedding_root_dir=embedding_root_dir,
+        embedding_column_name=embedding_column_name,
+        max_index_memory_usage=max_index_memory_usage,
+        make_direct_map=make_direct_map,
+        should_be_memory_mappable=should_be_memory_mappable,
+        use_gpu=use_gpu,
+        metric_type=metric_type,
+        nb_cores=nb_cores,
+        current_memory_available=current_memory_available,
+    )
+
+    return _add_embeddings_to_index(
+        add_embeddings_fn=partial(
+            add_embeddings_to_index_local, trained_index_or_path=trained_index.index_or_path, add_embeddings_with_ids=True
+        ),
+        embedding_reader=trained_index.embedding_reader_or_path,
+        output_root_dir=output_root_dir,
+        index_key=trained_index.index_key,
+        current_memory_available=current_memory_available,
+        id_columns=id_columns,
+        max_index_query_time_ms=max_index_query_time_ms,
+        min_nearest_neighbors_to_retrieve=min_nearest_neighbors_to_retrieve,
+        use_gpu=use_gpu,
+        make_direct_map=make_direct_map,
     )
 
 
-def add_embeddings_to_indexes_from_hdfs(
-    trained_indexes: List[TrainedIndex],
-    current_memory_available: str,
-    embedding_column_name: str,
-    output_root_dir: str,
-    max_index_query_time_ms: float,
-    min_nearest_neighbors_to_retrieve: int,
-    use_gpu: bool,
-    num_cores_per_executor: Optional[int],
-    temp_root_dir: str,
-    id_columns: Optional[List[str]],
-    big_index_threshold: int,
-    nb_splits_per_big_index: int,
-    make_direct_map: bool
-):
-    small_indexes = []
-    big_indexes = []
-    for trained_index in trained_indexes:
-        if trained_index.embedding_count < big_index_threshold:
-            small_indexes.append(trained_index)
-        else:
-            big_indexes.append(trained_index)
-
-    # Add embeddings to small indexes
-    if len(small_indexes) > 0:
-        with Timeit("-> Adding indices", indent=2):
-            ss = _get_pyspark_active_session()
-            rdd = ss.sparkContext.parallelize(small_indexes, len(small_indexes))
-            rdd.foreach(
-                lambda x: _add_embeddings_to_index_from_hdfs(
-                    add_embeddings_fn=partial(
-                        _add_embeddings_to_index_local,
-                        trained_index_path=x.index_path,
-                        make_direct_map=make_direct_map
-                    ),
-                    embedding_root_dir=x.embedding_root_dir,
-                    output_root_dir=output_root_dir,
-                    index_key=x.index_key,
-                    embedding_column_name=embedding_column_name,
-                    current_memory_available=current_memory_available,
-                    id_columns=id_columns,
-                    max_index_query_time_ms=max_index_query_time_ms,
-                    min_nearest_neighbors_to_retrieve=min_nearest_neighbors_to_retrieve,
-                    use_gpu=use_gpu,
-                    make_direct_map=make_direct_map
-                )
-            )
-
-    # Add embeddings to big indexes
-    if len(big_indexes) > 0:
-        _add_embeddings_to_index_on_hdfs_distributed_fn = partial(
-            _add_embeddings_to_index_from_hdfs_distributed,
-            current_memory_available=current_memory_available,
-            embedding_column_name=embedding_column_name,
-            output_root_dir=output_root_dir,
-            max_index_query_time_ms=max_index_query_time_ms,
-            min_nearest_neighbors_to_retrieve=min_nearest_neighbors_to_retrieve,
-            use_gpu=use_gpu,
-            num_cores_per_executor=num_cores_per_executor,
-            temp_root_dir=temp_root_dir,
-            id_columns=id_columns,
-            nb_splits_per_big_index=nb_splits_per_big_index,
-            make_direct_map=make_direct_map
-        )
-
-        with Timeit("-> Adding embeddings to indexes", indent=2):
-            index_w_metrics = []
-            with ThreadPool(256) as p:
-                for index, metrics in p.starmap(_add_embeddings_to_index_on_hdfs_distributed_fn, big_indexes):
-                    index_w_metrics.append((index, metrics))
-
-
-def create_and_trained_partitioned_indexes(
+def create_partitioned_indexes(
     partitions: List[str],
+    big_index_threshold: int,
+    output_root_dir: str,
+    num_cores_per_executor: Optional[int],
+    nb_splits_per_big_index: int,
+    id_columns: Optional[List[str]] = None,
+    max_index_query_time_ms: float = 10.0,
+    min_nearest_neighbors_to_retrieve: int = 20,
     embedding_column_name: str = "embedding",
     max_index_memory_usage: str = "16G",
     current_memory_available: str = "32G",
@@ -603,90 +560,68 @@ def create_and_trained_partitioned_indexes(
     temp_root_dir: str = "hdfs://root/tmp/distributed_autofaiss_indices",
 ) -> List[TrainedIndex]:
     """
-    Create and train partitioned indexes from a list of parquet partitions, 
+    Create and train partitioned indexes from a list of parquet partitions,
     i.e. create and train one index per parquet partition
     """
 
-    # Create and train an index for each partition
-    ss = _get_pyspark_active_session()
-    rdd = ss.sparkContext.parallelize(partitions, len(partitions))
-    with Timeit("-> Creating and training an index for each partition", indent=2):
-        trained_indexes_rdd = rdd.map(
-            lambda embedding_root_dir: _create_and_train_index_from_embedding_dir(
+    def _create_small_indexes(embedding_root_dirs: str):
+        rdd = ss.sparkContext.parallelize(embedding_root_dirs, len(embedding_root_dirs))
+        return rdd.map(lambda embedding_root_dir:
+            create_small_index(
                 embedding_root_dir=embedding_root_dir,
-                embedding_column_name=embedding_column_name,
-                index_dest_root_dir=os.path.join(
-                    temp_root_dir,
-                    "trained_indexes",
-                    extract_partition_name_from_path(embedding_root_dir)
-                ),
-                max_index_memory_usage=max_index_memory_usage,
-                make_direct_map=make_direct_map,
+                output_root_dir=output_root_dir,
+                id_columns=id_columns,
                 should_be_memory_mappable=should_be_memory_mappable,
+                max_index_query_time_ms=max_index_query_time_ms,
+                max_index_memory_usage=max_index_memory_usage,
+                min_nearest_neighbors_to_retrieve=min_nearest_neighbors_to_retrieve,
+                embedding_column_name=embedding_column_name,
+                current_memory_available=current_memory_available,
                 use_gpu=use_gpu,
                 metric_type=metric_type,
                 nb_cores=nb_cores,
-                current_memory_available=current_memory_available
+                make_direct_map=make_direct_map
             )
         )
-    
-        return trained_indexes_rdd.collect()
 
 
-def _create_and_train_index_from_embedding_dir(
-    embedding_root_dir: str,
-    embedding_column_name: str,
-    index_dest_root_dir: str,
-    max_index_memory_usage: str,
-    make_direct_map: bool,
-    should_be_memory_mappable: bool,
-    current_memory_available: str,
-    use_gpu: bool = False,
-    metric_type: str = "ip",
-    nb_cores: Optional[int] = None
-) -> TrainedIndex:
-    """
-    Create and train index from embedding directory
-    """
-    nb_cores = nb_cores if nb_cores else multiprocessing.cpu_count()    
-    faiss.omp_set_num_threads(nb_cores)
-    
-    # Read embeddings
-    with Timeit("-> Reading embeddings", indent=2):
-        embedding_reader = EmbeddingReader(
-            embedding_root_dir,
-            file_format="parquet",
-            embedding_column=embedding_column_name
-        )
-    
-    # Define index key
-    best_index_keys = get_optimal_index_keys_v2(
-        embedding_reader.count,
-        embedding_reader.dimension,
-        max_index_memory_usage,
-        make_direct_map=make_direct_map,
+    create_big_index_fn = partial(
+        create_big_index,
+        output_root_dir=output_root_dir,
+        id_columns=id_columns,
         should_be_memory_mappable=should_be_memory_mappable,
+        max_index_query_time_ms=max_index_query_time_ms,
+        max_index_memory_usage=max_index_memory_usage,
+        min_nearest_neighbors_to_retrieve=min_nearest_neighbors_to_retrieve,
+        embedding_column_name=embedding_column_name,
+        current_memory_available=current_memory_available,
+        num_cores_per_executor=num_cores_per_executor,
         use_gpu=use_gpu,
+        metric_type=metric_type,
+        nb_cores=nb_cores,
+        nb_splits_per_big_index=nb_splits_per_big_index,
+        make_direct_map=make_direct_map
     )
-    if not best_index_keys:
-        raise RuntimeError(f"Unable to find optimal index key from embedding directory {embedding_root_dir}")
-    index_key = best_index_keys[0]
-    
-    # Create metadata
-    with Timeit("-> Reading metadata", indent=2):
-        metadata = IndexMetadata(index_key, embedding_reader.count, embedding_reader.dimension, make_direct_map)
-    
-    # Create and train index
-    index = create_and_train_new_index(
-        embedding_reader,
-        index_key,
-        metadata,
-        metric_type,
-        current_memory_available,
-        use_gpu
-    )
-    
-    # Save index
-    output_index_path = save_index(index, index_dest_root_dir, "trained_index")
-        
-    return TrainedIndex(output_index_path, index_key, embedding_root_dir, embedding_reader.count)
+
+    ss = _get_pyspark_active_session()
+    rdd = ss.sparkContext.parallelize(partitions, len(partitions))
+    partition_sizes = rdd.map(
+        lambda partition: (partition, EmbeddingReader(partition, file_format="parquet", embedding_column=embedding_column_name).count)
+    ).collect()
+
+    small_partitions = []
+    big_partitions = []
+    for partition, size in partition_sizes:
+        if size < big_index_threshold:
+            small_partitions.append(partition)
+        else:
+            big_partitions.append(partition)
+
+    all_metrics = []
+    with ThreadPool(256) as p:
+        small_index_metrics_future = p.apply_async(_create_small_indexes, small_partitions)
+        for metrics in p.starmap(create_big_index_fn, big_partitions):
+            all_metrics.append(metrics)
+        all_metrics.extend(small_index_metrics_future.get())
+
+    return all_metrics

@@ -282,6 +282,7 @@ def build_index(
             max_index_query_time_ms=max_index_query_time_ms,
             min_nearest_neighbors_to_retrieve=min_nearest_neighbors_to_retrieve,
             index_param=index_param,
+            make_direct_map=make_direct_map
         )
 
         with Timeit("Creating the index", indent=1):
@@ -389,7 +390,7 @@ def build_partitioned_indexes(
     partitions = [f"{hdfs_prefix}{p['name']}" for p in fs.ls(embedding_root_dir)]
 
     # Create partitioned indexes
-    create_partitioned_indexes(
+    return create_partitioned_indexes(
         partitions=partitions,
         output_root_dir=output_root_dir,
         embedding_column_name=embedding_column_name,
@@ -586,4 +587,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
