@@ -468,7 +468,7 @@ def create_big_index(
             id_columns=id_columns,
         )
 
-        index_output_root_dir = os.path.join(output_root_dir, "training", partition)
+        index_output_root_dir = os.path.join(temp_root_dir, "training", partition)
         output_index_path = save_index(trained_index.index_or_path, index_output_root_dir, "trained_index")
         return TrainedIndex(output_index_path, trained_index.index_key, embedding_root_dir)
 
