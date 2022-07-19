@@ -575,7 +575,12 @@ def score_index(
 
 def main():
     """Main entry point"""
-    fire.Fire({"build_index": build_index, "tune_index": tune_index, "score_index": score_index})
+    fire.Fire({
+        "build_index": build_index,
+        "tune_index": tune_index,
+        "score_index": score_index,
+        "build_partitioned_indexes": build_partitioned_indexes,
+    })
 
 
 if __name__ == "__main__":
