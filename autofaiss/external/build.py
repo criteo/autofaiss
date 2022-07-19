@@ -194,6 +194,7 @@ def create_partitioned_indexes(
     temp_root_dir: str = "hdfs://root/tmp/distributed_autofaiss_indices",
     big_index_threshold: int = 5_000_000,
     nb_splits_per_big_index: int = 1,
+    maximum_nb_threads: int = 256,
 ) -> List[Optional[Dict[str, str]]]:
     """
     Create partitioned indexes from a list of parquet partitions, i.e. create one index per parquet partition
@@ -218,4 +219,5 @@ def create_partitioned_indexes(
         make_direct_map=make_direct_map,
         should_be_memory_mappable=should_be_memory_mappable,
         temp_root_dir=temp_root_dir,
+        maximum_nb_threads=maximum_nb_threads,
     )

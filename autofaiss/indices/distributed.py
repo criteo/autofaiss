@@ -502,6 +502,7 @@ def create_big_index(
         make_direct_map=make_direct_map,
     )
 
+    # Only metrics are returned to save memory on driver
     if index:
         del index
 
@@ -577,6 +578,7 @@ def create_partitioned_indexes(
     make_direct_map: bool = False,
     should_be_memory_mappable: bool = False,
     temp_root_dir: str = "hdfs://root/tmp/distributed_autofaiss_indices",
+    maximum_nb_threads: int = 256,
 ) -> List[Optional[Dict[str, str]]]:
     """
     Create partitioned indexes from a list of parquet partitions,
@@ -644,7 +646,8 @@ def create_partitioned_indexes(
 
     # Create small and big indexes
     all_metrics = []
-    with ThreadPool(256) as p:
+    n_threads = min(maximum_nb_threads, len(big_partitions) + int(len(small_partitions) > 0))
+    with ThreadPool(n_threads) as p:
         small_index_metrics_future = (
             p.apply_async(_create_small_indexes, (small_partitions,)) if small_partitions else None
         )

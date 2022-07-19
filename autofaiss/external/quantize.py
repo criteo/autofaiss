@@ -318,6 +318,7 @@ def build_partitioned_indexes(
     verbose: int = logging.INFO,
     nb_splits_per_big_index: int = 1,
     big_index_threshold: int = 5_000_000,
+    maximum_nb_threads: int = 256,
 ) -> List[Optional[Dict[str, str]]]:
     """
     Create partitioned indexes from a partitioned parquet dataset,
@@ -372,6 +373,8 @@ def build_partitioned_indexes(
     big_index_threshold: int
         Threshold used to define big indexes.
         Indexes with more `than big_index_threshold` embeddings are considered big indexes.
+    maximum_nb_threads: int
+        Maximum number of threads to parallelize index creation
     """
     setup_logging(verbose)
 
@@ -401,6 +404,7 @@ def build_partitioned_indexes(
         temp_root_dir=temp_root_dir,
         nb_splits_per_big_index=nb_splits_per_big_index,
         big_index_threshold=big_index_threshold,
+        maximum_nb_threads=maximum_nb_threads,
     )
 
 
@@ -575,12 +579,14 @@ def score_index(
 
 def main():
     """Main entry point"""
-    fire.Fire({
-        "build_index": build_index,
-        "tune_index": tune_index,
-        "score_index": score_index,
-        "build_partitioned_indexes": build_partitioned_indexes,
-    })
+    fire.Fire(
+        {
+            "build_index": build_index,
+            "tune_index": tune_index,
+            "score_index": score_index,
+            "build_partitioned_indexes": build_partitioned_indexes,
+        }
+    )
 
 
 if __name__ == "__main__":
