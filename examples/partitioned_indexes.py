@@ -2,10 +2,10 @@
 Given a partitioned dataset of embeddings, create an index per partition
 """
 
+import os
+
 from autofaiss import build_partitioned_indexes
 from pyspark.sql import SparkSession  # pylint: disable=import-outside-toplevel
-
-from pyspark import SparkConf, SparkContext
 
 
 def create_spark_session():
@@ -14,13 +14,18 @@ def create_spark_session():
     spark = (
         SparkSession.builder.config("spark.submit.deployMode", "client")
         .config("spark.executorEnv.PEX_ROOT", "./.pex")
-        .config("spark.task.cpus", "16")
+        .config("spark.task.cpus", "32")
         .config("spark.driver.port", "5678")
         .config("spark.driver.blockManager.port", "6678")
         .config("spark.driver.host", "172.31.35.188")
         .config("spark.driver.bindAddress", "172.31.35.188")
         .config("spark.executor.memory", "18G")  # make sure to increase this if you're using more cores per executor
-        .config("spark.executor.memoryOverhead", "8G")
+        .config(
+            "spark.executor.memoryOverhead", "8G"
+        )  # Memory overhead is needed for Faiss as indexes are built outside of the JVM/Java heap
+        .config(
+            "spark.executor.cores", "32"
+        )  # Faiss is multi-threaded so increasing the number of cores will speed up index creation
         .config("spark.task.maxFailures", "100")
         .appName("Partitioned indexes")
         .getOrCreate()

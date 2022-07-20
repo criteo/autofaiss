@@ -379,6 +379,8 @@ def build_partitioned_indexes(
     setup_logging(verbose)
 
     # Sanity checks
+    if not partitions:
+        raise ValueError("partitions can't be empty")
     check_not_null_not_empty("output_root_dir", output_root_dir)
     check_not_null_not_empty("embedding_column_name", embedding_column_name)
     if nb_splits_per_big_index < 1:
