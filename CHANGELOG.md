@@ -6,11 +6,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
 
 ## [2.14.3] - 2022-05-09
 
- ### Fixed
- Fix the estimated number of batches
-
-## [2.14.3] - 2022-05-09
-
 ### Fixed
 Fix the estimated number of batches
 
