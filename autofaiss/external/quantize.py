@@ -354,7 +354,7 @@ def build_partitioned_indexes(
     metric_type: str
         Similarity function used for query:
             - "ip" for inner product
-            - "l2" for euclidian distance
+            - "l2" for euclidean distance
     nb_cores: Optional[int]
         Number of cores to use. Will try to guess the right number if not provided
     make_direct_map: bool

@@ -266,7 +266,7 @@ The ``autofaiss build_partitioned_indexes`` command takes the following paramete
       - Experimental, gpu training is faster, not tested so far.
     * - --metric_type
       - ip
-      - Similarity function used for query: "ip" for inner product or "l2" for euclidian distance.
+      - Similarity function used for query: "ip" for inner product or "l2" for euclidean distance.
     * - --nb_cores
       - None
       - Number of cores to use. Will try to guess the right number if not provided.
