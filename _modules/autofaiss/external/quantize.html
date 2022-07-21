@@ -13,6 +13,7 @@
         <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
         <script src="../../../_static/jquery.js"></script>
         <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../../../_static/doctools.js"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="../../../_static/js/theme.js"></script>
@@ -45,6 +46,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../getting_started/quantization.html">Creating an index</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../getting_started/quantization.html#tuning-an-existing-index">Tuning an existing index</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../getting_started/quantization.html#getting-scores-on-an-index">Getting scores on an index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting_started/quantization.html#creating-partitioned-indexes">Creating partitioned indexes</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Use autofaiss from python</span></p>
 <ul>
@@ -89,9 +91,7 @@
 <span class="kn">import</span> <span class="nn">logging.config</span>
 <span class="kn">import</span> <span class="nn">multiprocessing</span>
 <span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">import</span> <span class="nn">tempfile</span>
-<span class="kn">import</span> <span class="nn">uuid</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
 
 <span class="kn">from</span> <span class="nn">embedding_reader</span> <span class="kn">import</span> <span class="n">EmbeddingReader</span>
@@ -100,17 +100,14 @@
 <span class="kn">import</span> <span class="nn">fire</span>
 <span class="kn">import</span> <span class="nn">fsspec</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">autofaiss.indices.build</span> <span class="kn">import</span> <span class="n">get_write_ids_df_to_parquet_fn</span><span class="p">,</span> <span class="n">get_optimize_index_fn</span>
 <span class="kn">from</span> <span class="nn">autofaiss.external.build</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">create_index</span><span class="p">,</span>
+    <span class="n">create_partitioned_indexes</span><span class="p">,</span>
     <span class="n">estimate_memory_required_for_index_creation</span><span class="p">,</span>
     <span class="n">get_estimated_construction_time_infos</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span> <span class="nn">autofaiss.external.optimize</span> <span class="kn">import</span> <span class="p">(</span>
-    <span class="n">get_optimal_hyperparameters</span><span class="p">,</span>
-    <span class="n">get_optimal_index_keys_v2</span><span class="p">,</span>
-    <span class="n">optimize_and_measure_index</span><span class="p">,</span>
-<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">autofaiss.external.optimize</span> <span class="kn">import</span> <span class="n">get_optimal_hyperparameters</span><span class="p">,</span> <span class="n">get_optimal_index_keys_v2</span>
 <span class="kn">from</span> <span class="nn">autofaiss.external.scores</span> <span class="kn">import</span> <span class="n">compute_fast_metrics</span><span class="p">,</span> <span class="n">compute_medium_metrics</span>
 <span class="kn">from</span> <span class="nn">autofaiss.indices.index_utils</span> <span class="kn">import</span> <span class="n">set_search_hyperparameters</span>
 <span class="kn">from</span> <span class="nn">autofaiss.utils.path</span> <span class="kn">import</span> <span class="n">make_path_absolute</span>
@@ -242,17 +239,17 @@
     <span class="c1"># if using distributed mode, it doesn&#39;t make sense to use indices that are not memory mappable</span>
     <span class="k">if</span> <span class="n">distributed</span> <span class="o">==</span> <span class="s2">&quot;pyspark&quot;</span><span class="p">:</span>
         <span class="n">should_be_memory_mappable</span> <span class="o">=</span> <span class="kc">True</span>
-    <span class="k">if</span> <span class="n">index_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">index_path</span><span class="p">:</span>
         <span class="n">index_path</span> <span class="o">=</span> <span class="n">make_path_absolute</span><span class="p">(</span><span class="n">index_path</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">save_on_disk</span><span class="p">:</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Please specify a index_path if you set save_on_disk as True&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
-    <span class="k">if</span> <span class="n">index_infos_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">index_infos_path</span><span class="p">:</span>
         <span class="n">index_infos_path</span> <span class="o">=</span> <span class="n">make_path_absolute</span><span class="p">(</span><span class="n">index_infos_path</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">save_on_disk</span><span class="p">:</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Please specify a index_infos_path if you set save_on_disk as True&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
-    <span class="k">if</span> <span class="n">ids_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">ids_path</span><span class="p">:</span>
         <span class="n">ids_path</span> <span class="o">=</span> <span class="n">make_path_absolute</span><span class="p">(</span><span class="n">ids_path</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">nb_indices_to_keep</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
@@ -355,31 +352,20 @@
                 <span class="p">)</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">Please provide a value ids_path for the Ids to be written&quot;</span><span class="p">)</span>
 
-        <span class="k">def</span> <span class="nf">write_ids_df_to_parquet</span><span class="p">(</span><span class="n">ids</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">batch_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
-            <span class="n">filename</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;part-</span><span class="si">{</span><span class="n">batch_id</span><span class="si">:</span><span class="s2">08d</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid1</span><span class="p">()</span><span class="si">}</span><span class="s2">.parquet&quot;</span>
-            <span class="n">output_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ids_path</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
-            <span class="k">with</span> <span class="n">fsspec</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">output_file</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Writing id DataFrame to file </span><span class="si">{</span><span class="n">output_file</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-                <span class="n">ids</span><span class="o">.</span><span class="n">to_parquet</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">write_ids_df_to_parquet_fn</span> <span class="o">=</span> <span class="n">get_write_ids_df_to_parquet_fn</span><span class="p">(</span><span class="n">ids_path</span><span class="p">)</span> <span class="k">if</span> <span class="n">ids_path</span> <span class="ow">and</span> <span class="n">id_columns</span> <span class="k">else</span> <span class="kc">None</span>
 
-        <span class="k">def</span> <span class="nf">index_optimizer</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">index_suffix</span><span class="p">):</span>
-            <span class="n">cur_index_path</span> <span class="o">=</span> <span class="n">index_path</span> <span class="o">+</span> <span class="n">index_suffix</span>
-            <span class="n">cur_index_infos_path</span> <span class="o">=</span> <span class="n">index_infos_path</span> <span class="o">+</span> <span class="n">index_suffix</span>
-            <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;OPQ\d+_\d+,IVF\d+_HNSW\d+,PQ\d+&quot;</span><span class="p">,</span> <span class="n">index_key</span><span class="p">)):</span>
-                <span class="n">set_search_hyperparameters</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;nprobe=</span><span class="si">{</span><span class="mi">64</span><span class="si">}</span><span class="s2">,efSearch=</span><span class="si">{</span><span class="mi">128</span><span class="si">}</span><span class="s2">,ht=</span><span class="si">{</span><span class="mi">2048</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">use_gpu</span><span class="p">)</span>
-            <span class="n">metric_infos</span> <span class="o">=</span> <span class="n">optimize_and_measure_index</span><span class="p">(</span>
-                <span class="n">embedding_reader</span><span class="p">,</span>
-                <span class="n">index</span><span class="p">,</span>
-                <span class="n">cur_index_infos_path</span><span class="p">,</span>
-                <span class="n">index_key</span><span class="p">,</span>
-                <span class="n">index_param</span><span class="p">,</span>
-                <span class="n">cur_index_path</span><span class="p">,</span>
-                <span class="n">max_index_query_time_ms</span><span class="o">=</span><span class="n">max_index_query_time_ms</span><span class="p">,</span>
-                <span class="n">min_nearest_neighbors_to_retrieve</span><span class="o">=</span><span class="n">min_nearest_neighbors_to_retrieve</span><span class="p">,</span>
-                <span class="n">save_on_disk</span><span class="o">=</span><span class="n">save_on_disk</span><span class="p">,</span>
-                <span class="n">use_gpu</span><span class="o">=</span><span class="n">use_gpu</span><span class="p">,</span>
-            <span class="p">)</span>
-            <span class="k">return</span> <span class="n">metric_infos</span>
+        <span class="n">optimize_index_fn</span> <span class="o">=</span> <span class="n">get_optimize_index_fn</span><span class="p">(</span>
+            <span class="n">embedding_reader</span><span class="o">=</span><span class="n">embedding_reader</span><span class="p">,</span>
+            <span class="n">index_key</span><span class="o">=</span><span class="n">index_key</span><span class="p">,</span>
+            <span class="n">index_path</span><span class="o">=</span><span class="n">index_path</span><span class="p">,</span>
+            <span class="n">index_infos_path</span><span class="o">=</span><span class="n">index_infos_path</span><span class="p">,</span>
+            <span class="n">use_gpu</span><span class="o">=</span><span class="n">use_gpu</span><span class="p">,</span>
+            <span class="n">save_on_disk</span><span class="o">=</span><span class="n">save_on_disk</span><span class="p">,</span>
+            <span class="n">max_index_query_time_ms</span><span class="o">=</span><span class="n">max_index_query_time_ms</span><span class="p">,</span>
+            <span class="n">min_nearest_neighbors_to_retrieve</span><span class="o">=</span><span class="n">min_nearest_neighbors_to_retrieve</span><span class="p">,</span>
+            <span class="n">index_param</span><span class="o">=</span><span class="n">index_param</span><span class="p">,</span>
+            <span class="n">make_direct_map</span><span class="o">=</span><span class="n">make_direct_map</span><span class="p">,</span>
+        <span class="p">)</span>
 
         <span class="k">with</span> <span class="n">Timeit</span><span class="p">(</span><span class="s2">&quot;Creating the index&quot;</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
             <span class="n">index</span><span class="p">,</span> <span class="n">metric_infos</span> <span class="o">=</span> <span class="n">create_index</span><span class="p">(</span>
@@ -388,15 +374,131 @@
                 <span class="n">metric_type</span><span class="p">,</span>
                 <span class="n">current_memory_available</span><span class="p">,</span>
                 <span class="n">use_gpu</span><span class="o">=</span><span class="n">use_gpu</span><span class="p">,</span>
-                <span class="n">embedding_ids_df_handler</span><span class="o">=</span><span class="n">write_ids_df_to_parquet</span> <span class="k">if</span> <span class="n">ids_path</span> <span class="ow">and</span> <span class="n">id_columns</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="n">embedding_ids_df_handler</span><span class="o">=</span><span class="n">write_ids_df_to_parquet_fn</span><span class="p">,</span>
                 <span class="n">make_direct_map</span><span class="o">=</span><span class="n">make_direct_map</span><span class="p">,</span>
-                <span class="n">distributed</span><span class="o">=</span><span class="n">distributed</span><span class="p">,</span>
+                <span class="n">distributed_engine</span><span class="o">=</span><span class="n">distributed</span><span class="p">,</span>
                 <span class="n">temporary_indices_folder</span><span class="o">=</span><span class="n">temporary_indices_folder</span><span class="p">,</span>
                 <span class="n">nb_indices_to_keep</span><span class="o">=</span><span class="n">nb_indices_to_keep</span><span class="p">,</span>
-                <span class="n">index_optimizer</span><span class="o">=</span><span class="n">index_optimizer</span><span class="p">,</span>
+                <span class="n">index_optimizer</span><span class="o">=</span><span class="n">optimize_index_fn</span><span class="p">,</span>
             <span class="p">)</span>
-            <span class="n">_log_output_dict</span><span class="p">(</span><span class="n">metric_infos</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">metric_infos</span><span class="p">:</span>
+                <span class="n">_log_output_dict</span><span class="p">(</span><span class="n">metric_infos</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">index</span><span class="p">,</span> <span class="n">metric_infos</span></div>
+
+
+<div class="viewcode-block" id="build_partitioned_indexes"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.quantize.build_partitioned_indexes">[docs]</a><span class="k">def</span> <span class="nf">build_partitioned_indexes</span><span class="p">(</span>
+    <span class="n">partitions</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+    <span class="n">output_root_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">embedding_column_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;embedding&quot;</span><span class="p">,</span>
+    <span class="n">id_columns</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">max_index_query_time_ms</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">10.0</span><span class="p">,</span>
+    <span class="n">max_index_memory_usage</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;16G&quot;</span><span class="p">,</span>
+    <span class="n">min_nearest_neighbors_to_retrieve</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">20</span><span class="p">,</span>
+    <span class="n">current_memory_available</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;32G&quot;</span><span class="p">,</span>
+    <span class="n">use_gpu</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">metric_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;ip&quot;</span><span class="p">,</span>
+    <span class="n">nb_cores</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">make_direct_map</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">should_be_memory_mappable</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">temp_root_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;hdfs://root/tmp/distributed_autofaiss_indices&quot;</span><span class="p">,</span>
+    <span class="n">verbose</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span>
+    <span class="n">nb_splits_per_big_index</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="n">big_index_threshold</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5_000_000</span><span class="p">,</span>
+    <span class="n">maximum_nb_threads</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">256</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]]:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create partitioned indexes from a partitioned parquet dataset,</span>
+<span class="sd">    i.e. create one index per parquet partition</span>
+
+<span class="sd">    Only supported with PySpark. A PySpark session must be active before calling this function</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    partitions : str</span>
+<span class="sd">        List of partitions containing embeddings</span>
+<span class="sd">    output_root_dir: str</span>
+<span class="sd">        Output root directory where indexes, metrics and ids will be written</span>
+<span class="sd">    embedding_column_name: str</span>
+<span class="sd">        Parquet dataset column name containing embeddings</span>
+<span class="sd">    id_columns: Optional(List[str])</span>
+<span class="sd">        Parquet dataset column name(s) that are used as IDs for embeddings.</span>
+<span class="sd">        A mapping from these IDs to faiss indices will be written in separate files.</span>
+<span class="sd">    max_index_query_time_ms: float</span>
+<span class="sd">        Bound on the query time for KNN search, this bound is approximative</span>
+<span class="sd">    max_index_memory_usage: str</span>
+<span class="sd">        Maximum size allowed for the index, this bound is strict</span>
+<span class="sd">    min_nearest_neighbors_to_retrieve: int</span>
+<span class="sd">        Minimum number of nearest neighbors to retrieve when querying the index.</span>
+<span class="sd">        Parameter used only during index hyperparameter finetuning step, it is</span>
+<span class="sd">        not taken into account to select the indexing algorithm.</span>
+<span class="sd">        This parameter has the priority over the max_index_query_time_ms constraint.</span>
+<span class="sd">    current_memory_available: str</span>
+<span class="sd">        Memory available on the machine creating the index, having more memory is a boost</span>
+<span class="sd">        because it reduces the swipe between RAM and disk.</span>
+<span class="sd">    use_gpu: bool</span>
+<span class="sd">        Experimental, gpu training is faster, not tested so far</span>
+<span class="sd">    metric_type: str</span>
+<span class="sd">        Similarity function used for query:</span>
+<span class="sd">            - &quot;ip&quot; for inner product</span>
+<span class="sd">            - &quot;l2&quot; for euclidean distance</span>
+<span class="sd">    nb_cores: Optional[int]</span>
+<span class="sd">        Number of cores to use. Will try to guess the right number if not provided</span>
+<span class="sd">    make_direct_map: bool</span>
+<span class="sd">        Create a direct map allowing reconstruction of embeddings. This is only needed for IVF indices.</span>
+<span class="sd">        Note that might increase the RAM usage (approximately 8GB for 1 billion embeddings)</span>
+<span class="sd">    should_be_memory_mappable: bool</span>
+<span class="sd">        If set to true, the created index will be selected only among the indices that can be memory-mapped on disk.</span>
+<span class="sd">        This makes it possible to use 50GB indices on a machine with only 1GB of RAM. Default to False</span>
+<span class="sd">    temp_root_dir: str</span>
+<span class="sd">        Temporary directory that will be used to store intermediate results/computation</span>
+<span class="sd">    verbose: int</span>
+<span class="sd">        set verbosity of outputs via logging level, default is `logging.INFO`</span>
+<span class="sd">    nb_splits_per_big_index: int</span>
+<span class="sd">        Number of indices to split a big index into.</span>
+<span class="sd">        This allows you building indices bigger than `current_memory_available`.</span>
+<span class="sd">    big_index_threshold: int</span>
+<span class="sd">        Threshold used to define big indexes.</span>
+<span class="sd">        Indexes with more `than big_index_threshold` embeddings are considered big indexes.</span>
+<span class="sd">    maximum_nb_threads: int</span>
+<span class="sd">        Maximum number of threads to parallelize index creation</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">setup_logging</span><span class="p">(</span><span class="n">verbose</span><span class="p">)</span>
+
+    <span class="c1"># Sanity checks</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">partitions</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;partitions can&#39;t be empty&quot;</span><span class="p">)</span>
+    <span class="n">check_not_null_not_empty</span><span class="p">(</span><span class="s2">&quot;output_root_dir&quot;</span><span class="p">,</span> <span class="n">output_root_dir</span><span class="p">)</span>
+    <span class="n">check_not_null_not_empty</span><span class="p">(</span><span class="s2">&quot;embedding_column_name&quot;</span><span class="p">,</span> <span class="n">embedding_column_name</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">nb_splits_per_big_index</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;nb_indices_to_keep must be &gt; 0; Got </span><span class="si">{</span><span class="n">nb_splits_per_big_index</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">big_index_threshold</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;big_index_threshold must be &gt; 0; Got </span><span class="si">{</span><span class="n">big_index_threshold</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Create partitioned indexes</span>
+    <span class="k">return</span> <span class="n">create_partitioned_indexes</span><span class="p">(</span>
+        <span class="n">partitions</span><span class="o">=</span><span class="n">partitions</span><span class="p">,</span>
+        <span class="n">output_root_dir</span><span class="o">=</span><span class="n">output_root_dir</span><span class="p">,</span>
+        <span class="n">embedding_column_name</span><span class="o">=</span><span class="n">embedding_column_name</span><span class="p">,</span>
+        <span class="n">id_columns</span><span class="o">=</span><span class="n">id_columns</span><span class="p">,</span>
+        <span class="n">should_be_memory_mappable</span><span class="o">=</span><span class="n">should_be_memory_mappable</span><span class="p">,</span>
+        <span class="n">max_index_query_time_ms</span><span class="o">=</span><span class="n">max_index_query_time_ms</span><span class="p">,</span>
+        <span class="n">max_index_memory_usage</span><span class="o">=</span><span class="n">max_index_memory_usage</span><span class="p">,</span>
+        <span class="n">min_nearest_neighbors_to_retrieve</span><span class="o">=</span><span class="n">min_nearest_neighbors_to_retrieve</span><span class="p">,</span>
+        <span class="n">current_memory_available</span><span class="o">=</span><span class="n">current_memory_available</span><span class="p">,</span>
+        <span class="n">use_gpu</span><span class="o">=</span><span class="n">use_gpu</span><span class="p">,</span>
+        <span class="n">metric_type</span><span class="o">=</span><span class="n">metric_type</span><span class="p">,</span>
+        <span class="n">nb_cores</span><span class="o">=</span><span class="n">nb_cores</span><span class="p">,</span>
+        <span class="n">make_direct_map</span><span class="o">=</span><span class="n">make_direct_map</span><span class="p">,</span>
+        <span class="n">temp_root_dir</span><span class="o">=</span><span class="n">temp_root_dir</span><span class="p">,</span>
+        <span class="n">nb_splits_per_big_index</span><span class="o">=</span><span class="n">nb_splits_per_big_index</span><span class="p">,</span>
+        <span class="n">big_index_threshold</span><span class="o">=</span><span class="n">big_index_threshold</span><span class="p">,</span>
+        <span class="n">maximum_nb_threads</span><span class="o">=</span><span class="n">maximum_nb_threads</span><span class="p">,</span>
+    <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="check_not_null_not_empty"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.quantize.check_not_null_not_empty">[docs]</a><span class="k">def</span> <span class="nf">check_not_null_not_empty</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">value</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> can&#39;t be None or empty; Got </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="tune_index"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.quantize.tune_index">[docs]</a><span class="k">def</span> <span class="nf">tune_index</span><span class="p">(</span>
@@ -565,7 +667,14 @@
 
 <div class="viewcode-block" id="main"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.quantize.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
     <span class="sd">&quot;&quot;&quot;Main entry point&quot;&quot;&quot;</span>
-    <span class="n">fire</span><span class="o">.</span><span class="n">Fire</span><span class="p">({</span><span class="s2">&quot;build_index&quot;</span><span class="p">:</span> <span class="n">build_index</span><span class="p">,</span> <span class="s2">&quot;tune_index&quot;</span><span class="p">:</span> <span class="n">tune_index</span><span class="p">,</span> <span class="s2">&quot;score_index&quot;</span><span class="p">:</span> <span class="n">score_index</span><span class="p">})</span></div>
+    <span class="n">fire</span><span class="o">.</span><span class="n">Fire</span><span class="p">(</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;build_index&quot;</span><span class="p">:</span> <span class="n">build_index</span><span class="p">,</span>
+            <span class="s2">&quot;tune_index&quot;</span><span class="p">:</span> <span class="n">tune_index</span><span class="p">,</span>
+            <span class="s2">&quot;score_index&quot;</span><span class="p">:</span> <span class="n">score_index</span><span class="p">,</span>
+            <span class="s2">&quot;build_partitioned_indexes&quot;</span><span class="p">:</span> <span class="n">build_partitioned_indexes</span><span class="p">,</span>
+        <span class="p">}</span>
+    <span class="p">)</span></div>
 
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>

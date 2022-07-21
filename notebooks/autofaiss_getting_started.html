@@ -14,6 +14,7 @@
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
         <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
@@ -50,6 +51,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../getting_started/quantization.html">Creating an index</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../getting_started/quantization.html#tuning-an-existing-index">Tuning an existing index</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../getting_started/quantization.html#getting-scores-on-an-index">Getting scores on an index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started/quantization.html#creating-partitioned-indexes">Creating partitioned indexes</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Use autofaiss from python</span></p>
 <ul>
@@ -366,15 +368,15 @@ div.rendered_html tbody tr:hover {
 }
 </style>
 <section id="Autofaiss-getting-started">
-<h1>Autofaiss getting started<a class="headerlink" href="#Autofaiss-getting-started" title="Permalink to this headline"></a></h1>
+<h1>Autofaiss getting started<a class="headerlink" href="#Autofaiss-getting-started" title="Permalink to this heading"></a></h1>
 <section id="Information">
-<h2>Information<a class="headerlink" href="#Information" title="Permalink to this headline"></a></h2>
+<h2>Information<a class="headerlink" href="#Information" title="Permalink to this heading"></a></h2>
 <p><strong>This Demo notebook automatically creates a Faiss knn indices with the most optimal similarity search parameters.</strong></p>
 <p>It selects the best indexing parameters to achieve the highest recalls given memory and query speed constraints.</p>
 <p>Github: <a class="reference external" href="https://github.com/criteo/autofaiss">https://github.com/criteo/autofaiss</a></p>
 </section>
 <section id="Parameters">
-<h2>Parameters<a class="headerlink" href="#Parameters" title="Permalink to this headline"></a></h2>
+<h2>Parameters<a class="headerlink" href="#Parameters" title="Permalink to this heading"></a></h2>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
@@ -389,7 +391,7 @@ div.rendered_html tbody tr:hover {
 </div>
 </section>
 <section id="Embeddings-creation-(add-your-own-embeddings-here)">
-<h2>Embeddings creation (add your own embeddings here)<a class="headerlink" href="#Embeddings-creation-(add-your-own-embeddings-here)" title="Permalink to this headline"></a></h2>
+<h2>Embeddings creation (add your own embeddings here)<a class="headerlink" href="#Embeddings-creation-(add-your-own-embeddings-here)" title="Permalink to this heading"></a></h2>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
@@ -403,7 +405,7 @@ div.rendered_html tbody tr:hover {
 </div>
 </section>
 <section id="Save-your-embeddings-on-the-disk">
-<h2>Save your embeddings on the disk<a class="headerlink" href="#Save-your-embeddings-on-the-disk" title="Permalink to this headline"></a></h2>
+<h2>Save your embeddings on the disk<a class="headerlink" href="#Save-your-embeddings-on-the-disk" title="Permalink to this heading"></a></h2>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
@@ -426,7 +428,7 @@ div.rendered_html tbody tr:hover {
 </div>
 </section>
 <section id="Build-the-KNN-index-with-Autofaiss">
-<h2>Build the KNN index with Autofaiss<a class="headerlink" href="#Build-the-KNN-index-with-Autofaiss" title="Permalink to this headline"></a></h2>
+<h2>Build the KNN index with Autofaiss<a class="headerlink" href="#Build-the-KNN-index-with-Autofaiss" title="Permalink to this heading"></a></h2>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
@@ -501,7 +503,7 @@ Done
 </div>
 </section>
 <section id="Load-the-index-and-play-with-it">
-<h2>Load the index and play with it<a class="headerlink" href="#Load-the-index-and-play-with-it" title="Permalink to this headline"></a></h2>
+<h2>Load the index and play with it<a class="headerlink" href="#Load-the-index-and-play-with-it" title="Permalink to this heading"></a></h2>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
@@ -537,7 +539,7 @@ Top 5 elements in the dataset for max inner product search:
 </div>
 </section>
 <section id="(Bonus)-Python-version-of-the-CLI">
-<h2>(Bonus) Python version of the CLI<a class="headerlink" href="#(Bonus)-Python-version-of-the-CLI" title="Permalink to this headline"></a></h2>
+<h2>(Bonus) Python version of the CLI<a class="headerlink" href="#(Bonus)-Python-version-of-the-CLI" title="Permalink to this heading"></a></h2>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>

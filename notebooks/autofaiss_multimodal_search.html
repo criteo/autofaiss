@@ -14,6 +14,7 @@
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
         <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
@@ -48,6 +49,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../getting_started/quantization.html">Creating an index</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../getting_started/quantization.html#tuning-an-existing-index">Tuning an existing index</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../getting_started/quantization.html#getting-scores-on-an-index">Getting scores on an index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started/quantization.html#creating-partitioned-indexes">Creating partitioned indexes</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Use autofaiss from python</span></p>
 <ul>
@@ -355,7 +357,7 @@ div.rendered_html tbody tr:hover {
 }
 </style>
 <section id="Install-clip-+-autofaiss">
-<h1>Install clip + autofaiss<a class="headerlink" href="#Install-clip-+-autofaiss" title="Permalink to this headline"></a></h1>
+<h1>Install clip + autofaiss<a class="headerlink" href="#Install-clip-+-autofaiss" title="Permalink to this heading"></a></h1>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
@@ -441,7 +443,7 @@ Successfully installed aniso8601-9.0.1 autofaiss-1.3.0 clip-anytorch-2.2.0 clip-
 </div>
 </section>
 <section id="Download-dataset">
-<h1>Download dataset<a class="headerlink" href="#Download-dataset" title="Permalink to this headline"></a></h1>
+<h1>Download dataset<a class="headerlink" href="#Download-dataset" title="Permalink to this heading"></a></h1>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
@@ -845,7 +847,7 @@ image_folder/00000:
 </div>
 </section>
 <section id="Build-clip-image-embeddings">
-<h1>Build clip image embeddings<a class="headerlink" href="#Build-clip-image-embeddings" title="Permalink to this headline"></a></h1>
+<h1>Build clip image embeddings<a class="headerlink" href="#Build-clip-image-embeddings" title="Permalink to this heading"></a></h1>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
@@ -903,7 +905,7 @@ image_list = df[&quot;image_path&quot;].tolist()
 </div>
 </section>
 <section id="Build-the-index">
-<h1>Build the index<a class="headerlink" href="#Build-the-index" title="Permalink to this headline"></a></h1>
+<h1>Build the index<a class="headerlink" href="#Build-the-index" title="Permalink to this heading"></a></h1>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
 </pre></div>
@@ -991,7 +993,7 @@ Done
 </div>
 </section>
 <section id="Load-the-index">
-<h1>Load the index<a class="headerlink" href="#Load-the-index" title="Permalink to this headline"></a></h1>
+<h1>Load the index<a class="headerlink" href="#Load-the-index" title="Permalink to this heading"></a></h1>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
 </pre></div>
@@ -1004,7 +1006,7 @@ ind = faiss.read_index(&quot;knn.index&quot;)
 </div>
 </section>
 <section id="Simple-image-query-from-dataset">
-<h1>Simple image query from dataset<a class="headerlink" href="#Simple-image-query-from-dataset" title="Permalink to this headline"></a></h1>
+<h1>Simple image query from dataset<a class="headerlink" href="#Simple-image-query-from-dataset" title="Permalink to this heading"></a></h1>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
 </pre></div>
@@ -1129,7 +1131,7 @@ similarity= 0.9147578
 </div>
 </section>
 <section id="Text-to-image-query">
-<h1>Text to image query<a class="headerlink" href="#Text-to-image-query" title="Permalink to this headline"></a></h1>
+<h1>Text to image query<a class="headerlink" href="#Text-to-image-query" title="Permalink to this heading"></a></h1>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
 </pre></div>
@@ -1252,7 +1254,7 @@ similarity= 0.32780161
 </div>
 </section>
 <section id="Image-to-image-query">
-<h1>Image to image query<a class="headerlink" href="#Image-to-image-query" title="Permalink to this headline"></a></h1>
+<h1>Image to image query<a class="headerlink" href="#Image-to-image-query" title="Permalink to this heading"></a></h1>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
 </pre></div>

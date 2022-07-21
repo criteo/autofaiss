@@ -13,6 +13,7 @@
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="_static/js/theme.js"></script>
@@ -45,6 +46,7 @@
 <li class="toctree-l1"><a class="reference internal" href="getting_started/quantization.html">Creating an index</a></li>
 <li class="toctree-l1"><a class="reference internal" href="getting_started/quantization.html#tuning-an-existing-index">Tuning an existing index</a></li>
 <li class="toctree-l1"><a class="reference internal" href="getting_started/quantization.html#getting-scores-on-an-index">Getting scores on an index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started/quantization.html#creating-partitioned-indexes">Creating partitioned indexes</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Use autofaiss from python</span></p>
 <ul>
@@ -94,6 +96,7 @@
  | <a href="#H"><strong>H</strong></a>
  | <a href="#I"><strong>I</strong></a>
  | <a href="#K"><strong>K</strong></a>
+ | <a href="#L"><strong>L</strong></a>
  | <a href="#M"><strong>M</strong></a>
  | <a href="#N"><strong>N</strong></a>
  | <a href="#O"><strong>O</strong></a>
@@ -114,6 +117,12 @@
 </li>
       </ul></li>
       <li><a href="_source/autofaiss.indices.html#autofaiss.indices.memory_efficient_flat_index.MemEfficientFlatIndex.add_all">add_all() (autofaiss.indices.memory_efficient_flat_index.MemEfficientFlatIndex method)</a>
+</li>
+      <li><a href="_source/autofaiss.external.html#autofaiss.external.build.add_embeddings_to_index">add_embeddings_to_index() (in module autofaiss.external.build)</a>
+</li>
+      <li><a href="_source/autofaiss.indices.html#autofaiss.indices.distributed.add_embeddings_to_index_distributed">add_embeddings_to_index_distributed() (in module autofaiss.indices.distributed)</a>
+</li>
+      <li><a href="_source/autofaiss.indices.html#autofaiss.indices.build.add_embeddings_to_index_local">add_embeddings_to_index_local() (in module autofaiss.indices.build)</a>
 </li>
       <li><a href="_source/autofaiss.indices.html#autofaiss.indices.memory_efficient_flat_index.MemEfficientFlatIndex.add_files">add_files() (autofaiss.indices.memory_efficient_flat_index.MemEfficientFlatIndex method)</a>
 </li>
@@ -181,6 +190,13 @@
 </li>
       </ul></li>
       <li>
+    autofaiss.indices.build
+
+      <ul>
+        <li><a href="_source/autofaiss.indices.html#module-autofaiss.indices.build">module</a>
+</li>
+      </ul></li>
+      <li>
     autofaiss.indices.distributed
 
       <ul>
@@ -194,6 +210,8 @@
         <li><a href="_source/autofaiss.indices.html#module-autofaiss.indices.faiss_index_wrapper">module</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     autofaiss.indices.index_factory
 
@@ -201,8 +219,6 @@
         <li><a href="_source/autofaiss.indices.html#module-autofaiss.indices.index_factory">module</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     autofaiss.indices.index_utils
 
@@ -222,6 +238,13 @@
 
       <ul>
         <li><a href="_source/autofaiss.indices.html#module-autofaiss.indices.search">module</a>
+</li>
+      </ul></li>
+      <li>
+    autofaiss.indices.training
+
+      <ul>
+        <li><a href="_source/autofaiss.indices.html#module-autofaiss.indices.training">module</a>
 </li>
       </ul></li>
       <li>
@@ -306,6 +329,8 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="API/_autosummary/autofaiss.external.quantize.build_index.html#autofaiss.external.quantize.build_index">build_index() (in module autofaiss.external.quantize)</a>, <a href="_source/autofaiss.external.html#autofaiss.external.quantize.build_index">[1]</a>
 </li>
+      <li><a href="_source/autofaiss.external.html#autofaiss.external.quantize.build_partitioned_indexes">build_partitioned_indexes() (in module autofaiss.external.quantize)</a>
+</li>
   </ul></td>
 </tr></table>
 
@@ -318,25 +343,41 @@
 </li>
       <li><a href="_source/autofaiss.external.html#autofaiss.external.optimize.check_if_index_needs_training">check_if_index_needs_training() (in module autofaiss.external.optimize)</a>
 </li>
+      <li><a href="_source/autofaiss.external.html#autofaiss.external.quantize.check_not_null_not_empty">check_not_null_not_empty() (in module autofaiss.external.quantize)</a>
+</li>
       <li><a href="_source/autofaiss.external.html#autofaiss.external.scores.compute_fast_metrics">compute_fast_metrics() (in module autofaiss.external.scores)</a>
 </li>
       <li><a href="_source/autofaiss.external.html#autofaiss.external.scores.compute_medium_metrics">compute_medium_metrics() (in module autofaiss.external.scores)</a>
 </li>
       <li><a href="_source/autofaiss.external.html#autofaiss.external.metadata.IndexMetadata.compute_memory_necessary_for_ivf_flat">compute_memory_necessary_for_ivf_flat() (autofaiss.external.metadata.IndexMetadata method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="_source/autofaiss.external.html#autofaiss.external.metadata.IndexMetadata.compute_memory_necessary_for_opq_ivf_hnsw_pq">compute_memory_necessary_for_opq_ivf_hnsw_pq() (autofaiss.external.metadata.IndexMetadata method)</a>
 </li>
       <li><a href="_source/autofaiss.external.html#autofaiss.external.metadata.IndexMetadata.compute_memory_necessary_for_opq_ivf_pq">compute_memory_necessary_for_opq_ivf_pq() (autofaiss.external.metadata.IndexMetadata method)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="_source/autofaiss.external.html#autofaiss.external.metadata.IndexMetadata.compute_memory_necessary_for_pad_ivf_hnsw_pq">compute_memory_necessary_for_pad_ivf_hnsw_pq() (autofaiss.external.metadata.IndexMetadata method)</a>
 </li>
       <li><a href="_source/autofaiss.external.html#autofaiss.external.metadata.IndexMetadata.compute_memory_necessary_for_training">compute_memory_necessary_for_training() (autofaiss.external.metadata.IndexMetadata method)</a>
 </li>
       <li><a href="_source/autofaiss.external.html#autofaiss.external.metadata.compute_memory_necessary_for_training_wrapper">compute_memory_necessary_for_training_wrapper() (in module autofaiss.external.metadata)</a>
 </li>
+      <li><a href="_source/autofaiss.indices.html#autofaiss.indices.training.create_and_train_index_from_embedding_dir">create_and_train_index_from_embedding_dir() (in module autofaiss.indices.training)</a>
+</li>
+      <li><a href="_source/autofaiss.indices.html#autofaiss.indices.training.create_and_train_new_index">create_and_train_new_index() (in module autofaiss.indices.training)</a>
+</li>
+      <li><a href="_source/autofaiss.indices.html#autofaiss.indices.distributed.create_big_index">create_big_index() (in module autofaiss.indices.distributed)</a>
+</li>
       <li><a href="_source/autofaiss.external.html#autofaiss.external.build.create_index">create_index() (in module autofaiss.external.build)</a>
+</li>
+      <li><a href="_source/autofaiss.external.html#autofaiss.external.build.create_partitioned_indexes">create_partitioned_indexes() (in module autofaiss.external.build)</a>
+
+      <ul>
+        <li><a href="_source/autofaiss.indices.html#autofaiss.indices.distributed.create_partitioned_indexes">(in module autofaiss.indices.distributed)</a>
+</li>
+      </ul></li>
+      <li><a href="_source/autofaiss.indices.html#autofaiss.indices.distributed.create_small_index">create_small_index() (in module autofaiss.indices.distributed)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -358,11 +399,15 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="_source/autofaiss.external.html#autofaiss.external.descriptions.TunableParam.EFSEARCH">EFSEARCH (autofaiss.external.descriptions.TunableParam attribute)</a>
 </li>
+      <li><a href="_source/autofaiss.indices.html#autofaiss.indices.training.TrainedIndex.embedding_reader_or_path">embedding_reader_or_path (autofaiss.indices.training.TrainedIndex property)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="_source/autofaiss.external.html#autofaiss.external.build.estimate_memory_required_for_index_creation">estimate_memory_required_for_index_creation() (in module autofaiss.external.build)</a>
 </li>
       <li><a href="_source/autofaiss.external.html#autofaiss.external.metadata.IndexMetadata.estimated_index_size_in_bytes">estimated_index_size_in_bytes() (autofaiss.external.metadata.IndexMetadata method)</a>
+</li>
+      <li><a href="_source/autofaiss.utils.html#autofaiss.utils.path.extract_partition_name_from_path">extract_partition_name_from_path() (in module autofaiss.utils.path)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -402,10 +447,10 @@
 </li>
       <li><a href="_source/autofaiss.external.html#autofaiss.external.metadata.IndexMetadata.get_index_type">get_index_type() (autofaiss.external.metadata.IndexMetadata method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="_source/autofaiss.external.html#autofaiss.external.optimize.get_min_param_value_for_best_neighbors_coverage">get_min_param_value_for_best_neighbors_coverage() (in module autofaiss.external.optimize)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="_source/autofaiss.external.html#autofaiss.external.optimize.get_optimal_batch_size">get_optimal_batch_size() (in module autofaiss.external.optimize)</a>
 </li>
       <li><a href="_source/autofaiss.external.html#autofaiss.external.optimize.get_optimal_hyperparameters">get_optimal_hyperparameters() (in module autofaiss.external.optimize)</a>
@@ -419,6 +464,10 @@
       <li><a href="_source/autofaiss.external.html#autofaiss.external.optimize.get_optimal_quantization">get_optimal_quantization() (in module autofaiss.external.optimize)</a>
 </li>
       <li><a href="_source/autofaiss.external.html#autofaiss.external.optimize.get_optimal_train_size">get_optimal_train_size() (in module autofaiss.external.optimize)</a>
+</li>
+      <li><a href="_source/autofaiss.indices.html#autofaiss.indices.build.get_optimize_index_fn">get_optimize_index_fn() (in module autofaiss.indices.build)</a>
+</li>
+      <li><a href="_source/autofaiss.indices.html#autofaiss.indices.build.get_write_ids_df_to_parquet_fn">get_write_ids_df_to_parquet_fn() (in module autofaiss.indices.build)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -444,15 +493,21 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="_source/autofaiss.indices.html#autofaiss.indices.index_factory.index_factory">index_factory() (in module autofaiss.indices.index_factory)</a>
 </li>
+      <li><a href="_source/autofaiss.indices.html#autofaiss.indices.training.TrainedIndex.index_key">index_key (autofaiss.indices.training.TrainedIndex property)</a>
+</li>
       <li><a href="_source/autofaiss.external.html#autofaiss.external.optimize.index_key_to_nb_cluster">index_key_to_nb_cluster() (in module autofaiss.external.optimize)</a>
+</li>
+      <li><a href="_source/autofaiss.indices.html#autofaiss.indices.training.TrainedIndex.index_or_path">index_or_path (autofaiss.indices.training.TrainedIndex property)</a>
 </li>
       <li><a href="_source/autofaiss.external.html#autofaiss.external.descriptions.IndexBlock">IndexBlock (class in autofaiss.external.descriptions)</a>
 </li>
-      <li><a href="_source/autofaiss.external.html#autofaiss.external.metadata.IndexMetadata">IndexMetadata (class in autofaiss.external.metadata)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="_source/autofaiss.external.html#autofaiss.external.metadata.IndexMetadata">IndexMetadata (class in autofaiss.external.metadata)</a>
+</li>
       <li><a href="_source/autofaiss.external.html#autofaiss.external.metadata.IndexType">IndexType (class in autofaiss.external.metadata)</a>
+</li>
+      <li><a href="_source/autofaiss.indices.html#autofaiss.indices.index_utils.initialize_direct_map">initialize_direct_map() (in module autofaiss.indices.index_utils)</a>
 </li>
       <li><a href="_source/autofaiss.external.html#autofaiss.external.descriptions.IndexBlock.IVF">IVF (autofaiss.external.descriptions.IndexBlock attribute)</a>
 </li>
@@ -467,6 +522,14 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="_source/autofaiss.indices.html#autofaiss.indices.search.knn_query">knn_query() (in module autofaiss.indices.search)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="L">L</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="_source/autofaiss.indices.html#autofaiss.indices.index_utils.load_index">load_index() (in module autofaiss.indices.index_utils)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -502,6 +565,8 @@
 </li>
         <li><a href="_source/autofaiss.indices.html#module-autofaiss.indices">autofaiss.indices</a>
 </li>
+        <li><a href="_source/autofaiss.indices.html#module-autofaiss.indices.build">autofaiss.indices.build</a>
+</li>
         <li><a href="_source/autofaiss.indices.html#module-autofaiss.indices.distributed">autofaiss.indices.distributed</a>
 </li>
         <li><a href="_source/autofaiss.indices.html#module-autofaiss.indices.faiss_index_wrapper">autofaiss.indices.faiss_index_wrapper</a>
@@ -513,6 +578,8 @@
         <li><a href="_source/autofaiss.indices.html#module-autofaiss.indices.memory_efficient_flat_index">autofaiss.indices.memory_efficient_flat_index</a>
 </li>
         <li><a href="_source/autofaiss.indices.html#module-autofaiss.indices.search">autofaiss.indices.search</a>
+</li>
+        <li><a href="_source/autofaiss.indices.html#module-autofaiss.indices.training">autofaiss.indices.training</a>
 </li>
         <li><a href="_source/autofaiss.metrics.html#module-autofaiss.metrics">autofaiss.metrics</a>
 </li>
@@ -607,13 +674,11 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="_source/autofaiss.metrics.html#autofaiss.metrics.recalls.r_recall_at_r">r_recall_at_r() (in module autofaiss.metrics.recalls)</a>
 </li>
-      <li><a href="_source/autofaiss.metrics.html#autofaiss.metrics.recalls.r_recall_at_r_single">r_recall_at_r_single() (in module autofaiss.metrics.recalls)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="_source/autofaiss.metrics.html#autofaiss.metrics.reconstruction.reconstruction_error">reconstruction_error() (in module autofaiss.metrics.reconstruction)</a>
+      <li><a href="_source/autofaiss.metrics.html#autofaiss.metrics.recalls.r_recall_at_r_single">r_recall_at_r_single() (in module autofaiss.metrics.recalls)</a>
 </li>
-      <li><a href="_source/autofaiss.indices.html#autofaiss.indices.distributed.run">run() (in module autofaiss.indices.distributed)</a>
+      <li><a href="_source/autofaiss.metrics.html#autofaiss.metrics.reconstruction.reconstruction_error">reconstruction_error() (in module autofaiss.metrics.reconstruction)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -622,6 +687,8 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="_source/autofaiss.utils.html#autofaiss.utils.array_functions.sanitize">sanitize() (in module autofaiss.utils.array_functions)</a>
+</li>
+      <li><a href="_source/autofaiss.indices.html#autofaiss.indices.index_utils.save_index">save_index() (in module autofaiss.indices.index_utils)</a>
 </li>
       <li><a href="API/_autosummary/autofaiss.external.quantize.score_index.html#autofaiss.external.quantize.score_index">score_index() (in module autofaiss.external.quantize)</a>, <a href="_source/autofaiss.external.html#autofaiss.external.quantize.score_index">[1]</a>
 </li>
@@ -662,6 +729,8 @@
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="_source/autofaiss.utils.html#autofaiss.utils.cast.to_readable_time">to_readable_time() (in module autofaiss.utils.cast)</a>
+</li>
+      <li><a href="_source/autofaiss.indices.html#autofaiss.indices.training.TrainedIndex">TrainedIndex (class in autofaiss.indices.training)</a>
 </li>
       <li><a href="_source/autofaiss.external.html#autofaiss.external.descriptions.TunableParam">TunableParam (class in autofaiss.external.descriptions)</a>
 </li>

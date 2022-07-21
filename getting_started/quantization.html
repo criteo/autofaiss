@@ -14,6 +14,7 @@
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="../_static/js/theme.js"></script>
@@ -65,6 +66,12 @@
 <li class="toctree-l2"><a class="reference internal" href="#the-score-command">The score command</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#id4">Parameters</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#id5">Time required</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="#creating-partitioned-indexes">Creating partitioned indexes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#id6">The use-case</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#the-build-partitioned-indexes-command">The build_partitioned_indexes command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id7">What it does behind</a></li>
 </ul>
 </li>
 </ul>
@@ -128,18 +135,18 @@
 }
 </style>
 <section id="creating-an-index">
-<h1>Creating an index<a class="headerlink" href="#creating-an-index" title="Permalink to this headline"></a></h1>
+<h1>Creating an index<a class="headerlink" href="#creating-an-index" title="Permalink to this heading"></a></h1>
 <section id="the-use-case">
-<h2>The use-case<a class="headerlink" href="#the-use-case" title="Permalink to this headline"></a></h2>
+<h2>The use-case<a class="headerlink" href="#the-use-case" title="Permalink to this heading"></a></h2>
 <p>You have limited RAM constraint but need to do similarity search on a lot of vectors?
 Great! You are in the right place :) This lib automatically builds an optimal index that maximizes the
 recall scores given a memory and query speed constraint.</p>
 </section>
 <section id="the-build-index-command">
-<h2>The build_index command<a class="headerlink" href="#the-build-index-command" title="Permalink to this headline"></a></h2>
+<h2>The build_index command<a class="headerlink" href="#the-build-index-command" title="Permalink to this heading"></a></h2>
 <p>The <code class="docutils literal notranslate"><span class="pre">autofaiss</span> <span class="pre">build_index</span></code> command takes the following parameters:</p>
-<table class="colwidths-given docutils align-default" id="id6">
-<caption><span class="caption-text">Parameters</span><a class="headerlink" href="#id6" title="Permalink to this table"></a></caption>
+<table class="colwidths-given docutils align-default" id="id8">
+<caption><span class="caption-text">Parameters</span><a class="headerlink" href="#id8" title="Permalink to this table"></a></caption>
 <colgroup>
 <col style="width: 25%" />
 <col style="width: 25%" />
@@ -252,7 +259,7 @@ Here is some documentation &lt;<a class="reference external" href="https://githu
 &lt;<a class="reference external" href="https://github.com/facebookresearch/faiss/wiki/The-index-factory">https://github.com/facebookresearch/faiss/wiki/The-index-factory</a>&gt; to help you to choose which index you need.</p>
 </section>
 <section id="time-required">
-<h2>Time required<a class="headerlink" href="#time-required" title="Permalink to this headline"></a></h2>
+<h2>Time required<a class="headerlink" href="#time-required" title="Permalink to this heading"></a></h2>
 <p>The time required to run this command is:</p>
 <ul class="simple">
 <li><p>For 1TB of vectors -&gt; 2 hours</p></li>
@@ -262,20 +269,20 @@ Here is some documentation &lt;<a class="reference external" href="https://githu
 </section>
 </section>
 <section id="tuning-an-existing-index">
-<h1>Tuning an existing index<a class="headerlink" href="#tuning-an-existing-index" title="Permalink to this headline"></a></h1>
+<h1>Tuning an existing index<a class="headerlink" href="#tuning-an-existing-index" title="Permalink to this heading"></a></h1>
 <section id="id1">
-<h2>The use-case<a class="headerlink" href="#id1" title="Permalink to this headline"></a></h2>
+<h2>The use-case<a class="headerlink" href="#id1" title="Permalink to this heading"></a></h2>
 <p>You have already created a Faiss index but you would like to have a better recall/query-time ratio?
 This command creates a new index with different hyperparameters to be closer to your requirements.</p>
 </section>
 <section id="the-tune-index-command">
-<h2>The tune_index command<a class="headerlink" href="#the-tune-index-command" title="Permalink to this headline"></a></h2>
+<h2>The tune_index command<a class="headerlink" href="#the-tune-index-command" title="Permalink to this heading"></a></h2>
 <p>The tune_index command set the hyperparameters for the given index.</p>
 <p>If an index_param is given, set this hyperparameters to the index,
 otherwise perform a greedy heusistic to make the best out or the max_index_query_time_ms constraint</p>
 </section>
 <section id="parameters">
-<h2>Parameters<a class="headerlink" href="#parameters" title="Permalink to this headline"></a></h2>
+<h2>Parameters<a class="headerlink" href="#parameters" title="Permalink to this heading"></a></h2>
 <dl class="simple">
 <dt>index_path<span class="classifier">Union[str, Any]</span></dt><dd><p>Path to .index file on local disk if is_local_index_path is True,
 otherwise path on hdfs.
@@ -301,18 +308,18 @@ If None, the hyper-parameters are chosen based on an heuristic.</p>
 </dl>
 </section>
 <section id="returns">
-<h2>Returns<a class="headerlink" href="#returns" title="Permalink to this headline"></a></h2>
+<h2>Returns<a class="headerlink" href="#returns" title="Permalink to this heading"></a></h2>
 <dl class="simple">
 <dt>index</dt><dd><p>The faiss index</p>
 </dd>
 </dl>
 </section>
 <section id="id2">
-<h2>Time required<a class="headerlink" href="#id2" title="Permalink to this headline"></a></h2>
+<h2>Time required<a class="headerlink" href="#id2" title="Permalink to this heading"></a></h2>
 <p>The time required to run this command is around 1 minute.</p>
 </section>
 <section id="what-it-does-behind">
-<h2>What it does behind<a class="headerlink" href="#what-it-does-behind" title="Permalink to this headline"></a></h2>
+<h2>What it does behind<a class="headerlink" href="#what-it-does-behind" title="Permalink to this heading"></a></h2>
 <p>The tuning only works for inverted index with HNSW on top of it (95% of indices created by the lib).
 there are 3 parameters to tune for that index:</p>
 <ul class="simple">
@@ -325,21 +332,21 @@ there are 3 parameters to tune for that index:</p>
 </section>
 </section>
 <section id="getting-scores-on-an-index">
-<h1>Getting scores on an index<a class="headerlink" href="#getting-scores-on-an-index" title="Permalink to this headline"></a></h1>
+<h1>Getting scores on an index<a class="headerlink" href="#getting-scores-on-an-index" title="Permalink to this heading"></a></h1>
 <section id="id3">
-<h2>The use-case<a class="headerlink" href="#id3" title="Permalink to this headline"></a></h2>
+<h2>The use-case<a class="headerlink" href="#id3" title="Permalink to this heading"></a></h2>
 <p>You have a faiss index and you would like to know it’s 1-recall, intersection recall, query speed, …?
 There is a command for that too, it’s the score command.</p>
 </section>
 <section id="the-score-command">
-<h2>The score command<a class="headerlink" href="#the-score-command" title="Permalink to this headline"></a></h2>
+<h2>The score command<a class="headerlink" href="#the-score-command" title="Permalink to this heading"></a></h2>
 <p>You just need the path to your index and the embeddings for this one.
 Be careful, computing accurate metrics is slow.</p>
 <p>Compute metrics on a given index, use cached ground truth for fast scoring the next times.</p>
 <p><code class="docutils literal notranslate"><span class="pre">autofaiss</span> <span class="pre">score_index</span> <span class="pre">--embeddings=&quot;folder/embs&quot;</span> <span class="pre">--index_path=&quot;some.index&quot;</span> <span class="pre">--output_index_info_path</span> <span class="pre">&quot;infos.json&quot;</span> <span class="pre">--current_memory_available=&quot;4G&quot;</span></code></p>
 </section>
 <section id="id4">
-<h2>Parameters<a class="headerlink" href="#id4" title="Permalink to this headline"></a></h2>
+<h2>Parameters<a class="headerlink" href="#id4" title="Permalink to this heading"></a></h2>
 <dl class="simple">
 <dt>index_path<span class="classifier">Union[str, Any]</span></dt><dd><p>Path to .index file. Or in memory index</p>
 </dd>
@@ -357,9 +364,113 @@ because it reduces the swipe between RAM and disk.</p>
 </dl>
 </section>
 <section id="id5">
-<h2>Time required<a class="headerlink" href="#id5" title="Permalink to this headline"></a></h2>
+<h2>Time required<a class="headerlink" href="#id5" title="Permalink to this heading"></a></h2>
 <p>The time required to run this command is around 1 hour for 200M vectors of 1280d (1TB).
 If the whole dataset fits in RAM it can be much faster.</p>
+</section>
+</section>
+<section id="creating-partitioned-indexes">
+<h1>Creating partitioned indexes<a class="headerlink" href="#creating-partitioned-indexes" title="Permalink to this heading"></a></h1>
+<section id="id6">
+<h2>The use-case<a class="headerlink" href="#id6" title="Permalink to this heading"></a></h2>
+<p>You have a partitioned parquet dataset and want to create one index per partition.</p>
+</section>
+<section id="the-build-partitioned-indexes-command">
+<h2>The build_partitioned_indexes command<a class="headerlink" href="#the-build-partitioned-indexes-command" title="Permalink to this heading"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">autofaiss</span> <span class="pre">build_partitioned_indexes</span></code> command takes the following parameters:</p>
+<table class="colwidths-given docutils align-default" id="id9">
+<caption><span class="caption-text">Parameters</span><a class="headerlink" href="#id9" title="Permalink to this table"></a></caption>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Flag available</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>–partitions</p></td>
+<td><p>required</p></td>
+<td><p>List of partitions containing embeddings. Paths can be local paths or paths in another Filesystem e.g. <cite>hdfs://root/…</cite> or <cite>s3://…</cite>.</p></td>
+</tr>
+<tr class="row-odd"><td><p>–output_root_dir</p></td>
+<td><p>required</p></td>
+<td><p>Output root directory where indexes, metrics and ids will be written.</p></td>
+</tr>
+<tr class="row-even"><td><p>–embedding_column_name</p></td>
+<td><p>“embedding”</p></td>
+<td><p>Parquet dataset column name containing embeddings.</p></td>
+</tr>
+<tr class="row-odd"><td><p>–id_columns</p></td>
+<td><p>None</p></td>
+<td><p>Parquet dataset column name(s) that are used as IDs for embeddings. A mapping from these IDs to faiss indices will be written in separate files.</p></td>
+</tr>
+<tr class="row-even"><td><p>–max_index_query_time_ms</p></td>
+<td><p>10</p></td>
+<td><p>Bound on the query time for KNN search, this bound is approximative.</p></td>
+</tr>
+<tr class="row-odd"><td><p>–max_index_memory_usage</p></td>
+<td><p>16GB</p></td>
+<td><p>Maximum size allowed for the index, this bound is strict.</p></td>
+</tr>
+<tr class="row-even"><td><p>–min_nearest_neighbors_to_retrieve</p></td>
+<td><p>20</p></td>
+<td><p>Minimum number of nearest neighbors to retrieve when querying the index. Parameter used only during index hyperparameter finetuning step, it is not taken into account to select the indexing algorithm. This parameter has the priority over the max_index_query_time_ms constraint.</p></td>
+</tr>
+<tr class="row-odd"><td><p>–current_memory_available</p></td>
+<td><p>32GB</p></td>
+<td><p>Memory available on the machine creating the index, having more memory is a boost because it reduces the swipe between RAM and disk.</p></td>
+</tr>
+<tr class="row-even"><td><p>–use_gpu</p></td>
+<td><p>False</p></td>
+<td><p>Experimental, gpu training is faster, not tested so far.</p></td>
+</tr>
+<tr class="row-odd"><td><p>–metric_type</p></td>
+<td><p>ip</p></td>
+<td><p>Similarity function used for query: “ip” for inner product or “l2” for euclidean distance.</p></td>
+</tr>
+<tr class="row-even"><td><p>–nb_cores</p></td>
+<td><p>None</p></td>
+<td><p>Number of cores to use. Will try to guess the right number if not provided.</p></td>
+</tr>
+<tr class="row-odd"><td><p>–make_direct_map</p></td>
+<td><p>False</p></td>
+<td><p>Create a direct map allowing reconstruction of embeddings. This is only needed for IVF indices. Note that might increase the RAM usage (approximately 8GB for 1 billion embeddings).</p></td>
+</tr>
+<tr class="row-even"><td><p>–should_be_memory_mappable</p></td>
+<td><p>False</p></td>
+<td><p>If set to true, the created index will be selected only among the indices that can be memory-mapped on disk. This makes it possible to use 50GB indices on a machine with only 1GB of RAM. Default to False.</p></td>
+</tr>
+<tr class="row-odd"><td><p>–temp_root_dir</p></td>
+<td><p>“hdfs://root/tmp/distributed_autofaiss_indices”</p></td>
+<td><p>Temporary directory that will be used to store intermediate results/computation.</p></td>
+</tr>
+<tr class="row-even"><td><p>–verbose</p></td>
+<td><p>logging.INFO</p></td>
+<td><p>set verbosity of outputs via logging level, default is <cite>logging.INFO</cite>.</p></td>
+</tr>
+<tr class="row-odd"><td><p>–nb_splits_per_big_index</p></td>
+<td><p>1</p></td>
+<td><p>Number of indices to split a big index into. This allows you building indices bigger than <cite>current_memory_available</cite>.</p></td>
+</tr>
+<tr class="row-even"><td><p>–big_index_threshold</p></td>
+<td><p>5_000_000</p></td>
+<td><p>Threshold used to define big indexes. Indexes with more <cite>than big_index_threshold</cite> embeddings are considered big indexes.</p></td>
+</tr>
+<tr class="row-odd"><td><p>–maximum_nb_threads</p></td>
+<td><p>256</p></td>
+<td><p>Maximum number of threads to parallelize index creation.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="id7">
+<h2>What it does behind<a class="headerlink" href="#id7" title="Permalink to this heading"></a></h2>
+<p>For each partition of the partitioned dataset, one index will be trained and populated with vectors of the partition.
+All indexes are created in parallel. Also, for big partitions (with more than <cite>big_index_threshold</cite> vectors), vectors will be added in a distributed way to indexes.</p>
 </section>
 </section>
 

@@ -4,6 +4,14 @@ autofaiss.indices package
 Submodules
 ----------
 
+autofaiss.indices.build module
+------------------------------
+
+.. automodule:: autofaiss.indices.build
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 autofaiss.indices.distributed module
 ------------------------------------
 
@@ -48,6 +56,14 @@ autofaiss.indices.search module
 -------------------------------
 
 .. automodule:: autofaiss.indices.search
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+autofaiss.indices.training module
+---------------------------------
+
+.. automodule:: autofaiss.indices.training
    :members:
    :undoc-members:
    :show-inheritance:

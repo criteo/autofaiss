@@ -14,6 +14,7 @@
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="../_static/js/theme.js"></script>
@@ -48,6 +49,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../getting_started/quantization.html">Creating an index</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../getting_started/quantization.html#tuning-an-existing-index">Tuning an existing index</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../getting_started/quantization.html#getting-scores-on-an-index">Getting scores on an index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started/quantization.html#creating-partitioned-indexes">Creating partitioned indexes</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Use autofaiss from python</span></p>
 <ul class="current">
@@ -126,15 +128,15 @@
 }
 </style>
 <section id="autofaiss-metrics-package">
-<h1>autofaiss.metrics package<a class="headerlink" href="#autofaiss-metrics-package" title="Permalink to this headline"></a></h1>
+<h1>autofaiss.metrics package<a class="headerlink" href="#autofaiss-metrics-package" title="Permalink to this heading"></a></h1>
 <section id="submodules">
-<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline"></a></h2>
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading"></a></h2>
 </section>
 <section id="autofaiss-metrics-benchmark-module">
-<h2>autofaiss.metrics.benchmark module<a class="headerlink" href="#autofaiss-metrics-benchmark-module" title="Permalink to this headline"></a></h2>
+<h2>autofaiss.metrics.benchmark module<a class="headerlink" href="#autofaiss-metrics-benchmark-module" title="Permalink to this heading"></a></h2>
 </section>
 <section id="module-autofaiss.metrics.recalls">
-<span id="autofaiss-metrics-recalls-module"></span><h2>autofaiss.metrics.recalls module<a class="headerlink" href="#module-autofaiss.metrics.recalls" title="Permalink to this headline"></a></h2>
+<span id="autofaiss-metrics-recalls-module"></span><h2>autofaiss.metrics.recalls module<a class="headerlink" href="#module-autofaiss.metrics.recalls" title="Permalink to this heading"></a></h2>
 <p>function to compute different kind of recalls</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="autofaiss.metrics.recalls.one_recall_at_r">
@@ -142,7 +144,7 @@
 <dd><p>Compute an 1-recall&#64;R array for each R in range [1, r_max]</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.22)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></a></p>
+<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.23)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -166,7 +168,7 @@ a single query.</p>
 a single query.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.22)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></a></p>
+<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.23)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -184,7 +186,7 @@ a single query.</p>
 
 </section>
 <section id="module-autofaiss.metrics.reconstruction">
-<span id="autofaiss-metrics-reconstruction-module"></span><h2>autofaiss.metrics.reconstruction module<a class="headerlink" href="#module-autofaiss.metrics.reconstruction" title="Permalink to this headline"></a></h2>
+<span id="autofaiss-metrics-reconstruction-module"></span><h2>autofaiss.metrics.reconstruction module<a class="headerlink" href="#module-autofaiss.metrics.reconstruction" title="Permalink to this heading"></a></h2>
 <p>function to compute the reconstruction error</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="autofaiss.metrics.reconstruction.quantize_vec_without_modifying_index">
@@ -192,7 +194,7 @@ a single query.</p>
 <dd><p>Quantizes a batch of vectors if the index given uses quantization</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.22)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></a></p>
+<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.23)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -210,7 +212,7 @@ a single query.</p>
 
 </section>
 <section id="module-autofaiss.metrics">
-<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-autofaiss.metrics" title="Permalink to this headline"></a></h2>
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-autofaiss.metrics" title="Permalink to this heading"></a></h2>
 </section>
 </section>
 

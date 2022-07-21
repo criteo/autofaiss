@@ -13,6 +13,7 @@
         <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
         <script src="../../../_static/jquery.js"></script>
         <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../../../_static/doctools.js"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="../../../_static/js/theme.js"></script>
@@ -45,6 +46,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../getting_started/quantization.html">Creating an index</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../getting_started/quantization.html#tuning-an-existing-index">Tuning an existing index</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../getting_started/quantization.html#getting-scores-on-an-index">Getting scores on an index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting_started/quantization.html#creating-partitioned-indexes">Creating partitioned indexes</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Use autofaiss from python</span></p>
 <ul>
@@ -83,30 +85,23 @@
              
   <h1>Source code for autofaiss.external.build</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot; gather functions necessary to build an index &quot;&quot;&quot;</span>
+
 <span class="kn">import</span> <span class="nn">logging</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Any</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">List</span>
 
 <span class="kn">import</span> <span class="nn">faiss</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
-<span class="kn">from</span> <span class="nn">faiss</span> <span class="kn">import</span> <span class="n">extract_index_ivf</span>
 <span class="kn">from</span> <span class="nn">embedding_reader</span> <span class="kn">import</span> <span class="n">EmbeddingReader</span>
 
 <span class="kn">from</span> <span class="nn">autofaiss.external.metadata</span> <span class="kn">import</span> <span class="n">IndexMetadata</span>
-<span class="kn">from</span> <span class="nn">autofaiss.external.optimize</span> <span class="kn">import</span> <span class="p">(</span>
-    <span class="n">check_if_index_needs_training</span><span class="p">,</span>
-    <span class="n">get_optimal_batch_size</span><span class="p">,</span>
-    <span class="n">get_optimal_index_keys_v2</span><span class="p">,</span>
-    <span class="n">get_optimal_train_size</span><span class="p">,</span>
-<span class="p">)</span>
-<span class="kn">from</span> <span class="nn">autofaiss.indices.index_factory</span> <span class="kn">import</span> <span class="n">index_factory</span>
-<span class="kn">from</span> <span class="nn">autofaiss.utils.cast</span> <span class="kn">import</span> <span class="p">(</span>
-    <span class="n">cast_bytes_to_memory_string</span><span class="p">,</span>
-    <span class="n">cast_memory_to_bytes</span><span class="p">,</span>
-    <span class="n">to_faiss_metric_type</span><span class="p">,</span>
-    <span class="n">to_readable_time</span><span class="p">,</span>
-<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">autofaiss.external.optimize</span> <span class="kn">import</span> <span class="n">check_if_index_needs_training</span><span class="p">,</span> <span class="n">get_optimal_index_keys_v2</span><span class="p">,</span> <span class="n">get_optimal_train_size</span>
+<span class="kn">from</span> <span class="nn">autofaiss.utils.cast</span> <span class="kn">import</span> <span class="n">cast_bytes_to_memory_string</span><span class="p">,</span> <span class="n">cast_memory_to_bytes</span><span class="p">,</span> <span class="n">to_readable_time</span>
 <span class="kn">from</span> <span class="nn">autofaiss.utils.decorators</span> <span class="kn">import</span> <span class="n">Timeit</span>
-<span class="kn">from</span> <span class="nn">autofaiss.indices.distributed</span> <span class="kn">import</span> <span class="n">run</span>
+<span class="kn">from</span> <span class="nn">autofaiss.indices</span> <span class="kn">import</span> <span class="n">distributed</span>
+<span class="kn">from</span> <span class="nn">autofaiss.indices.index_utils</span> <span class="kn">import</span> <span class="n">initialize_direct_map</span>
+<span class="kn">from</span> <span class="nn">autofaiss.indices.training</span> <span class="kn">import</span> <span class="n">create_and_train_new_index</span>
+<span class="kn">from</span> <span class="nn">autofaiss.indices.build</span> <span class="kn">import</span> <span class="n">add_embeddings_to_index_local</span>
+
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;autofaiss&quot;</span><span class="p">)</span>
 
@@ -176,120 +171,44 @@
     <span class="k">return</span> <span class="n">infos</span></div>
 
 
-<div class="viewcode-block" id="create_index"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.build.create_index">[docs]</a><span class="k">def</span> <span class="nf">create_index</span><span class="p">(</span>
+<div class="viewcode-block" id="add_embeddings_to_index"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.build.add_embeddings_to_index">[docs]</a><span class="k">def</span> <span class="nf">add_embeddings_to_index</span><span class="p">(</span>
     <span class="n">embedding_reader</span><span class="p">:</span> <span class="n">EmbeddingReader</span><span class="p">,</span>
-    <span class="n">index_key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-    <span class="n">metric_type</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
+    <span class="n">trained_index_or_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">faiss</span><span class="o">.</span><span class="n">Index</span><span class="p">],</span>
+    <span class="n">metadata</span><span class="p">:</span> <span class="n">IndexMetadata</span><span class="p">,</span>
     <span class="n">current_memory_available</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">embedding_ids_df_handler</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="n">use_gpu</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-    <span class="n">make_direct_map</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-    <span class="n">distributed</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">distributed_engine</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">temporary_indices_folder</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;hdfs://root/tmp/distributed_autofaiss_indices&quot;</span><span class="p">,</span>
     <span class="n">nb_indices_to_keep</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
     <span class="n">index_optimizer</span><span class="p">:</span> <span class="n">Callable</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="n">faiss</span><span class="o">.</span><span class="n">Index</span><span class="p">],</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Function that returns an index on the numpy arrays stored on disk in the embeddings_path path.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="n">faiss</span><span class="o">.</span><span class="n">Index</span><span class="p">],</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]]:</span>
+    <span class="sd">&quot;&quot;&quot;Add embeddings to the index&quot;&quot;&quot;</span>
 
-    <span class="c1"># Instanciate the index</span>
-    <span class="k">with</span> <span class="n">Timeit</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;-&gt; Instanciate the index </span><span class="si">{</span><span class="n">index_key</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
-
-        <span class="c1"># Convert metric_type to faiss type</span>
-        <span class="n">metric_type</span> <span class="o">=</span> <span class="n">to_faiss_metric_type</span><span class="p">(</span><span class="n">metric_type</span><span class="p">)</span>
-
-        <span class="n">vec_dim</span> <span class="o">=</span> <span class="n">embedding_reader</span><span class="o">.</span><span class="n">dimension</span>
-
-        <span class="c1"># Instanciate the index</span>
-        <span class="n">index</span> <span class="o">=</span> <span class="n">index_factory</span><span class="p">(</span><span class="n">vec_dim</span><span class="p">,</span> <span class="n">index_key</span><span class="p">,</span> <span class="n">metric_type</span><span class="p">)</span>
-
-    <span class="n">metadata</span> <span class="o">=</span> <span class="n">IndexMetadata</span><span class="p">(</span><span class="n">index_key</span><span class="p">,</span> <span class="n">embedding_reader</span><span class="o">.</span><span class="n">count</span><span class="p">,</span> <span class="n">vec_dim</span><span class="p">,</span> <span class="n">make_direct_map</span><span class="p">)</span>
-
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-        <span class="sa">f</span><span class="s2">&quot;The index size will be approximately </span><span class="si">{</span><span class="n">cast_bytes_to_memory_string</span><span class="p">(</span><span class="n">metadata</span><span class="o">.</span><span class="n">estimated_index_size_in_bytes</span><span class="p">())</span><span class="si">}</span><span class="s2">&quot;</span>
-    <span class="p">)</span>
-
-    <span class="n">index_needs_training</span> <span class="o">=</span> <span class="n">check_if_index_needs_training</span><span class="p">(</span><span class="n">index_key</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="n">index_needs_training</span><span class="p">:</span>
-
-        <span class="c1"># Extract training vectors</span>
-        <span class="k">with</span> <span class="n">Timeit</span><span class="p">(</span><span class="s2">&quot;-&gt; Extract training vectors&quot;</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
-
-            <span class="n">memory_available_for_training</span> <span class="o">=</span> <span class="n">cast_bytes_to_memory_string</span><span class="p">(</span><span class="n">cast_memory_to_bytes</span><span class="p">(</span><span class="n">current_memory_available</span><span class="p">))</span>
-
-            <span class="c1"># Determine the number of vectors necessary to train the index</span>
-            <span class="n">train_size</span> <span class="o">=</span> <span class="n">get_optimal_train_size</span><span class="p">(</span>
-                <span class="n">embedding_reader</span><span class="o">.</span><span class="n">count</span><span class="p">,</span> <span class="n">index_key</span><span class="p">,</span> <span class="n">memory_available_for_training</span><span class="p">,</span> <span class="n">vec_dim</span>
-            <span class="p">)</span>
-            <span class="n">memory_needed_for_training</span> <span class="o">=</span> <span class="n">metadata</span><span class="o">.</span><span class="n">compute_memory_necessary_for_training</span><span class="p">(</span><span class="n">train_size</span><span class="p">)</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;Will use </span><span class="si">{</span><span class="n">train_size</span><span class="si">}</span><span class="s2"> vectors to train the index, &quot;</span>
-                <span class="sa">f</span><span class="s2">&quot;that will use </span><span class="si">{</span><span class="n">cast_bytes_to_memory_string</span><span class="p">(</span><span class="n">memory_needed_for_training</span><span class="p">)</span><span class="si">}</span><span class="s2"> of memory&quot;</span>
-            <span class="p">)</span>
-
-            <span class="c1"># Extract training vectors</span>
-            <span class="n">train_vectors</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">embedding_reader</span><span class="p">(</span><span class="n">batch_size</span><span class="o">=</span><span class="n">train_size</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="n">train_size</span><span class="p">))</span>
-
-        <span class="c1"># Instanciate the index and train it</span>
-        <span class="c1"># pylint: disable=no-member</span>
-        <span class="k">if</span> <span class="n">use_gpu</span><span class="p">:</span>
-            <span class="c1"># if this fails, it means that the GPU version was not comp.</span>
-            <span class="k">assert</span> <span class="p">(</span>
-                <span class="n">faiss</span><span class="o">.</span><span class="n">StandardGpuResources</span>
-            <span class="p">),</span> <span class="s2">&quot;FAISS was not compiled with GPU support, or loading _swigfaiss_gpu.so failed&quot;</span>
-            <span class="n">res</span> <span class="o">=</span> <span class="n">faiss</span><span class="o">.</span><span class="n">StandardGpuResources</span><span class="p">()</span>
-            <span class="n">dev_no</span> <span class="o">=</span> <span class="mi">0</span>
-            <span class="c1"># transfer to GPU (may be partial).</span>
-            <span class="n">index</span> <span class="o">=</span> <span class="n">faiss</span><span class="o">.</span><span class="n">index_cpu_to_gpu</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">dev_no</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>
-
-        <span class="k">with</span> <span class="n">Timeit</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;-&gt; Training the index with </span><span class="si">{</span><span class="n">train_vectors</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2"> vectors of dim </span><span class="si">{</span><span class="n">train_vectors</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span>
-        <span class="p">):</span>
-            <span class="n">index</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">train_vectors</span><span class="p">)</span>
-
-        <span class="k">del</span> <span class="n">train_vectors</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">train_size</span> <span class="o">=</span> <span class="mi">0</span>
-
-    <span class="n">size_per_index</span> <span class="o">=</span> <span class="n">metadata</span><span class="o">.</span><span class="n">estimated_index_size_in_bytes</span><span class="p">()</span> <span class="o">/</span> <span class="n">nb_indices_to_keep</span>
-
-    <span class="n">memory_available_for_adding</span> <span class="o">=</span> <span class="n">cast_bytes_to_memory_string</span><span class="p">(</span>
-        <span class="n">cast_memory_to_bytes</span><span class="p">(</span><span class="n">current_memory_available</span><span class="p">)</span> <span class="o">-</span> <span class="n">size_per_index</span>
-    <span class="p">)</span>
-
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-        <span class="sa">f</span><span class="s2">&quot;The memory available for adding the vectors is </span><span class="si">{</span><span class="n">memory_available_for_adding</span><span class="si">}</span><span class="s2">&quot;</span>
-        <span class="s2">&quot;(total available - used by the index)&quot;</span>
-    <span class="p">)</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Will be using at most 1GB of ram for adding&quot;</span><span class="p">)</span>
-    <span class="c1"># Add the vectors to the index.</span>
     <span class="k">with</span> <span class="n">Timeit</span><span class="p">(</span><span class="s2">&quot;-&gt; Adding the vectors to the index&quot;</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
-        <span class="n">batch_size</span> <span class="o">=</span> <span class="n">get_optimal_batch_size</span><span class="p">(</span><span class="n">vec_dim</span><span class="p">,</span> <span class="n">memory_available_for_adding</span><span class="p">)</span>
+
+        <span class="c1"># Estimate memory available for adding embeddings to index</span>
+        <span class="n">size_per_index</span> <span class="o">=</span> <span class="n">metadata</span><span class="o">.</span><span class="n">estimated_index_size_in_bytes</span><span class="p">()</span> <span class="o">/</span> <span class="n">nb_indices_to_keep</span>
+        <span class="n">memory_available_for_adding</span> <span class="o">=</span> <span class="n">cast_bytes_to_memory_string</span><span class="p">(</span>
+            <span class="n">cast_memory_to_bytes</span><span class="p">(</span><span class="n">current_memory_available</span><span class="p">)</span> <span class="o">-</span> <span class="n">size_per_index</span>
+        <span class="p">)</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;Using a batch size of </span><span class="si">{</span><span class="n">batch_size</span><span class="si">}</span><span class="s2"> (memory overhead </span><span class="si">{</span><span class="n">cast_bytes_to_memory_string</span><span class="p">(</span><span class="n">batch_size</span><span class="o">*</span><span class="n">vec_dim</span><span class="o">*</span><span class="mi">4</span><span class="p">)</span><span class="si">}</span><span class="s2">)&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;The memory available for adding the vectors is </span><span class="si">{</span><span class="n">memory_available_for_adding</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;(total available - used by the index)&quot;</span>
         <span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">make_direct_map</span><span class="p">:</span>
-            <span class="c1"># Retrieve the embedded index if we are in an IndexPreTransform state</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">faiss</span><span class="o">.</span><span class="n">swigfaiss</span><span class="o">.</span><span class="n">IndexPreTransform</span><span class="p">):</span>
-                <span class="n">embedded_index</span> <span class="o">=</span> <span class="n">extract_index_ivf</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">embedded_index</span> <span class="o">=</span> <span class="n">index</span>
+        <span class="k">if</span> <span class="n">distributed_engine</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">add_embeddings_to_index_local</span><span class="p">(</span>
+                <span class="n">embedding_reader</span><span class="o">=</span><span class="n">embedding_reader</span><span class="p">,</span>
+                <span class="n">trained_index_or_path</span><span class="o">=</span><span class="n">trained_index_or_path</span><span class="p">,</span>
+                <span class="n">memory_available_for_adding</span><span class="o">=</span><span class="n">memory_available_for_adding</span><span class="p">,</span>
+                <span class="n">embedding_ids_df_handler</span><span class="o">=</span><span class="n">embedding_ids_df_handler</span><span class="p">,</span>
+                <span class="n">index_optimizer</span><span class="o">=</span><span class="n">index_optimizer</span><span class="p">,</span>
+                <span class="n">add_embeddings_with_ids</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="p">)</span>
 
-            <span class="c1"># Make direct map is only implemented for IndexIVF and IndexBinaryIVF, see built file faiss/swigfaiss.py</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">embedded_index</span><span class="p">,</span> <span class="p">(</span><span class="n">faiss</span><span class="o">.</span><span class="n">swigfaiss</span><span class="o">.</span><span class="n">IndexIVF</span><span class="p">,</span> <span class="n">faiss</span><span class="o">.</span><span class="n">swigfaiss</span><span class="o">.</span><span class="n">IndexBinaryIVF</span><span class="p">)):</span>
-                <span class="n">embedded_index</span><span class="o">.</span><span class="n">make_direct_map</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">distributed</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">batch_id</span><span class="p">,</span> <span class="p">(</span><span class="n">vec_batch</span><span class="p">,</span> <span class="n">ids_batch</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">embedding_reader</span><span class="p">(</span><span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">)):</span>
-                <span class="n">index</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">vec_batch</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">embedding_ids_df_handler</span><span class="p">:</span>
-                    <span class="n">embedding_ids_df_handler</span><span class="p">(</span><span class="n">ids_batch</span><span class="p">,</span> <span class="n">batch_id</span><span class="p">)</span>
-            <span class="n">metric_infos</span> <span class="o">=</span> <span class="n">index_optimizer</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
-        <span class="k">elif</span> <span class="n">distributed</span> <span class="o">==</span> <span class="s2">&quot;pyspark&quot;</span><span class="p">:</span>
-            <span class="n">index</span><span class="p">,</span> <span class="n">metric_infos</span> <span class="o">=</span> <span class="n">run</span><span class="p">(</span>
-                <span class="n">faiss_index</span><span class="o">=</span><span class="n">index</span><span class="p">,</span>
+        <span class="k">elif</span> <span class="n">distributed_engine</span> <span class="o">==</span> <span class="s2">&quot;pyspark&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">distributed</span><span class="o">.</span><span class="n">add_embeddings_to_index_distributed</span><span class="p">(</span>
+                <span class="n">trained_index_or_path</span><span class="o">=</span><span class="n">trained_index_or_path</span><span class="p">,</span>
                 <span class="n">embedding_reader</span><span class="o">=</span><span class="n">embedding_reader</span><span class="p">,</span>
                 <span class="n">memory_available_for_adding</span><span class="o">=</span><span class="n">memory_available_for_adding</span><span class="p">,</span>
                 <span class="n">embedding_ids_df_handler</span><span class="o">=</span><span class="n">embedding_ids_df_handler</span><span class="p">,</span>
@@ -298,9 +217,96 @@
                 <span class="n">index_optimizer</span><span class="o">=</span><span class="n">index_optimizer</span><span class="p">,</span>
             <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Distributed by </span><span class="si">{</span><span class="n">distributed</span><span class="si">}</span><span class="s1"> is not supported, only &quot;pyspark&quot; is supported&#39;</span><span class="p">)</span>
-    <span class="c1"># return the index.</span>
-    <span class="k">return</span> <span class="n">index</span><span class="p">,</span> <span class="n">metric_infos</span></div>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Distributed by </span><span class="si">{</span><span class="n">distributed_engine</span><span class="si">}</span><span class="s1"> is not supported, only &quot;pyspark&quot; is supported&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="create_index"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.build.create_index">[docs]</a><span class="k">def</span> <span class="nf">create_index</span><span class="p">(</span>
+    <span class="n">embedding_reader</span><span class="p">:</span> <span class="n">EmbeddingReader</span><span class="p">,</span>
+    <span class="n">index_key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">metric_type</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
+    <span class="n">current_memory_available</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">embedding_ids_df_handler</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">use_gpu</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">make_direct_map</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">distributed_engine</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">temporary_indices_folder</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;hdfs://root/tmp/distributed_autofaiss_indices&quot;</span><span class="p">,</span>
+    <span class="n">nb_indices_to_keep</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="n">index_optimizer</span><span class="p">:</span> <span class="n">Callable</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="n">faiss</span><span class="o">.</span><span class="n">Index</span><span class="p">],</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]]:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create an index and add embeddings to the index</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">metadata</span> <span class="o">=</span> <span class="n">IndexMetadata</span><span class="p">(</span><span class="n">index_key</span><span class="p">,</span> <span class="n">embedding_reader</span><span class="o">.</span><span class="n">count</span><span class="p">,</span> <span class="n">embedding_reader</span><span class="o">.</span><span class="n">dimension</span><span class="p">,</span> <span class="n">make_direct_map</span><span class="p">)</span>
+
+    <span class="c1"># Create and train index</span>
+    <span class="n">trained_index</span> <span class="o">=</span> <span class="n">create_and_train_new_index</span><span class="p">(</span>
+        <span class="n">embedding_reader</span><span class="p">,</span> <span class="n">index_key</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span> <span class="n">metric_type</span><span class="p">,</span> <span class="n">current_memory_available</span><span class="p">,</span> <span class="n">use_gpu</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Add embeddings to index</span>
+    <span class="n">index</span><span class="p">,</span> <span class="n">metrics</span> <span class="o">=</span> <span class="n">add_embeddings_to_index</span><span class="p">(</span>
+        <span class="n">embedding_reader</span><span class="p">,</span>
+        <span class="n">trained_index</span><span class="p">,</span>
+        <span class="n">metadata</span><span class="p">,</span>
+        <span class="n">current_memory_available</span><span class="p">,</span>
+        <span class="n">embedding_ids_df_handler</span><span class="p">,</span>
+        <span class="n">distributed_engine</span><span class="p">,</span>
+        <span class="n">temporary_indices_folder</span><span class="p">,</span>
+        <span class="n">nb_indices_to_keep</span><span class="p">,</span>
+        <span class="n">index_optimizer</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">make_direct_map</span><span class="p">:</span>
+        <span class="n">initialize_direct_map</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">index</span><span class="p">,</span> <span class="n">metrics</span></div>
+
+
+<div class="viewcode-block" id="create_partitioned_indexes"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.build.create_partitioned_indexes">[docs]</a><span class="k">def</span> <span class="nf">create_partitioned_indexes</span><span class="p">(</span>
+    <span class="n">partitions</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+    <span class="n">output_root_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">embedding_column_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;embedding&quot;</span><span class="p">,</span>
+    <span class="n">id_columns</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">should_be_memory_mappable</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">max_index_query_time_ms</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">10.0</span><span class="p">,</span>
+    <span class="n">max_index_memory_usage</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;16G&quot;</span><span class="p">,</span>
+    <span class="n">min_nearest_neighbors_to_retrieve</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">20</span><span class="p">,</span>
+    <span class="n">current_memory_available</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;32G&quot;</span><span class="p">,</span>
+    <span class="n">use_gpu</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">metric_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;ip&quot;</span><span class="p">,</span>
+    <span class="n">nb_cores</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">make_direct_map</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">temp_root_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;hdfs://root/tmp/distributed_autofaiss_indices&quot;</span><span class="p">,</span>
+    <span class="n">big_index_threshold</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5_000_000</span><span class="p">,</span>
+    <span class="n">nb_splits_per_big_index</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="n">maximum_nb_threads</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">256</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]]:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create partitioned indexes from a list of parquet partitions, i.e. create one index per parquet partition</span>
+
+<span class="sd">    Only supported with Pyspark. An active PySpark session must exist before calling this method</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">return</span> <span class="n">distributed</span><span class="o">.</span><span class="n">create_partitioned_indexes</span><span class="p">(</span>
+        <span class="n">partitions</span><span class="o">=</span><span class="n">partitions</span><span class="p">,</span>
+        <span class="n">big_index_threshold</span><span class="o">=</span><span class="n">big_index_threshold</span><span class="p">,</span>
+        <span class="n">output_root_dir</span><span class="o">=</span><span class="n">output_root_dir</span><span class="p">,</span>
+        <span class="n">nb_cores</span><span class="o">=</span><span class="n">nb_cores</span><span class="p">,</span>
+        <span class="n">nb_splits_per_big_index</span><span class="o">=</span><span class="n">nb_splits_per_big_index</span><span class="p">,</span>
+        <span class="n">id_columns</span><span class="o">=</span><span class="n">id_columns</span><span class="p">,</span>
+        <span class="n">max_index_query_time_ms</span><span class="o">=</span><span class="n">max_index_query_time_ms</span><span class="p">,</span>
+        <span class="n">min_nearest_neighbors_to_retrieve</span><span class="o">=</span><span class="n">min_nearest_neighbors_to_retrieve</span><span class="p">,</span>
+        <span class="n">embedding_column_name</span><span class="o">=</span><span class="n">embedding_column_name</span><span class="p">,</span>
+        <span class="n">max_index_memory_usage</span><span class="o">=</span><span class="n">max_index_memory_usage</span><span class="p">,</span>
+        <span class="n">current_memory_available</span><span class="o">=</span><span class="n">current_memory_available</span><span class="p">,</span>
+        <span class="n">use_gpu</span><span class="o">=</span><span class="n">use_gpu</span><span class="p">,</span>
+        <span class="n">metric_type</span><span class="o">=</span><span class="n">metric_type</span><span class="p">,</span>
+        <span class="n">make_direct_map</span><span class="o">=</span><span class="n">make_direct_map</span><span class="p">,</span>
+        <span class="n">should_be_memory_mappable</span><span class="o">=</span><span class="n">should_be_memory_mappable</span><span class="p">,</span>
+        <span class="n">temp_root_dir</span><span class="o">=</span><span class="n">temp_root_dir</span><span class="p">,</span>
+        <span class="n">maximum_nb_threads</span><span class="o">=</span><span class="n">maximum_nb_threads</span><span class="p">,</span>
+    <span class="p">)</span></div>
 </pre></div>
 
            </div>
