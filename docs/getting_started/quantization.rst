@@ -215,3 +215,85 @@ Time required
 
 The time required to run this command is around 1 hour for 200M vectors of 1280d (1TB).  
 If the whole dataset fits in RAM it can be much faster.
+
+
+Creating partitioned indexes
+============================
+
+The use-case
+------------
+
+You have a partitioned parquet dataset and want to create one index per partition.
+
+The build_partitioned_indexes command
+-------------------------------------
+
+The ``autofaiss build_partitioned_indexes`` command takes the following parameters:
+
+.. list-table:: Parameters
+    :widths: 50 50 100
+    :header-rows: 1
+
+    * - Flag available
+      - Default
+      - Description
+    * - --partitions
+      - required
+      - List of partitions containing embeddings. Paths can be local paths or paths in another Filesystem e.g. `hdfs://root/...` or `s3://...`.
+    * - --output_root_dir
+      - required
+      - Output root directory where indexes, metrics and ids will be written.
+    * - --embedding_column_name
+      - "embedding"
+      - Parquet dataset column name containing embeddings.
+    * - --id_columns
+      - None
+      - Parquet dataset column name(s) that are used as IDs for embeddings. A mapping from these IDs to faiss indices will be written in separate files.
+    * - --max_index_query_time_ms
+      - 10
+      - Bound on the query time for KNN search, this bound is approximative.
+    * - --max_index_memory_usage
+      - 16GB
+      - Maximum size allowed for the index, this bound is strict.
+    * - --min_nearest_neighbors_to_retrieve
+      - 20
+      - Minimum number of nearest neighbors to retrieve when querying the index. Parameter used only during index hyperparameter finetuning step, it is not taken into account to select the indexing algorithm. This parameter has the priority over the max_index_query_time_ms constraint.
+    * - --current_memory_available
+      - 32GB
+      - Memory available on the machine creating the index, having more memory is a boost because it reduces the swipe between RAM and disk.
+    * - --use_gpu
+      - False
+      - Experimental, gpu training is faster, not tested so far.
+    * - --metric_type
+      - ip
+      - Similarity function used for query: "ip" for inner product or "l2" for euclidian distance.
+    * - --nb_cores
+      - None
+      - Number of cores to use. Will try to guess the right number if not provided.
+    * - --make_direct_map
+      - False
+      - Create a direct map allowing reconstruction of embeddings. This is only needed for IVF indices. Note that might increase the RAM usage (approximately 8GB for 1 billion embeddings).
+    * - --should_be_memory_mappable
+      - False
+      - If set to true, the created index will be selected only among the indices that can be memory-mapped on disk. This makes it possible to use 50GB indices on a machine with only 1GB of RAM. Default to False.
+    * - --temp_root_dir
+      - "hdfs://root/tmp/distributed_autofaiss_indices"
+      - Temporary directory that will be used to store intermediate results/computation.
+    * - --verbose
+      - logging.INFO
+      - set verbosity of outputs via logging level, default is `logging.INFO`.
+    * - --nb_splits_per_big_index
+      - 1
+      - Number of indices to split a big index into. This allows you building indices bigger than `current_memory_available`.   
+    * - --big_index_threshold
+      - 5_000_000
+      - Threshold used to define big indexes. Indexes with more `than big_index_threshold` embeddings are considered big indexes.
+    * - --maximum_nb_threads
+      - 256
+      - Maximum number of threads to parallelize index creation.
+
+What it does behind
+-------------------
+
+For each partition of the partitioned dataset, one index will be trained and populated with vectors of the partition.
+All indexes are created in parallel. Also, for big partitions (with more than `big_index_threshold` vectors), vectors will be added in a distributed way to indexes.
