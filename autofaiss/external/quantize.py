@@ -5,9 +5,7 @@ import logging
 import logging.config
 import multiprocessing
 import os
-import re
 import tempfile
-import uuid
 from typing import Dict, List, Optional, Tuple, Union
 
 from embedding_reader import EmbeddingReader
@@ -16,17 +14,14 @@ import faiss
 import fire
 import fsspec
 import numpy as np
-import pandas as pd
+from autofaiss.indices.build import get_write_ids_df_to_parquet_fn, get_optimize_index_fn
 from autofaiss.external.build import (
     create_index,
+    create_partitioned_indexes,
     estimate_memory_required_for_index_creation,
     get_estimated_construction_time_infos,
 )
-from autofaiss.external.optimize import (
-    get_optimal_hyperparameters,
-    get_optimal_index_keys_v2,
-    optimize_and_measure_index,
-)
+from autofaiss.external.optimize import get_optimal_hyperparameters, get_optimal_index_keys_v2
 from autofaiss.external.scores import compute_fast_metrics, compute_medium_metrics
 from autofaiss.indices.index_utils import set_search_hyperparameters
 from autofaiss.utils.path import make_path_absolute
@@ -158,17 +153,17 @@ def build_index(
     # if using distributed mode, it doesn't make sense to use indices that are not memory mappable
     if distributed == "pyspark":
         should_be_memory_mappable = True
-    if index_path is not None:
+    if index_path:
         index_path = make_path_absolute(index_path)
     elif save_on_disk:
         logger.error("Please specify a index_path if you set save_on_disk as True")
         return None, None
-    if index_infos_path is not None:
+    if index_infos_path:
         index_infos_path = make_path_absolute(index_infos_path)
     elif save_on_disk:
         logger.error("Please specify a index_infos_path if you set save_on_disk as True")
         return None, None
-    if ids_path is not None:
+    if ids_path:
         ids_path = make_path_absolute(ids_path)
 
     if nb_indices_to_keep < 1:
@@ -271,31 +266,20 @@ def build_index(
                 )
                 logger.error("\tPlease provide a value ids_path for the Ids to be written")
 
-        def write_ids_df_to_parquet(ids: pd.DataFrame, batch_id: int):
-            filename = f"part-{batch_id:08d}-{uuid.uuid1()}.parquet"
-            output_file = os.path.join(ids_path, filename)  # type: ignore
-            with fsspec.open(output_file, "wb") as f:
-                logger.debug(f"Writing id DataFrame to file {output_file}")
-                ids.to_parquet(f, index=False)
+        write_ids_df_to_parquet_fn = get_write_ids_df_to_parquet_fn(ids_path) if ids_path and id_columns else None
 
-        def index_optimizer(index, index_suffix):
-            cur_index_path = index_path + index_suffix
-            cur_index_infos_path = index_infos_path + index_suffix
-            if any(re.findall(r"OPQ\d+_\d+,IVF\d+_HNSW\d+,PQ\d+", index_key)):
-                set_search_hyperparameters(index, f"nprobe={64},efSearch={128},ht={2048}", use_gpu)
-            metric_infos = optimize_and_measure_index(
-                embedding_reader,
-                index,
-                cur_index_infos_path,
-                index_key,
-                index_param,
-                cur_index_path,
-                max_index_query_time_ms=max_index_query_time_ms,
-                min_nearest_neighbors_to_retrieve=min_nearest_neighbors_to_retrieve,
-                save_on_disk=save_on_disk,
-                use_gpu=use_gpu,
-            )
-            return metric_infos
+        optimize_index_fn = get_optimize_index_fn(
+            embedding_reader=embedding_reader,
+            index_key=index_key,
+            index_path=index_path,
+            index_infos_path=index_infos_path,
+            use_gpu=use_gpu,
+            save_on_disk=save_on_disk,
+            max_index_query_time_ms=max_index_query_time_ms,
+            min_nearest_neighbors_to_retrieve=min_nearest_neighbors_to_retrieve,
+            index_param=index_param,
+            make_direct_map=make_direct_map,
+        )
 
         with Timeit("Creating the index", indent=1):
             index, metric_infos = create_index(
@@ -304,15 +288,131 @@ def build_index(
                 metric_type,
                 current_memory_available,
                 use_gpu=use_gpu,
-                embedding_ids_df_handler=write_ids_df_to_parquet if ids_path and id_columns else None,
+                embedding_ids_df_handler=write_ids_df_to_parquet_fn,
                 make_direct_map=make_direct_map,
-                distributed=distributed,
+                distributed_engine=distributed,
                 temporary_indices_folder=temporary_indices_folder,
                 nb_indices_to_keep=nb_indices_to_keep,
-                index_optimizer=index_optimizer,
+                index_optimizer=optimize_index_fn,
             )
-            _log_output_dict(metric_infos)
+            if metric_infos:
+                _log_output_dict(metric_infos)
             return index, metric_infos
+
+
+def build_partitioned_indexes(
+    partitions: List[str],
+    output_root_dir: str,
+    embedding_column_name: str = "embedding",
+    id_columns: Optional[List[str]] = None,
+    max_index_query_time_ms: float = 10.0,
+    max_index_memory_usage: str = "16G",
+    min_nearest_neighbors_to_retrieve: int = 20,
+    current_memory_available: str = "32G",
+    use_gpu: bool = False,
+    metric_type: str = "ip",
+    nb_cores: Optional[int] = None,
+    make_direct_map: bool = False,
+    should_be_memory_mappable: bool = False,
+    temp_root_dir: str = "hdfs://root/tmp/distributed_autofaiss_indices",
+    verbose: int = logging.INFO,
+    nb_splits_per_big_index: int = 1,
+    big_index_threshold: int = 5_000_000,
+    maximum_nb_threads: int = 256,
+) -> List[Optional[Dict[str, str]]]:
+    """
+    Create partitioned indexes from a partitioned parquet dataset,
+    i.e. create one index per parquet partition
+
+    Only supported with PySpark. A PySpark session must be active before calling this function
+
+    Parameters
+    ----------
+    partitions : str
+        List of partitions containing embeddings
+    output_root_dir: str
+        Output root directory where indexes, metrics and ids will be written
+    embedding_column_name: str
+        Parquet dataset column name containing embeddings
+    id_columns: Optional(List[str])
+        Parquet dataset column name(s) that are used as IDs for embeddings.
+        A mapping from these IDs to faiss indices will be written in separate files.
+    max_index_query_time_ms: float
+        Bound on the query time for KNN search, this bound is approximative
+    max_index_memory_usage: str
+        Maximum size allowed for the index, this bound is strict
+    min_nearest_neighbors_to_retrieve: int
+        Minimum number of nearest neighbors to retrieve when querying the index.
+        Parameter used only during index hyperparameter finetuning step, it is
+        not taken into account to select the indexing algorithm.
+        This parameter has the priority over the max_index_query_time_ms constraint.
+    current_memory_available: str
+        Memory available on the machine creating the index, having more memory is a boost
+        because it reduces the swipe between RAM and disk.
+    use_gpu: bool
+        Experimental, gpu training is faster, not tested so far
+    metric_type: str
+        Similarity function used for query:
+            - "ip" for inner product
+            - "l2" for euclidean distance
+    nb_cores: Optional[int]
+        Number of cores to use. Will try to guess the right number if not provided
+    make_direct_map: bool
+        Create a direct map allowing reconstruction of embeddings. This is only needed for IVF indices.
+        Note that might increase the RAM usage (approximately 8GB for 1 billion embeddings)
+    should_be_memory_mappable: bool
+        If set to true, the created index will be selected only among the indices that can be memory-mapped on disk.
+        This makes it possible to use 50GB indices on a machine with only 1GB of RAM. Default to False
+    temp_root_dir: str
+        Temporary directory that will be used to store intermediate results/computation
+    verbose: int
+        set verbosity of outputs via logging level, default is `logging.INFO`
+    nb_splits_per_big_index: int
+        Number of indices to split a big index into.
+        This allows you building indices bigger than `current_memory_available`.
+    big_index_threshold: int
+        Threshold used to define big indexes.
+        Indexes with more `than big_index_threshold` embeddings are considered big indexes.
+    maximum_nb_threads: int
+        Maximum number of threads to parallelize index creation
+    """
+    setup_logging(verbose)
+
+    # Sanity checks
+    if not partitions:
+        raise ValueError("partitions can't be empty")
+    check_not_null_not_empty("output_root_dir", output_root_dir)
+    check_not_null_not_empty("embedding_column_name", embedding_column_name)
+    if nb_splits_per_big_index < 1:
+        raise ValueError(f"nb_indices_to_keep must be > 0; Got {nb_splits_per_big_index}")
+    if big_index_threshold < 1:
+        raise ValueError(f"big_index_threshold must be > 0; Got {big_index_threshold}")
+
+    # Create partitioned indexes
+    return create_partitioned_indexes(
+        partitions=partitions,
+        output_root_dir=output_root_dir,
+        embedding_column_name=embedding_column_name,
+        id_columns=id_columns,
+        should_be_memory_mappable=should_be_memory_mappable,
+        max_index_query_time_ms=max_index_query_time_ms,
+        max_index_memory_usage=max_index_memory_usage,
+        min_nearest_neighbors_to_retrieve=min_nearest_neighbors_to_retrieve,
+        current_memory_available=current_memory_available,
+        use_gpu=use_gpu,
+        metric_type=metric_type,
+        nb_cores=nb_cores,
+        make_direct_map=make_direct_map,
+        temp_root_dir=temp_root_dir,
+        nb_splits_per_big_index=nb_splits_per_big_index,
+        big_index_threshold=big_index_threshold,
+        maximum_nb_threads=maximum_nb_threads,
+    )
+
+
+def check_not_null_not_empty(name: str, value: str):
+    if not value:
+        raise ValueError(f"{name} can't be None or empty; Got {value}")
 
 
 def tune_index(
@@ -481,7 +581,14 @@ def score_index(
 
 def main():
     """Main entry point"""
-    fire.Fire({"build_index": build_index, "tune_index": tune_index, "score_index": score_index})
+    fire.Fire(
+        {
+            "build_index": build_index,
+            "tune_index": tune_index,
+            "score_index": score_index,
+            "build_partitioned_indexes": build_partitioned_indexes,
+        }
+    )
 
 
 if __name__ == "__main__":

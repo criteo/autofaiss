@@ -10,9 +10,7 @@ def test_batch_loader():
             # test no empty batch
             assert all(batch[1] <= input_size - 1 for batch in batches)
             # test on continuous between batches
-            assert all(
-                prev_end == next_start for (_, _, prev_end), (_, next_start, _) in zip(batches, batches[1:])
-            )
+            assert all(prev_end == next_start for (_, _, prev_end), (_, next_start, _) in zip(batches, batches[1:]))
             # test last element is covered
             assert batches[-1][2] >= input_size
             # test range sum

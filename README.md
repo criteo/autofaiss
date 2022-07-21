@@ -89,22 +89,22 @@ numpy array and then call .reconstruct_from_offset() with your custom direct_map
 
 ## Using autofaiss with pyspark
 
-Autofaiss allows users to build indices in Spark, you need to do the following steps:
+Autofaiss allows you to build indices with Spark for the following two use cases:
+- To build a big index in a distributed way
+- Given a partitioned dataset of embeddings, building one index per partition in parallel and in a distributed way.
 
-1. Install pyspark by `pip install pyspark`.
-2. Prepare your embeddings files.
-3. Create a spark session before using `build_index` (optional), if you don't create it, a default session would
-    be created with the least configuration.
+Prerequisities:
 
-Also see [distributed_autofaiss.md](docs/distributed/distributed_autofaiss.md) for a full guide of how to use autofaiss in distributed mode.
+1. Install pyspark: `pip install pyspark`.
+2. Prepare your embeddings files (partitioned or not).
+3. Create a Spark session before calling autofaiss. If no Spark session exists, a default session will be creaed with a minimum configuration.
 
+### Creating a big index in a distributed way
 
-### Producing N indices
+See [distributed_autofaiss.md](docs/distributed/distributed_autofaiss.md) for a complete guide.
 
-In the distributed mode, you can generate a set of indices with the total memory larger than your current available
-memory by setting `nb_indices_to_keep` different from 1.
-For example, if you set `nb_indices_to_keep` to 10 and your `index_path` is `knn.index`, you are expected to produce 10
-indices at the end of `build_index` with the followings names:
+It is possible to generate an index that would require more memory than what's available. To do so, you can control the number of index splits that will compose your index with `nb_indices_to_keep`.
+For example, if `nb_indices_to_keep` is 10 and `index_path` is `knn.index`, the final index will be decomposed into 10 smaller indexes:
  - `knn.index01`
  - `knn.index02`
  - `knn.index03`
@@ -113,6 +113,11 @@ indices at the end of `build_index` with the followings names:
 
 A [concrete example](examples/distributed_autofaiss_n_indices.py) shows how to produce N indices and how to use them.
 
+### Creating partitioned indexes
+
+Given a partitioned dataset of embeddings, it is possible to create on index per partition by calling the method `build_partitioned_indexes`.
+
+See this [example](examples/partitioned_indexes.py) that shows how to create partitioned indexes.
 
 ## Using the command line
 

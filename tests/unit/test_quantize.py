@@ -3,6 +3,7 @@ import os
 import py
 import random
 from tempfile import TemporaryDirectory, NamedTemporaryFile
+from typing import Tuple, List
 
 import faiss
 import numpy as np
@@ -13,7 +14,7 @@ from numpy.testing import assert_array_equal
 
 LOGGER = logging.getLogger(__name__)
 
-from autofaiss import build_index
+from autofaiss import build_index, build_partitioned_indexes
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -241,9 +242,7 @@ def test_quantize_with_empty_file():
             df = pd.DataFrame({"embedding": [], "id": []})
             df.to_parquet(os.path.join(tmp_dir, tmp_file.name))
             with pytest.raises(ValueError):
-                build_index(
-                    embeddings=tmp_dir, file_format="parquet", embedding_column_name="embedding",
-                )
+                build_index(embeddings=tmp_dir, file_format="parquet", embedding_column_name="embedding")
 
 
 def test_quantize_with_empty_and_non_empty_files(tmpdir):
@@ -447,3 +446,75 @@ def test_index_correctness_in_distributed_mode_with_multiple_indices(tmpdir):
     _, ids = merged.search(query, k=K)
     assert_array_equal(ids, ground_truth_ids)
     assert_array_equal(sorted_k_ids, ground_truth_ids)
+
+
+def test_build_partitioned_indexes(tmpdir):
+    embedding_root_dir = tmpdir.mkdir("embeddings")
+    output_root_dir = tmpdir.mkdir("outputs")
+    temp_root_dir = tmpdir.strpath
+    small_partitions = [("partnerId=123", 1), ("partnerId=44", 2)]
+    big_partitions = [("partnerId=22", 3)]
+    all_partitions = small_partitions + big_partitions
+    expected_embeddings, partitions = _create_partitioned_parquet_embedding_dataset(
+        embedding_root_dir, all_partitions, n_dimensions=3
+    )
+
+    nb_splits_per_big_index = 2
+    metrics = build_partitioned_indexes(
+        partitions=partitions,
+        output_root_dir=str(output_root_dir),
+        embedding_column_name="embedding",
+        id_columns=["id"],
+        temp_root_dir=str(temp_root_dir),
+        nb_splits_per_big_index=nb_splits_per_big_index,
+        big_index_threshold=3,
+        should_be_memory_mappable=True,
+    )
+
+    assert len(all_partitions) == len(metrics)
+
+    all_ids = []
+    for partition_name, partition_size in small_partitions:
+        index_path = os.path.join(output_root_dir, partition_name, "knn.index")
+        index = faiss.read_index(index_path)
+        assert partition_size == index.ntotal
+        ids_path = os.path.join(output_root_dir, partition_name, "ids")
+        ids = pq.read_table(ids_path).to_pandas()
+        all_ids.append(ids)
+
+    for partition_name, partition_size in big_partitions:
+        n_embeddings = 0
+        for i in range(nb_splits_per_big_index):
+            index_path = os.path.join(output_root_dir, partition_name, f"knn.index{i}")
+            index = faiss.read_index(index_path)
+            n_embeddings += index.ntotal
+        assert partition_size == n_embeddings
+        ids_path = os.path.join(output_root_dir, partition_name, "ids")
+        ids = pq.read_table(ids_path).to_pandas()
+        all_ids.append(ids)
+
+    all_ids = pd.concat(all_ids)
+    pd.testing.assert_frame_equal(
+        all_ids[["id"]].reset_index(drop=True), expected_embeddings[["id"]].reset_index(drop=True)
+    )
+
+
+def _create_partitioned_parquet_embedding_dataset(
+    embedding_root_dir: str, partition_sizes: List[Tuple[str, int]], n_dimensions: int = 512
+):
+    partition_embeddings = []
+    partitions = []
+    n = 0
+    for i, (partition_name, partition_size) in enumerate(partition_sizes):
+        embeddings = np.random.rand(partition_size, n_dimensions).astype("float32")
+        ids = list(range(n, n + partition_size))
+        df = pd.DataFrame({"embedding": list(embeddings), "id": ids})
+        partition_embeddings.append(df)
+        partition_dir = os.path.join(embedding_root_dir, partition_name)
+        os.mkdir(partition_dir)
+        partitions.append(partition_dir)
+        file_path = os.path.join(partition_dir, f"{str(i)}.parquet")
+        df.to_parquet(file_path)
+        n += len(df)
+    all_embeddings = pd.concat(partition_embeddings)
+    return all_embeddings, partitions

@@ -9,3 +9,8 @@ def make_path_absolute(path: str) -> str:
     if fs.protocol == "file":
         return os.path.abspath(p)
     return path
+
+
+def extract_partition_name_from_path(path: str) -> str:
+    """Extract partition name from path"""
+    return path.rstrip("/").split("/")[-1]
