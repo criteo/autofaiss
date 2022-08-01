@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and this project adheres to [Semantic Versioning](https://semver.org).
 
+## [2.15.0] - 2022-08-01
+
+### Added
+* Autofaiss supports the creation of multiple indices from a partitionning column using the command `autofaiss build_partitioned_indexes`.
+
+### Changed
+* Changed the training logic to work with smaller functions.
+
 ## [2.14.3] - 2022-05-09
 
 ### Fixed
