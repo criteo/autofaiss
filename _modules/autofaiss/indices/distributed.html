@@ -528,6 +528,7 @@
     <span class="n">max_index_memory_usage</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">min_nearest_neighbors_to_retrieve</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="n">embedding_column_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">index_key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">current_memory_available</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">nb_cores</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
     <span class="n">use_gpu</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
@@ -544,6 +545,7 @@
         <span class="n">trained_index</span> <span class="o">=</span> <span class="n">create_and_train_index_from_embedding_dir</span><span class="p">(</span>
             <span class="n">embedding_root_dir</span><span class="o">=</span><span class="n">embedding_root_dir</span><span class="p">,</span>
             <span class="n">embedding_column_name</span><span class="o">=</span><span class="n">embedding_column_name</span><span class="p">,</span>
+            <span class="n">index_key</span><span class="o">=</span><span class="n">index_key</span><span class="p">,</span>
             <span class="n">max_index_memory_usage</span><span class="o">=</span><span class="n">max_index_memory_usage</span><span class="p">,</span>
             <span class="n">make_direct_map</span><span class="o">=</span><span class="n">make_direct_map</span><span class="p">,</span>
             <span class="n">should_be_memory_mappable</span><span class="o">=</span><span class="n">should_be_memory_mappable</span><span class="p">,</span>
@@ -604,6 +606,7 @@
     <span class="n">max_index_memory_usage</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;16G&quot;</span><span class="p">,</span>
     <span class="n">min_nearest_neighbors_to_retrieve</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">20</span><span class="p">,</span>
     <span class="n">embedding_column_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;embedding&quot;</span><span class="p">,</span>
+    <span class="n">index_key</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">current_memory_available</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;32G&quot;</span><span class="p">,</span>
     <span class="n">use_gpu</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">metric_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;ip&quot;</span><span class="p">,</span>
@@ -618,6 +621,7 @@
     <span class="n">trained_index</span> <span class="o">=</span> <span class="n">create_and_train_index_from_embedding_dir</span><span class="p">(</span>
         <span class="n">embedding_root_dir</span><span class="o">=</span><span class="n">embedding_root_dir</span><span class="p">,</span>
         <span class="n">embedding_column_name</span><span class="o">=</span><span class="n">embedding_column_name</span><span class="p">,</span>
+        <span class="n">index_key</span><span class="o">=</span><span class="n">index_key</span><span class="p">,</span>
         <span class="n">max_index_memory_usage</span><span class="o">=</span><span class="n">max_index_memory_usage</span><span class="p">,</span>
         <span class="n">make_direct_map</span><span class="o">=</span><span class="n">make_direct_map</span><span class="p">,</span>
         <span class="n">should_be_memory_mappable</span><span class="o">=</span><span class="n">should_be_memory_mappable</span><span class="p">,</span>
@@ -657,6 +661,7 @@
     <span class="n">max_index_query_time_ms</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">10.0</span><span class="p">,</span>
     <span class="n">min_nearest_neighbors_to_retrieve</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">20</span><span class="p">,</span>
     <span class="n">embedding_column_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;embedding&quot;</span><span class="p">,</span>
+    <span class="n">index_key</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">max_index_memory_usage</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;16G&quot;</span><span class="p">,</span>
     <span class="n">current_memory_available</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;32G&quot;</span><span class="p">,</span>
     <span class="n">use_gpu</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
@@ -683,6 +688,7 @@
                 <span class="n">max_index_memory_usage</span><span class="o">=</span><span class="n">max_index_memory_usage</span><span class="p">,</span>
                 <span class="n">min_nearest_neighbors_to_retrieve</span><span class="o">=</span><span class="n">min_nearest_neighbors_to_retrieve</span><span class="p">,</span>
                 <span class="n">embedding_column_name</span><span class="o">=</span><span class="n">embedding_column_name</span><span class="p">,</span>
+                <span class="n">index_key</span><span class="o">=</span><span class="n">index_key</span><span class="p">,</span>
                 <span class="n">current_memory_available</span><span class="o">=</span><span class="n">current_memory_available</span><span class="p">,</span>
                 <span class="n">use_gpu</span><span class="o">=</span><span class="n">use_gpu</span><span class="p">,</span>
                 <span class="n">metric_type</span><span class="o">=</span><span class="n">metric_type</span><span class="p">,</span>
@@ -703,6 +709,7 @@
         <span class="n">max_index_memory_usage</span><span class="o">=</span><span class="n">max_index_memory_usage</span><span class="p">,</span>
         <span class="n">min_nearest_neighbors_to_retrieve</span><span class="o">=</span><span class="n">min_nearest_neighbors_to_retrieve</span><span class="p">,</span>
         <span class="n">embedding_column_name</span><span class="o">=</span><span class="n">embedding_column_name</span><span class="p">,</span>
+        <span class="n">index_key</span><span class="o">=</span><span class="n">index_key</span><span class="p">,</span>
         <span class="n">current_memory_available</span><span class="o">=</span><span class="n">current_memory_available</span><span class="p">,</span>
         <span class="n">nb_cores</span><span class="o">=</span><span class="n">nb_cores</span><span class="p">,</span>
         <span class="n">use_gpu</span><span class="o">=</span><span class="n">use_gpu</span><span class="p">,</span>

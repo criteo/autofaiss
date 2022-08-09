@@ -107,6 +107,7 @@
     <span class="n">estimate_memory_required_for_index_creation</span><span class="p">,</span>
     <span class="n">get_estimated_construction_time_infos</span><span class="p">,</span>
 <span class="p">)</span>
+<span class="kn">from</span> <span class="nn">autofaiss.indices.training</span> <span class="kn">import</span> <span class="n">create_empty_index</span>
 <span class="kn">from</span> <span class="nn">autofaiss.external.optimize</span> <span class="kn">import</span> <span class="n">get_optimal_hyperparameters</span><span class="p">,</span> <span class="n">get_optimal_index_keys_v2</span>
 <span class="kn">from</span> <span class="nn">autofaiss.external.scores</span> <span class="kn">import</span> <span class="n">compute_fast_metrics</span><span class="p">,</span> <span class="n">compute_medium_metrics</span>
 <span class="kn">from</span> <span class="nn">autofaiss.indices.index_utils</span> <span class="kn">import</span> <span class="n">set_search_hyperparameters</span>
@@ -390,6 +391,7 @@
     <span class="n">partitions</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
     <span class="n">output_root_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">embedding_column_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;embedding&quot;</span><span class="p">,</span>
+    <span class="n">index_key</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">id_columns</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">max_index_query_time_ms</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">10.0</span><span class="p">,</span>
     <span class="n">max_index_memory_usage</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;16G&quot;</span><span class="p">,</span>
@@ -420,6 +422,9 @@
 <span class="sd">        Output root directory where indexes, metrics and ids will be written</span>
 <span class="sd">    embedding_column_name: str</span>
 <span class="sd">        Parquet dataset column name containing embeddings</span>
+<span class="sd">    index_key: Optional(str)</span>
+<span class="sd">        Optional string to give to the index factory in order to create the index.</span>
+<span class="sd">        If None, an index is chosen based on an heuristic.</span>
 <span class="sd">    id_columns: Optional(List[str])</span>
 <span class="sd">        Parquet dataset column name(s) that are used as IDs for embeddings.</span>
 <span class="sd">        A mapping from these IDs to faiss indices will be written in separate files.</span>
@@ -473,12 +478,19 @@
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;nb_indices_to_keep must be &gt; 0; Got </span><span class="si">{</span><span class="n">nb_splits_per_big_index</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">big_index_threshold</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;big_index_threshold must be &gt; 0; Got </span><span class="si">{</span><span class="n">big_index_threshold</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">index_key</span><span class="p">:</span>
+        <span class="n">n_dimensions</span> <span class="o">=</span> <span class="n">EmbeddingReader</span><span class="p">(</span>
+            <span class="n">partitions</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">file_format</span><span class="o">=</span><span class="s2">&quot;parquet&quot;</span><span class="p">,</span> <span class="n">embedding_column</span><span class="o">=</span><span class="n">embedding_column_name</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">dimension</span>
+        <span class="c1"># Create an empty index to validate the index key</span>
+        <span class="n">create_empty_index</span><span class="p">(</span><span class="n">n_dimensions</span><span class="p">,</span> <span class="n">index_key</span><span class="o">=</span><span class="n">index_key</span><span class="p">,</span> <span class="n">metric_type</span><span class="o">=</span><span class="n">metric_type</span><span class="p">)</span>
 
     <span class="c1"># Create partitioned indexes</span>
     <span class="k">return</span> <span class="n">create_partitioned_indexes</span><span class="p">(</span>
         <span class="n">partitions</span><span class="o">=</span><span class="n">partitions</span><span class="p">,</span>
         <span class="n">output_root_dir</span><span class="o">=</span><span class="n">output_root_dir</span><span class="p">,</span>
         <span class="n">embedding_column_name</span><span class="o">=</span><span class="n">embedding_column_name</span><span class="p">,</span>
+        <span class="n">index_key</span><span class="o">=</span><span class="n">index_key</span><span class="p">,</span>
         <span class="n">id_columns</span><span class="o">=</span><span class="n">id_columns</span><span class="p">,</span>
         <span class="n">should_be_memory_mappable</span><span class="o">=</span><span class="n">should_be_memory_mappable</span><span class="p">,</span>
         <span class="n">max_index_query_time_ms</span><span class="o">=</span><span class="n">max_index_query_time_ms</span><span class="p">,</span>

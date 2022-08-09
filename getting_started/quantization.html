@@ -404,63 +404,67 @@ If the whole dataset fits in RAM it can be much faster.</p>
 <td><p>“embedding”</p></td>
 <td><p>Parquet dataset column name containing embeddings.</p></td>
 </tr>
-<tr class="row-odd"><td><p>–id_columns</p></td>
+<tr class="row-odd"><td><p>–index_key</p></td>
+<td><p>None</p></td>
+<td><p>Optional string to give to the index factory in order to create the index. If None, an index is chosen based on an heuristic.</p></td>
+</tr>
+<tr class="row-even"><td><p>–id_columns</p></td>
 <td><p>None</p></td>
 <td><p>Parquet dataset column name(s) that are used as IDs for embeddings. A mapping from these IDs to faiss indices will be written in separate files.</p></td>
 </tr>
-<tr class="row-even"><td><p>–max_index_query_time_ms</p></td>
+<tr class="row-odd"><td><p>–max_index_query_time_ms</p></td>
 <td><p>10</p></td>
 <td><p>Bound on the query time for KNN search, this bound is approximative.</p></td>
 </tr>
-<tr class="row-odd"><td><p>–max_index_memory_usage</p></td>
+<tr class="row-even"><td><p>–max_index_memory_usage</p></td>
 <td><p>16GB</p></td>
 <td><p>Maximum size allowed for the index, this bound is strict.</p></td>
 </tr>
-<tr class="row-even"><td><p>–min_nearest_neighbors_to_retrieve</p></td>
+<tr class="row-odd"><td><p>–min_nearest_neighbors_to_retrieve</p></td>
 <td><p>20</p></td>
 <td><p>Minimum number of nearest neighbors to retrieve when querying the index. Parameter used only during index hyperparameter finetuning step, it is not taken into account to select the indexing algorithm. This parameter has the priority over the max_index_query_time_ms constraint.</p></td>
 </tr>
-<tr class="row-odd"><td><p>–current_memory_available</p></td>
+<tr class="row-even"><td><p>–current_memory_available</p></td>
 <td><p>32GB</p></td>
 <td><p>Memory available on the machine creating the index, having more memory is a boost because it reduces the swipe between RAM and disk.</p></td>
 </tr>
-<tr class="row-even"><td><p>–use_gpu</p></td>
+<tr class="row-odd"><td><p>–use_gpu</p></td>
 <td><p>False</p></td>
 <td><p>Experimental, gpu training is faster, not tested so far.</p></td>
 </tr>
-<tr class="row-odd"><td><p>–metric_type</p></td>
+<tr class="row-even"><td><p>–metric_type</p></td>
 <td><p>ip</p></td>
 <td><p>Similarity function used for query: “ip” for inner product or “l2” for euclidean distance.</p></td>
 </tr>
-<tr class="row-even"><td><p>–nb_cores</p></td>
+<tr class="row-odd"><td><p>–nb_cores</p></td>
 <td><p>None</p></td>
 <td><p>Number of cores to use. Will try to guess the right number if not provided.</p></td>
 </tr>
-<tr class="row-odd"><td><p>–make_direct_map</p></td>
+<tr class="row-even"><td><p>–make_direct_map</p></td>
 <td><p>False</p></td>
 <td><p>Create a direct map allowing reconstruction of embeddings. This is only needed for IVF indices. Note that might increase the RAM usage (approximately 8GB for 1 billion embeddings).</p></td>
 </tr>
-<tr class="row-even"><td><p>–should_be_memory_mappable</p></td>
+<tr class="row-odd"><td><p>–should_be_memory_mappable</p></td>
 <td><p>False</p></td>
 <td><p>If set to true, the created index will be selected only among the indices that can be memory-mapped on disk. This makes it possible to use 50GB indices on a machine with only 1GB of RAM. Default to False.</p></td>
 </tr>
-<tr class="row-odd"><td><p>–temp_root_dir</p></td>
+<tr class="row-even"><td><p>–temp_root_dir</p></td>
 <td><p>“hdfs://root/tmp/distributed_autofaiss_indices”</p></td>
 <td><p>Temporary directory that will be used to store intermediate results/computation.</p></td>
 </tr>
-<tr class="row-even"><td><p>–verbose</p></td>
+<tr class="row-odd"><td><p>–verbose</p></td>
 <td><p>logging.INFO</p></td>
 <td><p>set verbosity of outputs via logging level, default is <cite>logging.INFO</cite>.</p></td>
 </tr>
-<tr class="row-odd"><td><p>–nb_splits_per_big_index</p></td>
+<tr class="row-even"><td><p>–nb_splits_per_big_index</p></td>
 <td><p>1</p></td>
 <td><p>Number of indices to split a big index into. This allows you building indices bigger than <cite>current_memory_available</cite>.</p></td>
 </tr>
-<tr class="row-even"><td><p>–big_index_threshold</p></td>
+<tr class="row-odd"><td><p>–big_index_threshold</p></td>
 <td><p>5_000_000</p></td>
 <td><p>Threshold used to define big indexes. Indexes with more <cite>than big_index_threshold</cite> embeddings are considered big indexes.</p></td>
 </tr>
-<tr class="row-odd"><td><p>–maximum_nb_threads</p></td>
+<tr class="row-even"><td><p>–maximum_nb_threads</p></td>
 <td><p>256</p></td>
 <td><p>Maximum number of threads to parallelize index creation.</p></td>
 </tr>
