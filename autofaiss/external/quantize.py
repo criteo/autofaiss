@@ -21,6 +21,7 @@ from autofaiss.external.build import (
     estimate_memory_required_for_index_creation,
     get_estimated_construction_time_infos,
 )
+from autofaiss.indices.training import create_empty_index
 from autofaiss.external.optimize import get_optimal_hyperparameters, get_optimal_index_keys_v2
 from autofaiss.external.scores import compute_fast_metrics, compute_medium_metrics
 from autofaiss.indices.index_utils import set_search_hyperparameters
@@ -391,6 +392,12 @@ def build_partitioned_indexes(
         raise ValueError(f"nb_indices_to_keep must be > 0; Got {nb_splits_per_big_index}")
     if big_index_threshold < 1:
         raise ValueError(f"big_index_threshold must be > 0; Got {big_index_threshold}")
+    if index_key:
+        n_dimensions = EmbeddingReader(
+            partitions[0], file_format="parquet", embedding_column=embedding_column_name
+        ).dimension
+        # Create an empty index to validate the index key
+        create_empty_index(n_dimensions, index_key=index_key, metric_type=metric_type)
 
     # Create partitioned indexes
     return create_partitioned_indexes(

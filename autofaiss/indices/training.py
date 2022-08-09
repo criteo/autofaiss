@@ -24,7 +24,7 @@ class TrainedIndex(NamedTuple):
     embedding_reader_or_path: Union[EmbeddingReader, str]
 
 
-def _create_empty_index(vec_dim: int, index_key: str, metric_type: Union[str, int]) -> faiss.Index:
+def create_empty_index(vec_dim: int, index_key: str, metric_type: Union[str, int]) -> faiss.Index:
     """Create empty index"""
 
     with Timeit(f"-> Instanciate the index {index_key}", indent=2):
@@ -101,7 +101,7 @@ def create_and_train_new_index(
     """Create and train new index"""
 
     # Instanciate the index
-    index = _create_empty_index(embedding_reader.dimension, index_key, metric_type)
+    index = create_empty_index(embedding_reader.dimension, index_key, metric_type)
 
     # Train index if needed
     if check_if_index_needs_training(index_key):
