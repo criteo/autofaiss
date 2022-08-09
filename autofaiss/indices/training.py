@@ -24,7 +24,7 @@ class TrainedIndex(NamedTuple):
     embedding_reader_or_path: Union[EmbeddingReader, str]
 
 
-def _create_empty_index(vec_dim: int, index_key: str, metric_type: Union[str, int]) -> faiss.Index:
+def create_empty_index(vec_dim: int, index_key: str, metric_type: Union[str, int]) -> faiss.Index:
     """Create empty index"""
 
     with Timeit(f"-> Instanciate the index {index_key}", indent=2):
@@ -101,7 +101,7 @@ def create_and_train_new_index(
     """Create and train new index"""
 
     # Instanciate the index
-    index = _create_empty_index(embedding_reader.dimension, index_key, metric_type)
+    index = create_empty_index(embedding_reader.dimension, index_key, metric_type)
 
     # Train index if needed
     if check_if_index_needs_training(index_key):
@@ -117,6 +117,7 @@ def create_and_train_index_from_embedding_dir(
     should_be_memory_mappable: bool,
     current_memory_available: str,
     use_gpu: bool = False,
+    index_key: Optional[str] = None,
     id_columns: Optional[List[str]] = None,
     metric_type: str = "ip",
     nb_cores: Optional[int] = None,
@@ -134,17 +135,18 @@ def create_and_train_index_from_embedding_dir(
         )
 
     # Define index key
-    best_index_keys = get_optimal_index_keys_v2(
-        embedding_reader.count,
-        embedding_reader.dimension,
-        max_index_memory_usage,
-        make_direct_map=make_direct_map,
-        should_be_memory_mappable=should_be_memory_mappable,
-        use_gpu=use_gpu,
-    )
-    if not best_index_keys:
-        raise RuntimeError(f"Unable to find optimal index key from embedding directory {embedding_root_dir}")
-    index_key = best_index_keys[0]
+    if index_key is None:
+        best_index_keys = get_optimal_index_keys_v2(
+            embedding_reader.count,
+            embedding_reader.dimension,
+            max_index_memory_usage,
+            make_direct_map=make_direct_map,
+            should_be_memory_mappable=should_be_memory_mappable,
+            use_gpu=use_gpu,
+        )
+        if not best_index_keys:
+            raise RuntimeError(f"Unable to find optimal index key from embedding directory {embedding_root_dir}")
+        index_key = best_index_keys[0]
 
     # Create metadata
     with Timeit("-> Reading metadata", indent=2):

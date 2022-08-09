@@ -21,6 +21,7 @@ from autofaiss.external.build import (
     estimate_memory_required_for_index_creation,
     get_estimated_construction_time_infos,
 )
+from autofaiss.indices.training import create_empty_index
 from autofaiss.external.optimize import get_optimal_hyperparameters, get_optimal_index_keys_v2
 from autofaiss.external.scores import compute_fast_metrics, compute_medium_metrics
 from autofaiss.indices.index_utils import set_search_hyperparameters
@@ -304,6 +305,7 @@ def build_partitioned_indexes(
     partitions: List[str],
     output_root_dir: str,
     embedding_column_name: str = "embedding",
+    index_key: Optional[str] = None,
     id_columns: Optional[List[str]] = None,
     max_index_query_time_ms: float = 10.0,
     max_index_memory_usage: str = "16G",
@@ -334,6 +336,9 @@ def build_partitioned_indexes(
         Output root directory where indexes, metrics and ids will be written
     embedding_column_name: str
         Parquet dataset column name containing embeddings
+    index_key: Optional(str)
+        Optional string to give to the index factory in order to create the index.
+        If None, an index is chosen based on an heuristic.
     id_columns: Optional(List[str])
         Parquet dataset column name(s) that are used as IDs for embeddings.
         A mapping from these IDs to faiss indices will be written in separate files.
@@ -387,12 +392,19 @@ def build_partitioned_indexes(
         raise ValueError(f"nb_indices_to_keep must be > 0; Got {nb_splits_per_big_index}")
     if big_index_threshold < 1:
         raise ValueError(f"big_index_threshold must be > 0; Got {big_index_threshold}")
+    if index_key:
+        n_dimensions = EmbeddingReader(
+            partitions[0], file_format="parquet", embedding_column=embedding_column_name
+        ).dimension
+        # Create an empty index to validate the index key
+        create_empty_index(n_dimensions, index_key=index_key, metric_type=metric_type)
 
     # Create partitioned indexes
     return create_partitioned_indexes(
         partitions=partitions,
         output_root_dir=output_root_dir,
         embedding_column_name=embedding_column_name,
+        index_key=index_key,
         id_columns=id_columns,
         should_be_memory_mappable=should_be_memory_mappable,
         max_index_query_time_ms=max_index_query_time_ms,
