@@ -115,7 +115,7 @@ A [concrete example](examples/distributed_autofaiss_n_indices.py) shows how to p
 
 ### Creating partitioned indexes
 
-Given a partitioned dataset of embeddings, it is possible to create on index per partition by calling the method `build_partitioned_indexes`.
+Given a partitioned dataset of embeddings, it is possible to create one index per partition by calling the method `build_partitioned_indexes`.
 
 See this [example](examples/partitioned_indexes.py) that shows how to create partitioned indexes.
 

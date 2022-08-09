@@ -246,6 +246,9 @@ The ``autofaiss build_partitioned_indexes`` command takes the following paramete
     * - --embedding_column_name
       - "embedding"
       - Parquet dataset column name containing embeddings.
+    * - --index_key
+      - None
+      - Optional string to give to the index factory in order to create the index. If None, an index is chosen based on an heuristic.
     * - --id_columns
       - None
       - Parquet dataset column name(s) that are used as IDs for embeddings. A mapping from these IDs to faiss indices will be written in separate files.

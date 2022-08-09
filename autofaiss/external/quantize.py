@@ -304,6 +304,7 @@ def build_partitioned_indexes(
     partitions: List[str],
     output_root_dir: str,
     embedding_column_name: str = "embedding",
+    index_key: Optional[str] = None,
     id_columns: Optional[List[str]] = None,
     max_index_query_time_ms: float = 10.0,
     max_index_memory_usage: str = "16G",
@@ -334,6 +335,9 @@ def build_partitioned_indexes(
         Output root directory where indexes, metrics and ids will be written
     embedding_column_name: str
         Parquet dataset column name containing embeddings
+    index_key: Optional(str)
+        Optional string to give to the index factory in order to create the index.
+        If None, an index is chosen based on an heuristic.
     id_columns: Optional(List[str])
         Parquet dataset column name(s) that are used as IDs for embeddings.
         A mapping from these IDs to faiss indices will be written in separate files.
@@ -393,6 +397,7 @@ def build_partitioned_indexes(
         partitions=partitions,
         output_root_dir=output_root_dir,
         embedding_column_name=embedding_column_name,
+        index_key=index_key,
         id_columns=id_columns,
         should_be_memory_mappable=should_be_memory_mappable,
         max_index_query_time_ms=max_index_query_time_ms,
