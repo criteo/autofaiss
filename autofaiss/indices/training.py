@@ -84,6 +84,8 @@ def _train_index(
         f"-> Training the index with {train_vectors.shape[0]} vectors of dim {train_vectors.shape[1]}", indent=2
     ):
         index.train(train_vectors)
+        if use_gpu:
+                index = faiss.index_gpu_to_cpu(index)
 
     del train_vectors
 
