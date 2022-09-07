@@ -8,7 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
 
  ### Fixed
  * Fix in distributed.py: the number of indices to keep after merging small indexes can't
- be bigger than the number of small indexes
+ be bigger than the number of small indexes.
 
 
 ## [2.15.2] - 2022-09-01
