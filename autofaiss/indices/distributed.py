@@ -300,11 +300,12 @@ def add_embeddings_to_index_distributed(
     n_workers = len(sc.statusTracker().getExecutorInfos()) - 1
 
     # maximum between the number of spark workers, 10M embeddings per task and the number of indices to keep
-    estimated_nb_batches = min(
+    n_batches = min(
         embedding_reader.count, max(n_workers, math.ceil(embedding_reader.count / (10 ** 7)), nb_indices_to_keep)
     )
-    batches = _batch_loader(total_size=embedding_reader.count, nb_batches=estimated_nb_batches)
-    rdd = ss.sparkContext.parallelize(batches, estimated_nb_batches)
+    nb_indices_to_keep = min(nb_indices_to_keep, n_batches)
+    batches = _batch_loader(total_size=embedding_reader.count, nb_batches=n_batches)
+    rdd = ss.sparkContext.parallelize(batches, n_batches)
     with Timeit("-> Adding indices", indent=2):
         rdd.foreach(
             lambda x: _add_index(
@@ -317,7 +318,7 @@ def add_embeddings_to_index_distributed(
                 small_indices_folder=stage1_folder,
                 num_cores=nb_cores,
                 embedding_ids_df_handler=embedding_ids_df_handler,
-                nb_batches=estimated_nb_batches,
+                nb_batches=n_batches,
             )
         )
 
