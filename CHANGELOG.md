@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and this project adheres to [Semantic Versioning](https://semver.org).
 
+## [2.15.3] - 2022-09-07
+
+ ### Fixed
+ * Fix in distributed.py: the number of indices to keep after merging small indexes can't
+ be bigger than the number of small indexes.
+
+
+## [2.15.2] - 2022-09-01
+
+ ### Fixed
+ * Fix in distributed.py to compute number of batches to split vectors into before adding vectors 
+ to index
+
 ## [2.15.1] - 2022-08-10
 
  ### Added
