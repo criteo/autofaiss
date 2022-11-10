@@ -1,5 +1,6 @@
 import logging
 import os
+
 import py
 import random
 from tempfile import TemporaryDirectory, NamedTemporaryFile
@@ -10,11 +11,12 @@ import numpy as np
 import pandas as pd
 import pyarrow.parquet as pq
 import pytest
+from embedding_reader import EmbeddingReader
 from numpy.testing import assert_array_equal
 
 LOGGER = logging.getLogger(__name__)
 
-from autofaiss import build_index, build_partitioned_indexes
+from autofaiss import build_index, build_partitioned_indexes, update_index
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -518,3 +520,98 @@ def _create_partitioned_parquet_embedding_dataset(
         n += len(df)
     all_embeddings = pd.concat(partition_embeddings)
     return all_embeddings, partitions
+
+
+def test_update_index_with_numpy(tmpdir):
+    min_size = random.randint(1, 100)
+    max_size = random.randint(min_size, 10240)
+    dim = random.randint(1, 100)
+    nb_files = random.randint(1, 5)
+
+    rand_emb_dirs = [
+        build_test_collection_numpy(
+            tmpdir, min_size=min_size, max_size=max_size, dim=dim, nb_files=nb_files, tmpdir_name=f"autofaiss_numpy_{i}"
+        )[0]
+        for i in range(2)
+    ]
+
+    output_index_path = os.path.join(tmpdir.strpath, "numpy_knn.index")
+    output_index_infos_path = os.path.join(tmpdir.strpath, "numpy_knn_infos.json")
+
+    trained_index, _ = build_index(
+        embeddings=rand_emb_dirs[0],
+        file_format="npy",
+        index_path=output_index_path,
+        index_infos_path=output_index_infos_path,
+        max_index_query_time_ms=10.0,
+        max_index_memory_usage="1G",
+        current_memory_available="2G",
+        should_be_memory_mappable=True,
+    )
+    prev_count = trained_index.ntotal
+
+    # pass index instance
+    new_index, _ = update_index(embeddings=rand_emb_dirs[1], trained_index_or_path=trained_index)
+    added_embeddings_ntotal = EmbeddingReader(rand_emb_dirs[1], file_format="npy",).count
+    assert prev_count + added_embeddings_ntotal == new_index.ntotal
+
+    # pass index path
+    new_index, _ = update_index(embeddings=rand_emb_dirs[1], trained_index_or_path=output_index_path)
+    added_embeddings_ntotal = EmbeddingReader(rand_emb_dirs[1], file_format="npy",).count
+    assert prev_count + added_embeddings_ntotal == new_index.ntotal
+
+
+def test_update_index_with_parquet(tmpdir):
+    min_size = random.randint(1, 100)
+    max_size = random.randint(min_size, 10240)
+    dim = random.randint(1, 100)
+    nb_files = random.randint(1, 5)
+
+    rand_emb_dirs = [
+        build_test_collection_parquet(
+            tmpdir,
+            min_size=min_size,
+            max_size=max_size,
+            dim=dim,
+            nb_files=nb_files,
+            tmpdir_name=f"autofaiss_parquet_{i}",
+        )[0]
+        for i in range(2)
+    ]
+
+    output_index_path = os.path.join(tmpdir.strpath, "parquet_knn.index")
+    output_index_infos_path = os.path.join(tmpdir.strpath, "infos.json")
+    for distributed in ["pyspark", None]:
+        trained_index, _ = build_index(
+            embeddings=rand_emb_dirs[0],
+            file_format="parquet",
+            index_path=output_index_path,
+            index_infos_path=output_index_infos_path,
+            max_index_query_time_ms=10.0,
+            max_index_memory_usage="1G",
+            current_memory_available="2G",
+            should_be_memory_mappable=True,
+        )
+        prev_count = trained_index.ntotal
+
+        # pass index instance
+        new_index, _ = update_index(
+            embeddings=rand_emb_dirs[1],
+            trained_index_or_path=trained_index,
+            file_format="parquet",
+            distributed=distributed,
+        )
+        added_embeddings_ntotal = EmbeddingReader(
+            rand_emb_dirs[1], file_format="parquet", embedding_column="embedding",
+        ).count
+        assert prev_count + added_embeddings_ntotal == new_index.ntotal
+
+        # pass index path
+        new_index, _ = update_index(
+            embeddings=rand_emb_dirs[1], trained_index_or_path=output_index_path, file_format="parquet",
+        )
+        added_embeddings_ntotal = EmbeddingReader(rand_emb_dirs[1], file_format="parquet",).count
+        assert prev_count + added_embeddings_ntotal == new_index.ntotal
+
+        if os.path.exists(output_index_path):
+            os.remove(output_index_path)

@@ -1,7 +1,6 @@
 """ main file to create an index from the the begining """
 
 import json
-import logging
 import logging.config
 import multiprocessing
 import os
@@ -14,17 +13,21 @@ import faiss
 import fire
 import fsspec
 import numpy as np
+
+from autofaiss.external.metadata import IndexMetadata
 from autofaiss.indices.build import get_write_ids_df_to_parquet_fn, get_optimize_index_fn
 from autofaiss.external.build import (
     create_index,
     create_partitioned_indexes,
     estimate_memory_required_for_index_creation,
     get_estimated_construction_time_infos,
+    add_embeddings_to_index,
 )
 from autofaiss.indices.training import create_empty_index
 from autofaiss.external.optimize import get_optimal_hyperparameters, get_optimal_index_keys_v2
 from autofaiss.external.scores import compute_fast_metrics, compute_medium_metrics
-from autofaiss.indices.index_utils import set_search_hyperparameters
+from autofaiss.indices.index_utils import set_search_hyperparameters, load_index
+from autofaiss.utils.common_setup import setup_logging, setup_faiss_threads
 from autofaiss.utils.path import make_path_absolute
 from autofaiss.utils.cast import cast_bytes_to_memory_string, cast_memory_to_bytes
 from autofaiss.utils.decorators import Timeit
@@ -37,13 +40,6 @@ def _log_output_dict(infos: Dict):
     for key, value in infos.items():
         logger.info(f"\t{key}: {value}")
     logger.info("}")
-
-
-def setup_logging(logging_level: int):
-    """Setup the logging."""
-    logging.config.dictConfig(dict(version=1, disable_existing_loggers=False))
-    logging_format = "%(asctime)s [%(levelname)s]: %(message)s"
-    logging.basicConfig(level=logging_level, format=logging_format)
 
 
 def build_index(
@@ -187,11 +183,7 @@ def build_index(
             "please increase current_memory_available or decrease max_index_memory_usage"
         )
         return None, None
-
-    if nb_cores is None:
-        nb_cores = multiprocessing.cpu_count()
-    logger.info(f"Using {nb_cores} omp threads (processes), consider increasing --nb_cores if you have more")
-    faiss.omp_set_num_threads(nb_cores)
+    setup_faiss_threads(nb_cores)
 
     if isinstance(embeddings, np.ndarray):
         tmp_dir_embeddings = tempfile.TemporaryDirectory()
@@ -591,6 +583,179 @@ def score_index(
     return infos
 
 
+def update_index(
+    embeddings: Union[str, np.ndarray, List[str]],
+    trained_index_or_path: Union[str, faiss.Index],
+    index_path: Optional[str] = "knn.index",
+    index_key: Optional[str] = None,
+    index_infos_path: Optional[str] = "index_infos.json",
+    ids_path: Optional[str] = None,
+    save_on_disk: bool = True,
+    file_format: str = "npy",
+    embedding_column_name: str = "embedding",
+    id_columns: Optional[List[str]] = None,
+    index_param: Optional[str] = None,
+    max_index_query_time_ms: float = 10.0,
+    max_index_memory_usage: str = "16G",
+    min_nearest_neighbors_to_retrieve: int = 20,
+    current_memory_available: str = "32G",
+    use_gpu: bool = False,
+    nb_cores: Optional[int] = None,
+    make_direct_map: bool = False,
+    distributed: Optional[str] = None,
+    temporary_indices_folder: str = "hdfs://root/tmp/distributed_autofaiss_indices",
+    verbose: int = logging.INFO,
+    nb_indices_to_keep: int = 1,
+) -> Tuple[Optional[faiss.Index], Optional[Dict[str, str]]]:
+    """Update an already-built index.
+
+    Parameters
+    ----------
+    embeddings : Union[str, np.ndarray, List[str]]
+        Local path containing all preprocessed vectors and cached files.
+        This could be a single directory or multiple directories.
+        Files will be added if empty.
+        Or directly the Numpy array of embeddings
+    trained_index_or_path: Union[str, faiss.Index]
+        The trained index instance or path.
+    index_path: Optional(str)
+        Destination path of the quantized model.
+    index_infos_path: Optional(str)
+        Destination path of the metadata file.
+    ids_path: Optional(str)
+        Only useful when id_columns is not None and file_format=`parquet`. T
+        his will be the path (in any filesystem)
+        where the mapping files Ids->vector index will be store in parquet format
+    save_on_disk: bool
+        Whether to save the index on disk, default to True.
+    file_format: Optional(str)
+        npy or parquet ; default npy
+    embedding_column_name: Optional(str)
+        embeddings column name for parquet ; default embedding
+    id_columns: Optional(List[str])
+        Can only be used when file_format=`parquet`.
+        In this case these are the names of the columns containing the Ids of the vectors,
+        and separate files will be generated to map these ids to indices in the KNN index ;
+        default None
+    index_key: Optional(str)
+        Optional string to give to the index factory in order to create the index.
+        If None, an index is chosen based on an heuristic.
+    index_param: Optional(str)
+        Optional string with hyperparameters to set to the index.
+        If None, the hyper-parameters are chosen based on an heuristic.
+    max_index_query_time_ms: float
+        Bound on the query time for KNN search, this bound is approximative
+    max_index_memory_usage: str
+        Maximum size allowed for the index, this bound is strict
+    min_nearest_neighbors_to_retrieve: int
+        Minimum number of nearest neighbors to retrieve when querying the index.
+        Parameter used only during index hyperparameter finetuning step, it is
+        not taken into account to select the indexing algorithm.
+        This parameter has the priority over the max_index_query_time_ms constraint.
+    current_memory_available: str
+        Memory available on the machine creating the index, having more memory is a boost
+        because it reduces the swipe between RAM and disk.
+    use_gpu: bool
+        Experimental, gpu training is faster, not tested so far
+    nb_cores: Optional[int]
+        Number of cores to use. Will try to guess the right number if not provided
+    make_direct_map: bool
+        Create a direct map allowing reconstruction of embeddings. This is only needed for IVF indices.
+        Note that might increase the RAM usage (approximately 8GB for 1 billion embeddings)
+    distributed: Optional[str]
+        If "pyspark", create the indices using pyspark.
+        Only "parquet" file format is supported.
+    temporary_indices_folder: str
+        Folder to save the temporary small indices that are generated by each spark executor.
+        Only used when distributed = "pyspark".
+    verbose: int
+        set verbosity of outputs via logging level, default is `logging.INFO`
+    nb_indices_to_keep: int
+        Number of indices to keep at most when distributed is "pyspark".
+        It allows you to build an index larger than `current_memory_available`
+        If it is not equal to 1,
+            - You are expected to have at most `nb_indices_to_keep` indices with the following names:
+                "{index_path}i" where i ranges from 1 to `nb_indices_to_keep`
+            - `build_index` returns a mapping from index path to metrics
+        Default to 1.
+    """
+    setup_logging(verbose)
+    if index_path:
+        index_path = make_path_absolute(index_path)
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        if isinstance(trained_index_or_path, str):
+            local_index_path = os.path.join(tmp_dir, "index")
+            trained_index_ntotal = load_index(trained_index_or_path, local_index_path).ntotal
+        else:
+            trained_index_ntotal = trained_index_or_path.ntotal
+    current_bytes = cast_memory_to_bytes(current_memory_available)
+    max_index_bytes = cast_memory_to_bytes(max_index_memory_usage)
+    memory_left = current_bytes - max_index_bytes
+
+    if nb_indices_to_keep == 1 and memory_left < current_bytes * 0.1:
+        logger.error(
+            "You do not have enough memory to build this index, "
+            "please increase current_memory_available or decrease max_index_memory_usage"
+        )
+        return None, None
+    setup_faiss_threads(nb_cores)
+
+    if isinstance(embeddings, np.ndarray):
+        tmp_dir_embeddings = tempfile.TemporaryDirectory()
+        np.save(os.path.join(tmp_dir_embeddings.name, "emb.npy"), embeddings)
+        embeddings_path = tmp_dir_embeddings.name
+    else:
+        embeddings_path = embeddings  # type: ignore
+
+    with Timeit("Launching the whole pipeline"):
+        with Timeit("Reading total number of vectors and dimension"):
+            embedding_reader = EmbeddingReader(
+                embeddings_path,
+                file_format=file_format,
+                embedding_column=embedding_column_name,
+                meta_columns=id_columns,
+            )
+    if index_key is None:
+        with Timeit("Selecting most promising index types given data characteristics", indent=1):
+            best_index_keys = get_optimal_index_keys_v2(
+                embedding_reader.count + trained_index_ntotal,
+                embedding_reader.dimension,
+                max_index_memory_usage,
+                make_direct_map=make_direct_map,
+                should_be_memory_mappable=True,
+                use_gpu=use_gpu,
+            )
+            if not best_index_keys:
+                return None, None
+            index_key = best_index_keys[0]
+    optimize_index_fn = get_optimize_index_fn(
+        embedding_reader=embedding_reader,
+        index_key=index_key,
+        index_path=index_path,
+        index_infos_path=index_infos_path,
+        use_gpu=use_gpu,
+        save_on_disk=save_on_disk,
+        max_index_query_time_ms=max_index_query_time_ms,
+        min_nearest_neighbors_to_retrieve=min_nearest_neighbors_to_retrieve,
+        index_param=index_param,
+        make_direct_map=make_direct_map,
+    )
+    metadata = IndexMetadata(index_key, embedding_reader.count, embedding_reader.dimension, make_direct_map)
+    write_ids_df_to_parquet_fn = get_write_ids_df_to_parquet_fn(ids_path) if ids_path and id_columns else None
+    index, metrics = add_embeddings_to_index(
+        embedding_reader,
+        trained_index_or_path,
+        metadata,
+        current_memory_available,
+        write_ids_df_to_parquet_fn,
+        distributed,
+        temporary_indices_folder,
+        nb_indices_to_keep,
+        index_optimizer=optimize_index_fn,
+    )
+    return index, metrics
+
+
 def main():
     """Main entry point"""
     fire.Fire(
@@ -599,6 +764,7 @@ def main():
             "tune_index": tune_index,
             "score_index": score_index,
             "build_partitioned_indexes": build_partitioned_indexes,
+            "update_index": update_index,
         }
     )
 

@@ -300,3 +300,89 @@ What it does behind
 
 For each partition of the partitioned dataset, one index will be trained and populated with vectors of the partition.
 All indexes are created in parallel. Also, for big partitions (with more than `big_index_threshold` vectors), vectors will be added in a distributed way to indexes.
+
+Updating an index
+==========================
+
+The use-case
+------------
+Update an already-built index by adding embeddings incrementally.
+
+Be careful, only IVF indices can be updated incrementally.
+
+The tune_index command
+------------------
+``autofaiss update_index`` takes the followings parameters:
+.. list-table:: Parameters
+    :widths: 50 50 100
+    :header-rows: 1
+
+    * - Flag available
+      - Default
+      - Description
+    * - --embeddings
+      - required
+      - Source path of the directory containing your .npy embedding files. If there are several files, they are read in the lexicographical order. This can be a local path or a path in another Filesystem e.g. `hdfs://root/...` or `s3://...`
+    * - --trained_index_or_path
+      - required
+      - The already-built index instance or index path
+    * - --index_path
+      - required
+      - Destination path of the faiss index on local machine.
+    * - --index_infos_path
+      - required
+      - Destination path of the faiss index infos on local machine.
+    * - --ids_path
+      - None
+      - Only useful when id_columns is not None and file_format=`parquet`. This will be the path (in any filesystem) where the mapping files Ids->vector index will be store in parquet format
+    * - --save_on_disk
+      - required
+      - Save the index on the disk.
+    * - --file_format
+      - "npy"
+      - File format of the files in embeddings. Can be either `npy` for numpy matrix files or `parquet` for parquet serialized tables
+    * - --embedding_column_name
+      - "embeddings"
+      - Only necessary when file_format=`parquet` In this case this is the name of the column containing the embeddings (one vector per row)
+    * - --id_columns
+      - None
+      - Can only be used when file_format=`parquet`. In this case these are the names of the columns containing the Ids of the vectors, and separate files will be generated to map these ids to indices in the KNN index
+    * - --max_index_memory_usage
+      - "32GB"
+      - (Optional) Maximum size in GB of the created index, this bound is strict.
+    * - --current_memory_available
+      - "32GB"
+      - (Optional) Memory available (in GB) on the machine creating the index, having more memory is a boost because it reduces the swipe between RAM and disk.
+    * - --max_index_query_time_ms
+      - 10
+      - (Optional) Bound on the query time for KNN search, this bound is approximative.
+    * - --min_nearest_neighbors_to_retrieve
+      - 20
+      - (Optional) Minimum number of nearest neighbors to retrieve when querying the index. Parameter used only during index hyperparameter finetuning step, it is not taken into account to select the indexing algorithm. This parameter has the priority over the max_index_query_time_ms constraint.
+    * - --index_key
+      - None
+      - (Optional) If present, the Faiss index will be build using this description string in the index_factory, more detail in the [Faiss documentation](https://github.com/facebookresearch/faiss/wiki/The-index-factory)
+    * - --index_param
+      - None
+      - (Optional) If present, the Faiss index will be set using this description string of hyperparameters, more detail in the [Faiss documentation](https://github.com/facebookresearch/faiss/wiki/Index-IO,-cloning-and-hyper-parameter-tuning)
+    * - --use_gpu
+      - False
+      - (Optional) Experimental, gpu training can be faster, but this feature is not tested so far.
+    * - --nb_cores
+      - None
+      - (Optional) The number of cores to use, by default will use all cores
+    * - --make_direct_map
+      - False
+      - (Optional) If set to True and that the created index is an IVF, call .make_direct_map() on the index to build a mapping (stored on RAM only) that speeds up greatly the calls to .reconstruct().
+    * - --distributed
+      - None
+      - (Optional) If "pyspark", create the index using pyspark. Otherwise, the index is created on your local machine.
+    * - --temporary_indices_folder
+      - "hdfs://root/tmp/distributed_autofaiss_indices"
+      - (Optional) Folder to save the temporary small indices, only used when distributed = "pyspark"
+    * - --verbose
+      - 20
+      - (Optional) Set verbosity of logging output: DEBUG=10, INFO=20, WARN=30, ERROR=40, CRITICAL=50
+    * - --nb_indices_to_keep
+      - 1
+      - (Optional) Number of indices to keep at most when distributed is "pyspark".
