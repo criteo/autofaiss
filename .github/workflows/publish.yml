@@ -9,7 +9,7 @@ on:
     - master
 jobs:
   build-pex:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     strategy:
       matrix:
         python-version: [3.6, 3.8]
@@ -33,7 +33,7 @@ jobs:
         path: autofaiss-${{ matrix.python-version }}.pex
   deploy:
     needs: build-pex
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v2
     - uses: actions-ecosystem/action-regex-match@v2
