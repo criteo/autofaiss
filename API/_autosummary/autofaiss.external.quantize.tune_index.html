@@ -16,6 +16,7 @@
         <script src="../../_static/underscore.js"></script>
         <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
@@ -57,7 +58,10 @@
 <li class="toctree-l2 current"><a class="reference internal" href="../api.html#quantize">Quantize</a><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="autofaiss.external.quantize.build_index.html">autofaiss.external.quantize.build_index</a></li>
 <li class="toctree-l3"><a class="reference internal" href="autofaiss.external.quantize.score_index.html">autofaiss.external.quantize.score_index</a></li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">autofaiss.external.quantize.tune_index</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">autofaiss.external.quantize.tune_index</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#autofaiss.external.quantize.tune_index"><code class="docutils literal notranslate"><span class="pre">tune_index()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -83,9 +87,9 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="../api.html">Python documentation</a> &raquo;</li>
-      <li>autofaiss.external.quantize.tune_index</li>
+      <li><a href="../../index.html" class="icon icon-home"></a></li>
+          <li class="breadcrumb-item"><a href="../api.html">Python documentation</a></li>
+      <li class="breadcrumb-item active">autofaiss.external.quantize.tune_index</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../../_sources/API/_autosummary/autofaiss.external.quantize.tune_index.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -130,17 +134,17 @@ otherwise perform a greedy heusistic to make the best out or the max_index_query
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>index_path</strong> (<em>Union</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>, </em><em>faiss.Index</em><em>]</em>) – Path to .index file
+<li><p><strong>index_path</strong> (<em>Union</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a><em>, </em><em>faiss.Index</em><em>]</em>) – Path to .index file
 Can also be an index</p></li>
-<li><p><strong>index_key</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – String to give to the index factory in order to create the index.</p></li>
-<li><p><strong>index_param</strong> (<em>Optional</em><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>)</em>) – Optional string with hyperparameters to set to the index.
+<li><p><strong>index_key</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a>) – String to give to the index factory in order to create the index.</p></li>
+<li><p><strong>index_param</strong> (<em>Optional</em><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a><em>)</em>) – Optional string with hyperparameters to set to the index.
 If None, the hyper-parameters are chosen based on an heuristic.</p></li>
-<li><p><strong>output_index_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – Path to the newly created .index file</p></li>
-<li><p><strong>save_on_disk</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a>) – Whether to save the index on disk, default to True.</p></li>
-<li><p><strong>min_nearest_neighbors_to_retrieve</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – Minimum number of nearest neighbors to retrieve when querying the index.</p></li>
-<li><p><strong>max_index_query_time_ms</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a>) – Query speed constraint for the index to create.</p></li>
-<li><p><strong>use_gpu</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a>) – Experimental, gpu training is faster, not tested so far.</p></li>
-<li><p><strong>verbose</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – set verbosity of outputs via logging level, default is <cite>logging.INFO</cite></p></li>
+<li><p><strong>output_index_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a>) – Path to the newly created .index file</p></li>
+<li><p><strong>save_on_disk</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><em>bool</em></a>) – Whether to save the index on disk, default to True.</p></li>
+<li><p><strong>min_nearest_neighbors_to_retrieve</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><em>int</em></a>) – Minimum number of nearest neighbors to retrieve when querying the index.</p></li>
+<li><p><strong>max_index_query_time_ms</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><em>float</em></a>) – Query speed constraint for the index to create.</p></li>
+<li><p><strong>use_gpu</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><em>bool</em></a>) – Experimental, gpu training is faster, not tested so far.</p></li>
+<li><p><strong>verbose</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><em>int</em></a>) – set verbosity of outputs via logging level, default is <cite>logging.INFO</cite></p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>

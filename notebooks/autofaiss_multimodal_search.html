@@ -16,6 +16,7 @@
         <script src="../_static/underscore.js"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
         <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
         <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -75,8 +76,8 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-      <li>Install clip + autofaiss</li>
+      <li><a href="../index.html" class="icon icon-home"></a></li>
+      <li class="breadcrumb-item active">Install clip + autofaiss</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../_sources/notebooks/autofaiss_multimodal_search.ipynb.txt" rel="nofollow"> View page source</a>
       </li>
@@ -196,10 +197,11 @@ div.nboutput.container div.prompt > div {
     }
 }
 
-/* disable scrollbars on prompts */
+/* disable scrollbars and line breaks on prompts */
 div.nbinput.container div.prompt pre,
 div.nboutput.container div.prompt pre {
     overflow: hidden;
+    white-space: pre;
 }
 
 /* input/output area */
@@ -301,6 +303,7 @@ div.nboutput.container div.output_area > div[class^='highlight']{
 }
 
 /* Some additional styling taken form the Jupyter notebook CSS */
+.jp-RenderedHTMLCommon table,
 div.rendered_html table {
   border: none;
   border-collapse: collapse;
@@ -309,10 +312,14 @@ div.rendered_html table {
   font-size: 12px;
   table-layout: fixed;
 }
+.jp-RenderedHTMLCommon thead,
 div.rendered_html thead {
   border-bottom: 1px solid black;
   vertical-align: bottom;
 }
+.jp-RenderedHTMLCommon tr,
+.jp-RenderedHTMLCommon th,
+.jp-RenderedHTMLCommon td,
 div.rendered_html tr,
 div.rendered_html th,
 div.rendered_html td {
@@ -324,12 +331,15 @@ div.rendered_html td {
   max-width: none;
   border: none;
 }
+.jp-RenderedHTMLCommon th,
 div.rendered_html th {
   font-weight: bold;
 }
+.jp-RenderedHTMLCommon tbody tr:nth-child(odd),
 div.rendered_html tbody tr:nth-child(odd) {
   background: #f5f5f5;
 }
+.jp-RenderedHTMLCommon tbody tr:hover,
 div.rendered_html tbody tr:hover {
   background: rgba(66, 165, 245, 0.2);
 }
@@ -1037,7 +1047,7 @@ query :
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/notebooks_autofaiss_multimodal_search_20_1.jpeg" src="../_images/notebooks_autofaiss_multimodal_search_20_1.jpeg" />
+<img alt="../_images/notebooks_autofaiss_multimodal_search_20_1.jpg" src="../_images/notebooks_autofaiss_multimodal_search_20_1.jpg" />
 </div>
 </div>
 <div class="nboutput docutils container">
@@ -1054,7 +1064,7 @@ similarity= 1.0002233
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/notebooks_autofaiss_multimodal_search_20_3.jpeg" src="../_images/notebooks_autofaiss_multimodal_search_20_3.jpeg" />
+<img alt="../_images/notebooks_autofaiss_multimodal_search_20_3.jpg" src="../_images/notebooks_autofaiss_multimodal_search_20_3.jpg" />
 </div>
 </div>
 <div class="nboutput docutils container">
@@ -1070,7 +1080,7 @@ similarity= 0.938573
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/notebooks_autofaiss_multimodal_search_20_5.jpeg" src="../_images/notebooks_autofaiss_multimodal_search_20_5.jpeg" />
+<img alt="../_images/notebooks_autofaiss_multimodal_search_20_5.jpg" src="../_images/notebooks_autofaiss_multimodal_search_20_5.jpg" />
 </div>
 </div>
 <div class="nboutput docutils container">
@@ -1086,7 +1096,7 @@ similarity= 0.9294769
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/notebooks_autofaiss_multimodal_search_20_7.jpeg" src="../_images/notebooks_autofaiss_multimodal_search_20_7.jpeg" />
+<img alt="../_images/notebooks_autofaiss_multimodal_search_20_7.jpg" src="../_images/notebooks_autofaiss_multimodal_search_20_7.jpg" />
 </div>
 </div>
 <div class="nboutput docutils container">
@@ -1102,7 +1112,7 @@ similarity= 0.9241176
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/notebooks_autofaiss_multimodal_search_20_9.jpeg" src="../_images/notebooks_autofaiss_multimodal_search_20_9.jpeg" />
+<img alt="../_images/notebooks_autofaiss_multimodal_search_20_9.jpg" src="../_images/notebooks_autofaiss_multimodal_search_20_9.jpg" />
 </div>
 </div>
 <div class="nboutput docutils container">
@@ -1118,7 +1128,7 @@ similarity= 0.9147578
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/notebooks_autofaiss_multimodal_search_20_11.jpeg" src="../_images/notebooks_autofaiss_multimodal_search_20_11.jpeg" />
+<img alt="../_images/notebooks_autofaiss_multimodal_search_20_11.jpg" src="../_images/notebooks_autofaiss_multimodal_search_20_11.jpg" />
 </div>
 </div>
 <div class="nbinput nblast docutils container">
@@ -1185,7 +1195,7 @@ similarity= 0.34918442
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/notebooks_autofaiss_multimodal_search_24_1.jpeg" src="../_images/notebooks_autofaiss_multimodal_search_24_1.jpeg" />
+<img alt="../_images/notebooks_autofaiss_multimodal_search_24_1.jpg" src="../_images/notebooks_autofaiss_multimodal_search_24_1.jpg" />
 </div>
 </div>
 <div class="nboutput docutils container">
@@ -1201,7 +1211,7 @@ similarity= 0.33592817
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/notebooks_autofaiss_multimodal_search_24_3.jpeg" src="../_images/notebooks_autofaiss_multimodal_search_24_3.jpeg" />
+<img alt="../_images/notebooks_autofaiss_multimodal_search_24_3.jpg" src="../_images/notebooks_autofaiss_multimodal_search_24_3.jpg" />
 </div>
 </div>
 <div class="nboutput docutils container">
@@ -1217,7 +1227,7 @@ similarity= 0.33229536
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/notebooks_autofaiss_multimodal_search_24_5.jpeg" src="../_images/notebooks_autofaiss_multimodal_search_24_5.jpeg" />
+<img alt="../_images/notebooks_autofaiss_multimodal_search_24_5.jpg" src="../_images/notebooks_autofaiss_multimodal_search_24_5.jpg" />
 </div>
 </div>
 <div class="nboutput docutils container">
@@ -1233,7 +1243,7 @@ similarity= 0.3288885
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/notebooks_autofaiss_multimodal_search_24_7.jpeg" src="../_images/notebooks_autofaiss_multimodal_search_24_7.jpeg" />
+<img alt="../_images/notebooks_autofaiss_multimodal_search_24_7.jpg" src="../_images/notebooks_autofaiss_multimodal_search_24_7.jpg" />
 </div>
 </div>
 <div class="nboutput docutils container">
@@ -1249,7 +1259,7 @@ similarity= 0.32780161
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/notebooks_autofaiss_multimodal_search_24_9.jpeg" src="../_images/notebooks_autofaiss_multimodal_search_24_9.jpeg" />
+<img alt="../_images/notebooks_autofaiss_multimodal_search_24_9.jpg" src="../_images/notebooks_autofaiss_multimodal_search_24_9.jpg" />
 </div>
 </div>
 </section>
