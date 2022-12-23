@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and this project adheres to [Semantic Versioning](https://semver.org).
 
+## [2.15.4] - 2022-12-23
+
+### Changed
+* dataclasses is now pulled only when working with python < 3.7. dataclasses is now part of 
+the built-in libraries since python 3.7
+
 ## [2.15.3] - 2022-09-07
 
  ### Fixed
