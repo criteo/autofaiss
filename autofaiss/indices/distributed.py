@@ -446,6 +446,7 @@ def create_big_index(
     min_nearest_neighbors_to_retrieve: int,
     embedding_column_name: str,
     index_key: str,
+    index_path: Optional[str],
     current_memory_available: str,
     nb_cores: Optional[int],
     use_gpu: bool,
@@ -479,11 +480,17 @@ def create_big_index(
 
     partition = extract_partition_name_from_path(embedding_root_dir)
 
-    # Train index
-    rdd = ss.sparkContext.parallelize([embedding_root_dir], 1)
-    trained_index_path, trained_index_key, _, = rdd.map(
-        lambda _: _create_and_train_index_from_embedding_dir()
-    ).collect()[0]
+    if not index_path:
+        # Train index
+        rdd = ss.sparkContext.parallelize([embedding_root_dir], 1)
+        trained_index_path, trained_index_key, _, = rdd.map(
+            lambda _: _create_and_train_index_from_embedding_dir()
+        ).collect()[0]
+    else:
+        # index key of the input index must be provided
+        assert index_key
+        trained_index_path = index_path
+        trained_index_key = index_key
 
     # Add embeddings to index and compute metrics
     partition_temp_root_dir = os.path.join(temp_root_dir, "add_embeddings", partition)
@@ -524,6 +531,7 @@ def create_small_index(
     min_nearest_neighbors_to_retrieve: int = 20,
     embedding_column_name: str = "embedding",
     index_key: Optional[str] = None,
+    index_path: Optional[str] = None,
     current_memory_available: str = "32G",
     use_gpu: bool = False,
     metric_type: str = "ip",
@@ -534,20 +542,33 @@ def create_small_index(
     Create a small index
     """
 
-    # Train index
-    trained_index = create_and_train_index_from_embedding_dir(
-        embedding_root_dir=embedding_root_dir,
-        embedding_column_name=embedding_column_name,
-        index_key=index_key,
-        max_index_memory_usage=max_index_memory_usage,
-        make_direct_map=make_direct_map,
-        should_be_memory_mappable=should_be_memory_mappable,
-        use_gpu=use_gpu,
-        metric_type=metric_type,
-        nb_cores=nb_cores,
-        current_memory_available=current_memory_available,
-        id_columns=id_columns,
-    )
+    assert not index_path or (index_key or index_path)
+    if not index_path:
+        trained_index = create_and_train_index_from_embedding_dir(
+            embedding_root_dir=embedding_root_dir,
+            embedding_column_name=embedding_column_name,
+            index_key=index_key,
+            max_index_memory_usage=max_index_memory_usage,
+            make_direct_map=make_direct_map,
+            should_be_memory_mappable=should_be_memory_mappable,
+            use_gpu=use_gpu,
+            metric_type=metric_type,
+            nb_cores=nb_cores,
+            current_memory_available=current_memory_available,
+            id_columns=id_columns,
+        )
+    else:
+        # index key of the input index must be provided
+        assert index_key
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            embedding_reader = EmbeddingReader(
+                embedding_root_dir,
+                file_format="parquet",
+                embedding_column=embedding_column_name,
+                meta_columns=id_columns,
+            )
+            index = load_index(index_path, os.path.join(tmp_dir, "index"))
+            trained_index = TrainedIndex(index, index_key, embedding_reader)
 
     # Add embeddings to index and compute metrics
     return _add_embeddings_to_index(
@@ -579,6 +600,7 @@ def create_partitioned_indexes(
     min_nearest_neighbors_to_retrieve: int = 20,
     embedding_column_name: str = "embedding",
     index_key: Optional[str] = None,
+    index_path: Optional[str] = None,
     max_index_memory_usage: str = "16G",
     current_memory_available: str = "32G",
     use_gpu: bool = False,
@@ -606,6 +628,7 @@ def create_partitioned_indexes(
                 min_nearest_neighbors_to_retrieve=min_nearest_neighbors_to_retrieve,
                 embedding_column_name=embedding_column_name,
                 index_key=index_key,
+                index_path=index_path,
                 current_memory_available=current_memory_available,
                 use_gpu=use_gpu,
                 metric_type=metric_type,
@@ -627,6 +650,7 @@ def create_partitioned_indexes(
         min_nearest_neighbors_to_retrieve=min_nearest_neighbors_to_retrieve,
         embedding_column_name=embedding_column_name,
         index_key=index_key,
+        index_path=index_path,
         current_memory_available=current_memory_available,
         nb_cores=nb_cores,
         use_gpu=use_gpu,
