@@ -396,7 +396,7 @@ def build_partitioned_indexes(
         raise ValueError(f"nb_indices_to_keep must be > 0; Got {nb_splits_per_big_index}")
     if big_index_threshold < 1:
         raise ValueError(f"big_index_threshold must be > 0; Got {big_index_threshold}")
-    if index_path and not index_key:
+    if index_path is not None and not index_key:
         raise ValueError(
             "Please provide the index key of the input index; "
             f"Got index_key: {index_key} and index_path: {index_path}"

@@ -487,8 +487,7 @@ def create_big_index(
             lambda _: _create_and_train_index_from_embedding_dir()
         ).collect()[0]
     else:
-        # index key of the input index must be provided
-        assert index_key
+        assert index_key, "index key of the input index must be provided because you provided an index_path"
         trained_index_path = index_path
         trained_index_key = index_key
 
@@ -556,8 +555,7 @@ def create_small_index(
             id_columns=id_columns,
         )
     else:
-        # index key of the input index must be provided
-        assert index_key
+        assert index_key, "index key of the input index must be provided because you provided an index_path"
         with tempfile.TemporaryDirectory() as tmp_dir:
             embedding_reader = EmbeddingReader(
                 embedding_root_dir,
