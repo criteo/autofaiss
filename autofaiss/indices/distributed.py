@@ -541,8 +541,6 @@ def create_small_index(
     """
     Create a small index
     """
-
-    assert not index_path or (index_key or index_path)
     if not index_path:
         trained_index = create_and_train_index_from_embedding_dir(
             embedding_root_dir=embedding_root_dir,
