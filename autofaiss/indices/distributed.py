@@ -9,6 +9,7 @@ import logging
 from tempfile import TemporaryDirectory
 import tempfile
 from typing import Dict, Optional, Iterator, Tuple, Callable, Any, Union, List
+import uuid
 from functools import partial
 from multiprocessing.pool import ThreadPool
 
@@ -282,6 +283,9 @@ def add_embeddings_to_index_distributed(
     index_optimizer: Optional[Callable]
         The function that optimizes the index
     """
+    temporary_indices_folder = temporary_indices_folder.rstrip("/") + f"/{uuid.uuid4().hex}"
+    logger.debug(f"Will be writing temporary small indices to {temporary_indices_folder}")
+
     temporary_indices_folder = make_path_absolute(temporary_indices_folder)
     fs = _get_file_system(temporary_indices_folder)
     if fs.exists(temporary_indices_folder):
