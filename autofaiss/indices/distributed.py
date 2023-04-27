@@ -438,21 +438,21 @@ def create_big_index(
     embedding_root_dirs: Union[List[str], str],
     output_root_dir: str,
     ss,
-    id_columns: Optional[List[str]],
-    should_be_memory_mappable: bool,
-    max_index_query_time_ms: float,
-    max_index_memory_usage: str,
-    min_nearest_neighbors_to_retrieve: int,
-    embedding_column_name: str,
-    index_key: str,
-    index_path: Optional[str],
-    current_memory_available: str,
-    nb_cores: Optional[int],
-    use_gpu: bool,
-    metric_type: str,
-    nb_splits_per_big_index: int,
-    make_direct_map: bool,
-    temp_root_dir: str,
+    id_columns: Optional[List[str]] = None,
+    should_be_memory_mappable: bool = False,
+    max_index_query_time_ms: float = 10.0,
+    max_index_memory_usage: str = "16G",
+    min_nearest_neighbors_to_retrieve: int = 20,
+    embedding_column_name: str = "embedding",
+    index_key: Optional[str] = None,
+    index_path: Optional[str] = None,
+    current_memory_available: str = "32G",
+    nb_cores: Optional[int] = None,
+    use_gpu: bool = False,
+    metric_type: str = "ip",
+    nb_splits_per_big_index: int = 1,
+    make_direct_map: bool = False,
+    temp_root_dir: str = "hdfs://root/tmp/distributed_autofaiss_indices",
 ) -> Optional[Dict[str, str]]:
     """
     Create a big index
@@ -473,7 +473,7 @@ def create_big_index(
             id_columns=id_columns,
         )
 
-        index_output_root_dir = os.path.join(temp_root_dir, "training", partition)
+        index_output_root_dir = os.path.join(temp_root_dir, "training", str(uuid4()))
         output_index_path = save_index(trained_index.index_or_path, index_output_root_dir, "trained_index")
         return TrainedIndex(output_index_path, trained_index.index_key, embedding_root_dirs)
 
