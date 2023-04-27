@@ -362,11 +362,9 @@ def _add_embeddings_to_index(
     """Add embeddings to index"""
 
     # Define output folders
-    partition = extract_partition_name_from_path(embedding_reader.embeddings_folder)
-    output_dir = os.path.join(output_root_dir, partition)
-    index_dest_path = os.path.join(output_dir, "knn.index")
-    ids_dest_dir = os.path.join(output_dir, "ids")
-    index_infos_dest_path = os.path.join(output_dir, "index_infos.json")
+    index_dest_path = os.path.join(output_root_dir, "knn.index")
+    ids_dest_dir = os.path.join(output_root_dir, "ids")
+    index_infos_dest_path = os.path.join(output_root_dir, "index_infos.json")
 
     # Compute memory available for adding embeddings to index
     metadata = IndexMetadata(index_key, embedding_reader.count, embedding_reader.dimension, make_direct_map)
@@ -437,8 +435,8 @@ def _add_embeddings_from_dir_to_index(
 
 def create_big_index(
     embedding_root_dir: str,
-    ss,
     output_root_dir: str,
+    ss,
     id_columns: Optional[List[str]],
     should_be_memory_mappable: bool,
     max_index_query_time_ms: float,
@@ -611,12 +609,16 @@ def create_partitioned_indexes(
     i.e. create and train one index per parquet partition
     """
 
-    def _create_small_indexes(embedding_root_dirs: List[str]) -> List[Optional[Dict[str, str]]]:
-        rdd = ss.sparkContext.parallelize(embedding_root_dirs, len(embedding_root_dirs))
+    def _output_dir(embedding_root_dir: str) -> str:
+        partition = extract_partition_name_from_path(embedding_root_dir)
+        return os.path.join(output_root_dir, partition)
+
+    def _create_small_indexes(input_output_dirs: List[str]) -> List[Optional[Dict[str, str]]]:
+        rdd = ss.sparkContext.parallelize(input_output_dirs, len(input_output_dirs))
         return rdd.map(
-            lambda embedding_root_dir: create_small_index(
-                embedding_root_dir=embedding_root_dir,
-                output_root_dir=output_root_dir,
+            lambda input_output_dir: create_small_index(
+                embedding_root_dir=input_output_dir[0],
+                output_root_dir=input_output_dir[1],
                 id_columns=id_columns,
                 should_be_memory_mappable=should_be_memory_mappable,
                 max_index_query_time_ms=max_index_query_time_ms,
@@ -638,7 +640,6 @@ def create_partitioned_indexes(
     create_big_index_fn = partial(
         create_big_index,
         ss=ss,
-        output_root_dir=output_root_dir,
         id_columns=id_columns,
         should_be_memory_mappable=should_be_memory_mappable,
         max_index_query_time_ms=max_index_query_time_ms,
@@ -670,9 +671,9 @@ def create_partitioned_indexes(
     big_partitions = []
     for partition, size in partition_sizes:
         if size < big_index_threshold:
-            small_partitions.append(partition)
+            small_partitions.append((partition, _output_dir(partition)))
         else:
-            big_partitions.append(partition)
+            big_partitions.append((partition, _output_dir(partition)))
 
     # Create small and big indexes
     all_metrics = []
@@ -681,7 +682,7 @@ def create_partitioned_indexes(
         small_index_metrics_future = (
             p.apply_async(_create_small_indexes, (small_partitions,)) if small_partitions else None
         )
-        for metrics in p.starmap(create_big_index_fn, [(p,) for p in big_partitions]):
+        for metrics in p.starmap(create_big_index_fn, big_partitions):
             all_metrics.append(metrics)
         if small_index_metrics_future:
             all_metrics.extend(small_index_metrics_future.get())
