@@ -6,6 +6,7 @@ import math
 import multiprocessing
 import os
 import logging
+from uuid import uuid4
 from tempfile import TemporaryDirectory
 import tempfile
 from typing import Dict, Optional, Iterator, Tuple, Callable, Any, Union, List
@@ -399,7 +400,7 @@ def _add_embeddings_to_index(
 
 def _add_embeddings_from_dir_to_index(
     add_embeddings_fn: Callable,
-    embedding_root_dir: str,
+    embedding_root_dirs: Union[List[str], str],
     output_root_dir: str,
     index_key: str,
     embedding_column_name: str,
@@ -415,7 +416,7 @@ def _add_embeddings_from_dir_to_index(
     # Read embeddings
     with Timeit("-> Reading embeddings", indent=2):
         embedding_reader = EmbeddingReader(
-            embedding_root_dir, file_format="parquet", embedding_column=embedding_column_name, meta_columns=id_columns
+            embedding_root_dirs, file_format="parquet", embedding_column=embedding_column_name, meta_columns=id_columns
         )
 
     # Add embeddings to index
@@ -434,7 +435,7 @@ def _add_embeddings_from_dir_to_index(
 
 
 def create_big_index(
-    embedding_root_dir: str,
+    embedding_root_dirs: Union[List[str], str],
     output_root_dir: str,
     ss,
     id_columns: Optional[List[str]],
@@ -459,7 +460,7 @@ def create_big_index(
 
     def _create_and_train_index_from_embedding_dir() -> TrainedIndex:
         trained_index = create_and_train_index_from_embedding_dir(
-            embedding_root_dir=embedding_root_dir,
+            embedding_root_dirs=embedding_root_dirs,
             embedding_column_name=embedding_column_name,
             index_key=index_key,
             max_index_memory_usage=max_index_memory_usage,
@@ -474,13 +475,11 @@ def create_big_index(
 
         index_output_root_dir = os.path.join(temp_root_dir, "training", partition)
         output_index_path = save_index(trained_index.index_or_path, index_output_root_dir, "trained_index")
-        return TrainedIndex(output_index_path, trained_index.index_key, embedding_root_dir)
-
-    partition = extract_partition_name_from_path(embedding_root_dir)
+        return TrainedIndex(output_index_path, trained_index.index_key, embedding_root_dirs)
 
     if not index_path:
         # Train index
-        rdd = ss.sparkContext.parallelize([embedding_root_dir], 1)
+        rdd = ss.sparkContext.parallelize([embedding_root_dirs], 1)
         trained_index_path, trained_index_key, _, = rdd.map(
             lambda _: _create_and_train_index_from_embedding_dir()
         ).collect()[0]
@@ -490,7 +489,7 @@ def create_big_index(
         trained_index_key = index_key
 
     # Add embeddings to index and compute metrics
-    partition_temp_root_dir = os.path.join(temp_root_dir, "add_embeddings", partition)
+    partition_temp_root_dir = os.path.join(temp_root_dir, "add_embeddings", str(uuid4()))
     index, metrics = _add_embeddings_from_dir_to_index(
         add_embeddings_fn=partial(
             add_embeddings_to_index_distributed,
@@ -499,7 +498,7 @@ def create_big_index(
             temporary_indices_folder=partition_temp_root_dir,
             nb_indices_to_keep=nb_splits_per_big_index,
         ),
-        embedding_root_dir=embedding_root_dir,
+        embedding_root_dirs=embedding_root_dirs,
         output_root_dir=output_root_dir,
         index_key=trained_index_key,
         embedding_column_name=embedding_column_name,
@@ -519,7 +518,7 @@ def create_big_index(
 
 
 def create_small_index(
-    embedding_root_dir: str,
+    embedding_root_dirs: Union[List[str], str],
     output_root_dir: str,
     id_columns: Optional[List[str]] = None,
     should_be_memory_mappable: bool = False,
@@ -540,7 +539,7 @@ def create_small_index(
     """
     if not index_path:
         trained_index = create_and_train_index_from_embedding_dir(
-            embedding_root_dir=embedding_root_dir,
+            embedding_root_dirs=embedding_root_dirs,
             embedding_column_name=embedding_column_name,
             index_key=index_key,
             max_index_memory_usage=max_index_memory_usage,
@@ -556,7 +555,7 @@ def create_small_index(
         assert index_key, "index key of the input index must be provided because you provided an index_path"
         with tempfile.TemporaryDirectory() as tmp_dir:
             embedding_reader = EmbeddingReader(
-                embedding_root_dir,
+                embedding_root_dirs,
                 file_format="parquet",
                 embedding_column=embedding_column_name,
                 meta_columns=id_columns,
@@ -617,7 +616,7 @@ def create_partitioned_indexes(
         rdd = ss.sparkContext.parallelize(input_output_dirs, len(input_output_dirs))
         return rdd.map(
             lambda input_output_dir: create_small_index(
-                embedding_root_dir=input_output_dir[0],
+                embedding_root_dirs=input_output_dir[0],
                 output_root_dir=input_output_dir[1],
                 id_columns=id_columns,
                 should_be_memory_mappable=should_be_memory_mappable,
