@@ -612,12 +612,12 @@ def create_partitioned_indexes(
         partition = extract_partition_name_from_path(embedding_root_dir)
         return os.path.join(output_root_dir, partition)
 
-    def _create_small_indexes(input_output_dirs: List[str]) -> List[Optional[Dict[str, str]]]:
-        rdd = ss.sparkContext.parallelize(input_output_dirs, len(input_output_dirs))
+    def _create_small_indexes(embedding_root_dirs: List[str]) -> List[Optional[Dict[str, str]]]:
+        rdd = ss.sparkContext.parallelize(embedding_root_dirs, len(embedding_root_dirs))
         return rdd.map(
-            lambda input_output_dir: create_small_index(
-                embedding_root_dirs=input_output_dir[0],
-                output_root_dir=input_output_dir[1],
+            lambda embedding_root_dir: create_small_index(
+                embedding_root_dirs=embedding_root_dir,
+                output_root_dir=_output_dir(embedding_root_dir),
                 id_columns=id_columns,
                 should_be_memory_mappable=should_be_memory_mappable,
                 max_index_query_time_ms=max_index_query_time_ms,
@@ -670,9 +670,9 @@ def create_partitioned_indexes(
     big_partitions = []
     for partition, size in partition_sizes:
         if size < big_index_threshold:
-            small_partitions.append((partition, _output_dir(partition)))
+            small_partitions.append(partition)
         else:
-            big_partitions.append((partition, _output_dir(partition)))
+            big_partitions.append(partition)
 
     # Create small and big indexes
     all_metrics = []
@@ -681,7 +681,7 @@ def create_partitioned_indexes(
         small_index_metrics_future = (
             p.apply_async(_create_small_indexes, (small_partitions,)) if small_partitions else None
         )
-        for metrics in p.starmap(create_big_index_fn, big_partitions):
+        for metrics in p.starmap(create_big_index_fn, [(p, _output_dir(p)) for p in big_partitions]):
             all_metrics.append(metrics)
         if small_index_metrics_future:
             all_metrics.extend(small_index_metrics_future.get())
