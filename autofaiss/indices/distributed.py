@@ -479,7 +479,7 @@ def create_big_index(
 
     if not index_path:
         # Train index
-        rdd = ss.sparkContext.parallelize([embedding_root_dirs], 1)
+        rdd = ss.sparkContext.parallelize([13], 1)
         trained_index_path, trained_index_key, _, = rdd.map(
             lambda _: _create_and_train_index_from_embedding_dir()
         ).collect()[0]
@@ -608,7 +608,8 @@ def create_partitioned_indexes(
     i.e. create and train one index per parquet partition
     """
 
-    def _output_dir(embedding_root_dir: str) -> str:
+    def _infer_index_output_dir(embedding_root_dir: str) -> str:
+        """Infer index output directory from input embedding directory"""
         partition = extract_partition_name_from_path(embedding_root_dir)
         return os.path.join(output_root_dir, partition)
 
@@ -617,7 +618,7 @@ def create_partitioned_indexes(
         return rdd.map(
             lambda embedding_root_dir: create_small_index(
                 embedding_root_dirs=embedding_root_dir,
-                output_root_dir=_output_dir(embedding_root_dir),
+                output_root_dir=_infer_index_output_dir(embedding_root_dir),
                 id_columns=id_columns,
                 should_be_memory_mappable=should_be_memory_mappable,
                 max_index_query_time_ms=max_index_query_time_ms,
@@ -681,7 +682,10 @@ def create_partitioned_indexes(
         small_index_metrics_future = (
             p.apply_async(_create_small_indexes, (small_partitions,)) if small_partitions else None
         )
-        for metrics in p.starmap(create_big_index_fn, [(p, _output_dir(p)) for p in big_partitions]):
+        for metrics in p.starmap(
+            create_big_index_fn,
+            [(p, _infer_index_output_dir(p)) for p in big_partitions]
+        ):
             all_metrics.append(metrics)
         if small_index_metrics_future:
             all_metrics.extend(small_index_metrics_future.get())
