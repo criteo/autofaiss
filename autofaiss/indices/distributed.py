@@ -682,10 +682,7 @@ def create_partitioned_indexes(
         small_index_metrics_future = (
             p.apply_async(_create_small_indexes, (small_partitions,)) if small_partitions else None
         )
-        for metrics in p.starmap(
-            create_big_index_fn,
-            [(p, _infer_index_output_dir(p)) for p in big_partitions]
-        ):
+        for metrics in p.starmap(create_big_index_fn, [(p, _infer_index_output_dir(p)) for p in big_partitions]):
             all_metrics.append(metrics)
         if small_index_metrics_future:
             all_metrics.extend(small_index_metrics_future.get())
