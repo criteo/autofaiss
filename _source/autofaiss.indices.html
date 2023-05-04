@@ -1,93 +1,46 @@
-
-
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
-  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
   <title>autofaiss.indices package &mdash; autofaiss 1.0.0 documentation</title>
-  
-
-  
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-
-  
-  
-
-  
-  
-
-  
-
-  
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/doctools.js"></script>
         <script src="../_static/sphinx_highlight.js"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-    
-    <script type="text/javascript" src="../_static/js/theme.js"></script>
-
-    
+    <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="autofaiss.metrics package" href="autofaiss.metrics.html" />
     <link rel="prev" title="autofaiss.external package" href="autofaiss.external.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
 
           
-            <a href="../index.html" class="icon icon-home"> autofaiss
           
-
-          
+          <a href="../index.html" class="icon icon-home">
+            autofaiss
           </a>
-
-          
-            
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Introduction and installation</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../introduction/introduction.html">Introduction</a></li>
@@ -126,110 +79,43 @@
 <li class="toctree-l1"><a class="reference internal" href="../notebooks/autofaiss_index_selection_demo.html">Autofaiss Index selection demo slider</a></li>
 </ul>
 
-            
-          
         </div>
-        
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../index.html">autofaiss</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
-      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-        
-          <li><a href="modules.html">autofaiss</a> &raquo;</li>
-        
-          <li><a href="autofaiss.html">autofaiss package</a> &raquo;</li>
-        
-      <li>autofaiss.indices package</li>
-    
-    
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">autofaiss</a></li>
+          <li class="breadcrumb-item"><a href="autofaiss.html">autofaiss package</a></li>
+      <li class="breadcrumb-item active">autofaiss.indices package</li>
       <li class="wy-breadcrumbs-aside">
-        
-          
             <a href="../_sources/_source/autofaiss.indices.rst.txt" rel="nofollow"> View page source</a>
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
-  
-<style>
-/* CSS overrides for sphinx_rtd_theme */
-
-/* 24px margin */
-.nbinput.nblast.container,
-.nboutput.nblast.container {
-    margin-bottom: 19px;  /* padding has already 5px */
-}
-
-/* ... except between code cells! */
-.nblast.container + .nbinput.container {
-    margin-top: -19px;
-}
-
-.admonition > p:before {
-    margin-right: 4px;  /* make room for the exclamation icon */
-}
-
-/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
-.math {
-    text-align: unset;
-}
-</style>
-<section id="autofaiss-indices-package">
-<h1>autofaiss.indices package<a class="headerlink" href="#autofaiss-indices-package" title="Permalink to this heading">¶</a></h1>
+             
+  <section id="autofaiss-indices-package">
+<h1>autofaiss.indices package<a class="headerlink" href="#autofaiss-indices-package" title="Permalink to this heading"></a></h1>
 <section id="submodules">
-<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading">¶</a></h2>
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading"></a></h2>
 </section>
 <section id="module-autofaiss.indices.build">
-<span id="autofaiss-indices-build-module"></span><h2>autofaiss.indices.build module<a class="headerlink" href="#module-autofaiss.indices.build" title="Permalink to this heading">¶</a></h2>
+<span id="autofaiss-indices-build-module"></span><h2>autofaiss.indices.build module<a class="headerlink" href="#module-autofaiss.indices.build" title="Permalink to this heading"></a></h2>
 <p>Common functions to build an index</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="autofaiss.indices.build.add_embeddings_to_index_local">
-<span class="sig-prename descclassname"><span class="pre">autofaiss.indices.build.</span></span><span class="sig-name descname"><span class="pre">add_embeddings_to_index_local</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">embedding_reader</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trained_index_or_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memory_available_for_adding</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embedding_ids_df_handler</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_optimizer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">add_embeddings_with_ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/build.html#add_embeddings_to_index_local"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.build.add_embeddings_to_index_local" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autofaiss.indices.build.</span></span><span class="sig-name descname"><span class="pre">add_embeddings_to_index_local</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">embedding_reader</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trained_index_or_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memory_available_for_adding</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embedding_ids_df_handler</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_optimizer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">add_embeddings_with_ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/build.html#add_embeddings_to_index_local"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.build.add_embeddings_to_index_local" title="Permalink to this definition"></a></dt>
 <dd><p>Add embeddings to index from driver</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
@@ -240,7 +126,7 @@
 
 <dl class="py function">
 <dt class="sig sig-object py" id="autofaiss.indices.build.get_optimize_index_fn">
-<span class="sig-prename descclassname"><span class="pre">autofaiss.indices.build.</span></span><span class="sig-name descname"><span class="pre">get_optimize_index_fn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">embedding_reader</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_infos_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_gpu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_on_disk</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_index_query_time_ms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_nearest_neighbors_to_retrieve</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">make_direct_map</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_param</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/build.html#get_optimize_index_fn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.build.get_optimize_index_fn" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autofaiss.indices.build.</span></span><span class="sig-name descname"><span class="pre">get_optimize_index_fn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">embedding_reader</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_infos_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_gpu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_on_disk</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_index_query_time_ms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_nearest_neighbors_to_retrieve</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">make_direct_map</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_param</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/build.html#get_optimize_index_fn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.build.get_optimize_index_fn" title="Permalink to this definition"></a></dt>
 <dd><p>Create function to optimize index by choosing best hyperparameters and calculating metrics</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
@@ -251,7 +137,7 @@
 
 <dl class="py function">
 <dt class="sig sig-object py" id="autofaiss.indices.build.get_write_ids_df_to_parquet_fn">
-<span class="sig-prename descclassname"><span class="pre">autofaiss.indices.build.</span></span><span class="sig-name descname"><span class="pre">get_write_ids_df_to_parquet_fn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ids_root_dir</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/build.html#get_write_ids_df_to_parquet_fn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.build.get_write_ids_df_to_parquet_fn" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autofaiss.indices.build.</span></span><span class="sig-name descname"><span class="pre">get_write_ids_df_to_parquet_fn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ids_root_dir</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/build.html#get_write_ids_df_to_parquet_fn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.build.get_write_ids_df_to_parquet_fn" title="Permalink to this definition"></a></dt>
 <dd><p>Create function to write ids from Pandas dataframe to parquet</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
@@ -262,11 +148,11 @@
 
 </section>
 <section id="module-autofaiss.indices.distributed">
-<span id="autofaiss-indices-distributed-module"></span><h2>autofaiss.indices.distributed module<a class="headerlink" href="#module-autofaiss.indices.distributed" title="Permalink to this heading">¶</a></h2>
+<span id="autofaiss-indices-distributed-module"></span><h2>autofaiss.indices.distributed module<a class="headerlink" href="#module-autofaiss.indices.distributed" title="Permalink to this heading"></a></h2>
 <p>Building the index with pyspark.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="autofaiss.indices.distributed.add_embeddings_to_index_distributed">
-<span class="sig-prename descclassname"><span class="pre">autofaiss.indices.distributed.</span></span><span class="sig-name descname"><span class="pre">add_embeddings_to_index_distributed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trained_index_or_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embedding_reader</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memory_available_for_adding</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_cores</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temporary_indices_folder</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'hdfs://root/tmp/distributed_autofaiss_indices'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embedding_ids_df_handler</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_indices_to_keep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_optimizer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/distributed.html#add_embeddings_to_index_distributed"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.distributed.add_embeddings_to_index_distributed" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autofaiss.indices.distributed.</span></span><span class="sig-name descname"><span class="pre">add_embeddings_to_index_distributed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trained_index_or_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embedding_reader</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memory_available_for_adding</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_cores</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temporary_indices_folder</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'hdfs://root/tmp/distributed_autofaiss_indices'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embedding_ids_df_handler</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_indices_to_keep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_optimizer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/distributed.html#add_embeddings_to_index_distributed"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.distributed.add_embeddings_to_index_distributed" title="Permalink to this definition"></a></dt>
 <dd><p>Create indices by pyspark.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -289,7 +175,7 @@
 
 <dl class="py function">
 <dt class="sig sig-object py" id="autofaiss.indices.distributed.create_big_index">
-<span class="sig-prename descclassname"><span class="pre">autofaiss.indices.distributed.</span></span><span class="sig-name descname"><span class="pre">create_big_index</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">embedding_root_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ss</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_root_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_columns</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">should_be_memory_mappable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_index_query_time_ms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_index_memory_usage</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_nearest_neighbors_to_retrieve</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embedding_column_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current_memory_available</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_cores</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_gpu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_splits_per_big_index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">make_direct_map</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temp_root_dir</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/distributed.html#create_big_index"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.distributed.create_big_index" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autofaiss.indices.distributed.</span></span><span class="sig-name descname"><span class="pre">create_big_index</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">embedding_root_dirs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_root_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ss</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_columns</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">should_be_memory_mappable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_index_query_time_ms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_index_memory_usage</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'16G'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_nearest_neighbors_to_retrieve</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embedding_column_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'embedding'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current_memory_available</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'32G'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_cores</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_gpu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ip'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_splits_per_big_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">make_direct_map</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temp_root_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'hdfs://root/tmp/distributed_autofaiss_indices'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/distributed.html#create_big_index"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.distributed.create_big_index" title="Permalink to this definition"></a></dt>
 <dd><p>Create a big index</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
@@ -300,7 +186,7 @@
 
 <dl class="py function">
 <dt class="sig sig-object py" id="autofaiss.indices.distributed.create_partitioned_indexes">
-<span class="sig-prename descclassname"><span class="pre">autofaiss.indices.distributed.</span></span><span class="sig-name descname"><span class="pre">create_partitioned_indexes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">partitions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">big_index_threshold</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_root_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_cores</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_splits_per_big_index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_columns</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_index_query_time_ms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_nearest_neighbors_to_retrieve</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embedding_column_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'embedding'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_index_memory_usage</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'16G'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current_memory_available</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'32G'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_gpu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ip'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">make_direct_map</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">should_be_memory_mappable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temp_root_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'hdfs://root/tmp/distributed_autofaiss_indices'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maximum_nb_threads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">256</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/distributed.html#create_partitioned_indexes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.distributed.create_partitioned_indexes" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autofaiss.indices.distributed.</span></span><span class="sig-name descname"><span class="pre">create_partitioned_indexes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">partitions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">big_index_threshold</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_root_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_cores</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_splits_per_big_index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_columns</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_index_query_time_ms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_nearest_neighbors_to_retrieve</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embedding_column_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'embedding'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_index_memory_usage</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'16G'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current_memory_available</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'32G'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_gpu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ip'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">make_direct_map</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">should_be_memory_mappable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temp_root_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'hdfs://root/tmp/distributed_autofaiss_indices'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maximum_nb_threads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">256</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/distributed.html#create_partitioned_indexes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.distributed.create_partitioned_indexes" title="Permalink to this definition"></a></dt>
 <dd><p>Create partitioned indexes from a list of parquet partitions,
 i.e. create and train one index per parquet partition</p>
 <dl class="field-list simple">
@@ -312,7 +198,7 @@ i.e. create and train one index per parquet partition</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="autofaiss.indices.distributed.create_small_index">
-<span class="sig-prename descclassname"><span class="pre">autofaiss.indices.distributed.</span></span><span class="sig-name descname"><span class="pre">create_small_index</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">embedding_root_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_root_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_columns</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">should_be_memory_mappable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_index_query_time_ms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_index_memory_usage</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'16G'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_nearest_neighbors_to_retrieve</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embedding_column_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'embedding'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current_memory_available</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'32G'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_gpu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ip'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_cores</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">make_direct_map</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/distributed.html#create_small_index"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.distributed.create_small_index" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autofaiss.indices.distributed.</span></span><span class="sig-name descname"><span class="pre">create_small_index</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">embedding_root_dirs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_root_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_columns</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">should_be_memory_mappable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_index_query_time_ms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_index_memory_usage</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'16G'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_nearest_neighbors_to_retrieve</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embedding_column_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'embedding'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current_memory_available</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'32G'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_gpu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ip'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_cores</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">make_direct_map</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/distributed.html#create_small_index"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.distributed.create_small_index" title="Permalink to this definition"></a></dt>
 <dd><p>Create a small index</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
@@ -323,18 +209,18 @@ i.e. create and train one index per parquet partition</p>
 
 </section>
 <section id="module-autofaiss.indices.faiss_index_wrapper">
-<span id="autofaiss-indices-faiss-index-wrapper-module"></span><h2>autofaiss.indices.faiss_index_wrapper module<a class="headerlink" href="#module-autofaiss.indices.faiss_index_wrapper" title="Permalink to this heading">¶</a></h2>
+<span id="autofaiss-indices-faiss-index-wrapper-module"></span><h2>autofaiss.indices.faiss_index_wrapper module<a class="headerlink" href="#module-autofaiss.indices.faiss_index_wrapper" title="Permalink to this heading"></a></h2>
 <p>This file contains a wrapper class to create Faiss-like indices</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="autofaiss.indices.faiss_index_wrapper.FaissIndexWrapper">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autofaiss.indices.faiss_index_wrapper.</span></span><span class="sig-name descname"><span class="pre">FaissIndexWrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">d</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric_type</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/faiss_index_wrapper.html#FaissIndexWrapper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.faiss_index_wrapper.FaissIndexWrapper" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autofaiss.indices.faiss_index_wrapper.</span></span><span class="sig-name descname"><span class="pre">FaissIndexWrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">d</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric_type</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/faiss_index_wrapper.html#FaissIndexWrapper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.faiss_index_wrapper.FaissIndexWrapper" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/abc.html#abc.ABC" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></a></p>
 <p>This abstract class is describing a Faiss-like index
 It is useful to use this wrapper to use benchmarking functions written for
 faiss in this library</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="autofaiss.indices.faiss_index_wrapper.FaissIndexWrapper.add">
-<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">add</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/faiss_index_wrapper.html#FaissIndexWrapper.add"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.faiss_index_wrapper.FaissIndexWrapper.add" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">add</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/faiss_index_wrapper.html#FaissIndexWrapper.add"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.faiss_index_wrapper.FaissIndexWrapper.add" title="Permalink to this definition"></a></dt>
 <dd><p>Function that adds vectors to the index</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -345,7 +231,7 @@ faiss in this library</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="autofaiss.indices.faiss_index_wrapper.FaissIndexWrapper.search">
-<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">search</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/faiss_index_wrapper.html#FaissIndexWrapper.search"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.faiss_index_wrapper.FaissIndexWrapper.search" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">search</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/faiss_index_wrapper.html#FaissIndexWrapper.search"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.faiss_index_wrapper.FaissIndexWrapper.search" title="Permalink to this definition"></a></dt>
 <dd><p>Function that search the k nearest neighbours of a batch of vectors</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -370,22 +256,22 @@ Contains the vectors’ labels of the k nearest neighbours.</p></li>
 
 </section>
 <section id="module-autofaiss.indices.index_factory">
-<span id="autofaiss-indices-index-factory-module"></span><h2>autofaiss.indices.index_factory module<a class="headerlink" href="#module-autofaiss.indices.index_factory" title="Permalink to this heading">¶</a></h2>
+<span id="autofaiss-indices-index-factory-module"></span><h2>autofaiss.indices.index_factory module<a class="headerlink" href="#module-autofaiss.indices.index_factory" title="Permalink to this heading"></a></h2>
 <p>functions that fixe faiss index_factory function</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="autofaiss.indices.index_factory.index_factory">
-<span class="sig-prename descclassname"><span class="pre">autofaiss.indices.index_factory.</span></span><span class="sig-name descname"><span class="pre">index_factory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">d</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ef_construction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/index_factory.html#index_factory"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.index_factory.index_factory" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autofaiss.indices.index_factory.</span></span><span class="sig-name descname"><span class="pre">index_factory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">d</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ef_construction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/index_factory.html#index_factory"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.index_factory.index_factory" title="Permalink to this definition"></a></dt>
 <dd><p>custom index_factory that fix some issues of
 faiss.index_factory with inner product metrics.</p>
 </dd></dl>
 
 </section>
 <section id="module-autofaiss.indices.index_utils">
-<span id="autofaiss-indices-index-utils-module"></span><h2>autofaiss.indices.index_utils module<a class="headerlink" href="#module-autofaiss.indices.index_utils" title="Permalink to this heading">¶</a></h2>
+<span id="autofaiss-indices-index-utils-module"></span><h2>autofaiss.indices.index_utils module<a class="headerlink" href="#module-autofaiss.indices.index_utils" title="Permalink to this heading"></a></h2>
 <p>useful functions to apply on an index</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="autofaiss.indices.index_utils.format_speed_ms_per_query">
-<span class="sig-prename descclassname"><span class="pre">autofaiss.indices.index_utils.</span></span><span class="sig-name descname"><span class="pre">format_speed_ms_per_query</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">speed</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/index_utils.html#format_speed_ms_per_query"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.index_utils.format_speed_ms_per_query" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autofaiss.indices.index_utils.</span></span><span class="sig-name descname"><span class="pre">format_speed_ms_per_query</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">speed</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/index_utils.html#format_speed_ms_per_query"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.index_utils.format_speed_ms_per_query" title="Permalink to this definition"></a></dt>
 <dd><p>format the speed (ms/query) into a nice string</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
@@ -396,7 +282,7 @@ faiss.index_factory with inner product metrics.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="autofaiss.indices.index_utils.get_bytes_from_index">
-<span class="sig-prename descclassname"><span class="pre">autofaiss.indices.index_utils.</span></span><span class="sig-name descname"><span class="pre">get_bytes_from_index</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/index_utils.html#get_bytes_from_index"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.index_utils.get_bytes_from_index" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autofaiss.indices.index_utils.</span></span><span class="sig-name descname"><span class="pre">get_bytes_from_index</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/index_utils.html#get_bytes_from_index"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.index_utils.get_bytes_from_index" title="Permalink to this definition"></a></dt>
 <dd><p>Transforms a faiss index into a bytearray.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
@@ -407,7 +293,7 @@ faiss.index_factory with inner product metrics.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="autofaiss.indices.index_utils.get_index_from_bytes">
-<span class="sig-prename descclassname"><span class="pre">autofaiss.indices.index_utils.</span></span><span class="sig-name descname"><span class="pre">get_index_from_bytes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index_bytes</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/index_utils.html#get_index_from_bytes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.index_utils.get_index_from_bytes" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autofaiss.indices.index_utils.</span></span><span class="sig-name descname"><span class="pre">get_index_from_bytes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index_bytes</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/index_utils.html#get_index_from_bytes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.index_utils.get_index_from_bytes" title="Permalink to this definition"></a></dt>
 <dd><p>Transforms a bytearray containing a faiss index into the corresponding object.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
@@ -418,7 +304,7 @@ faiss.index_factory with inner product metrics.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="autofaiss.indices.index_utils.get_index_size">
-<span class="sig-prename descclassname"><span class="pre">autofaiss.indices.index_utils.</span></span><span class="sig-name descname"><span class="pre">get_index_size</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/index_utils.html#get_index_size"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.index_utils.get_index_size" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autofaiss.indices.index_utils.</span></span><span class="sig-name descname"><span class="pre">get_index_size</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/index_utils.html#get_index_size"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.index_utils.get_index_size" title="Permalink to this definition"></a></dt>
 <dd><p>Returns the size in RAM of a given index</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
@@ -429,7 +315,7 @@ faiss.index_factory with inner product metrics.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="autofaiss.indices.index_utils.initialize_direct_map">
-<span class="sig-prename descclassname"><span class="pre">autofaiss.indices.index_utils.</span></span><span class="sig-name descname"><span class="pre">initialize_direct_map</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/index_utils.html#initialize_direct_map"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.index_utils.initialize_direct_map" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autofaiss.indices.index_utils.</span></span><span class="sig-name descname"><span class="pre">initialize_direct_map</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/index_utils.html#initialize_direct_map"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.index_utils.initialize_direct_map" title="Permalink to this definition"></a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></p>
@@ -439,7 +325,7 @@ faiss.index_factory with inner product metrics.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="autofaiss.indices.index_utils.load_index">
-<span class="sig-prename descclassname"><span class="pre">autofaiss.indices.index_utils.</span></span><span class="sig-name descname"><span class="pre">load_index</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index_src_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_dst_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/index_utils.html#load_index"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.index_utils.load_index" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autofaiss.indices.index_utils.</span></span><span class="sig-name descname"><span class="pre">load_index</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index_src_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_dst_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/index_utils.html#load_index"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.index_utils.load_index" title="Permalink to this definition"></a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Index</span></code></p>
@@ -449,13 +335,13 @@ faiss.index_factory with inner product metrics.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="autofaiss.indices.index_utils.parallel_download_indices_from_remote">
-<span class="sig-prename descclassname"><span class="pre">autofaiss.indices.index_utils.</span></span><span class="sig-name descname"><span class="pre">parallel_download_indices_from_remote</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indices_file_paths</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dst_folder</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/index_utils.html#parallel_download_indices_from_remote"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.index_utils.parallel_download_indices_from_remote" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autofaiss.indices.index_utils.</span></span><span class="sig-name descname"><span class="pre">parallel_download_indices_from_remote</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indices_file_paths</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dst_folder</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/index_utils.html#parallel_download_indices_from_remote"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.index_utils.parallel_download_indices_from_remote" title="Permalink to this definition"></a></dt>
 <dd><p>Download small indices in parallel.</p>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="autofaiss.indices.index_utils.quantize_vec_without_modifying_index">
-<span class="sig-prename descclassname"><span class="pre">autofaiss.indices.index_utils.</span></span><span class="sig-name descname"><span class="pre">quantize_vec_without_modifying_index</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vecs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/index_utils.html#quantize_vec_without_modifying_index"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.index_utils.quantize_vec_without_modifying_index" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autofaiss.indices.index_utils.</span></span><span class="sig-name descname"><span class="pre">quantize_vec_without_modifying_index</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vecs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/index_utils.html#quantize_vec_without_modifying_index"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.index_utils.quantize_vec_without_modifying_index" title="Permalink to this definition"></a></dt>
 <dd><p>qantize a batch of vectors</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
@@ -466,7 +352,7 @@ faiss.index_factory with inner product metrics.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="autofaiss.indices.index_utils.save_index">
-<span class="sig-prename descclassname"><span class="pre">autofaiss.indices.index_utils.</span></span><span class="sig-name descname"><span class="pre">save_index</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">root_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_filename</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/index_utils.html#save_index"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.index_utils.save_index" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autofaiss.indices.index_utils.</span></span><span class="sig-name descname"><span class="pre">save_index</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">root_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_filename</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/index_utils.html#save_index"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.index_utils.save_index" title="Permalink to this definition"></a></dt>
 <dd><p>Save index</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
@@ -477,7 +363,7 @@ faiss.index_factory with inner product metrics.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="autofaiss.indices.index_utils.search_speed_test">
-<span class="sig-prename descclassname"><span class="pre">autofaiss.indices.index_utils.</span></span><span class="sig-name descname"><span class="pre">search_speed_test</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">query</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ksearch</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">40</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timout_s</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/index_utils.html#search_speed_test"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.index_utils.search_speed_test" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autofaiss.indices.index_utils.</span></span><span class="sig-name descname"><span class="pre">search_speed_test</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">query</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ksearch</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">40</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timout_s</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/index_utils.html#search_speed_test"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.index_utils.search_speed_test" title="Permalink to this definition"></a></dt>
 <dd><p>return the average and 99p search speed</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
@@ -488,7 +374,7 @@ faiss.index_factory with inner product metrics.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="autofaiss.indices.index_utils.set_search_hyperparameters">
-<span class="sig-prename descclassname"><span class="pre">autofaiss.indices.index_utils.</span></span><span class="sig-name descname"><span class="pre">set_search_hyperparameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param_str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_gpu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/index_utils.html#set_search_hyperparameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.index_utils.set_search_hyperparameters" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autofaiss.indices.index_utils.</span></span><span class="sig-name descname"><span class="pre">set_search_hyperparameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param_str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_gpu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/index_utils.html#set_search_hyperparameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.index_utils.set_search_hyperparameters" title="Permalink to this definition"></a></dt>
 <dd><p>set hyperparameters to an index</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
@@ -499,7 +385,7 @@ faiss.index_factory with inner product metrics.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="autofaiss.indices.index_utils.speed_test_ms_per_query">
-<span class="sig-prename descclassname"><span class="pre">autofaiss.indices.index_utils.</span></span><span class="sig-name descname"><span class="pre">speed_test_ms_per_query</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">query</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ksearch</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">40</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timout_s</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/index_utils.html#speed_test_ms_per_query"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.index_utils.speed_test_ms_per_query" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autofaiss.indices.index_utils.</span></span><span class="sig-name descname"><span class="pre">speed_test_ms_per_query</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">query</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ksearch</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">40</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timout_s</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/index_utils.html#speed_test_ms_per_query"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.index_utils.speed_test_ms_per_query" title="Permalink to this definition"></a></dt>
 <dd><p>Evaluate the average speed in milliseconds of the index without using batch</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
@@ -510,11 +396,11 @@ faiss.index_factory with inner product metrics.</p>
 
 </section>
 <section id="module-autofaiss.indices.memory_efficient_flat_index">
-<span id="autofaiss-indices-memory-efficient-flat-index-module"></span><h2>autofaiss.indices.memory_efficient_flat_index module<a class="headerlink" href="#module-autofaiss.indices.memory_efficient_flat_index" title="Permalink to this heading">¶</a></h2>
+<span id="autofaiss-indices-memory-efficient-flat-index-module"></span><h2>autofaiss.indices.memory_efficient_flat_index module<a class="headerlink" href="#module-autofaiss.indices.memory_efficient_flat_index" title="Permalink to this heading"></a></h2>
 <p>This file contain a class describing a memory efficient flat index</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="autofaiss.indices.memory_efficient_flat_index.MemEfficientFlatIndex">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autofaiss.indices.memory_efficient_flat_index.</span></span><span class="sig-name descname"><span class="pre">MemEfficientFlatIndex</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">d</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric_type</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/memory_efficient_flat_index.html#MemEfficientFlatIndex"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.memory_efficient_flat_index.MemEfficientFlatIndex" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autofaiss.indices.memory_efficient_flat_index.</span></span><span class="sig-name descname"><span class="pre">MemEfficientFlatIndex</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">d</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric_type</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/memory_efficient_flat_index.html#MemEfficientFlatIndex"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.memory_efficient_flat_index.MemEfficientFlatIndex" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#autofaiss.indices.faiss_index_wrapper.FaissIndexWrapper" title="autofaiss.indices.faiss_index_wrapper.FaissIndexWrapper"><code class="xref py py-class docutils literal notranslate"><span class="pre">FaissIndexWrapper</span></code></a></p>
 <p>Faiss-like Flat index that can support any size of vectors
 without memory issues.
@@ -522,7 +408,7 @@ Two search functions are available to use either batch of smaller faiss
 flat index or rely fully on numpy.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="autofaiss.indices.memory_efficient_flat_index.MemEfficientFlatIndex.add">
-<span class="sig-name descname"><span class="pre">add</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/memory_efficient_flat_index.html#MemEfficientFlatIndex.add"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.memory_efficient_flat_index.MemEfficientFlatIndex.add" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">add</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/memory_efficient_flat_index.html#MemEfficientFlatIndex.add"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.memory_efficient_flat_index.MemEfficientFlatIndex.add" title="Permalink to this definition"></a></dt>
 <dd><p>Function that adds vectors to the index</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -533,7 +419,7 @@ flat index or rely fully on numpy.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="autofaiss.indices.memory_efficient_flat_index.MemEfficientFlatIndex.add_all">
-<span class="sig-name descname"><span class="pre">add_all</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_items</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/memory_efficient_flat_index.html#MemEfficientFlatIndex.add_all"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.memory_efficient_flat_index.MemEfficientFlatIndex.add_all" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">add_all</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_items</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/memory_efficient_flat_index.html#MemEfficientFlatIndex.add_all"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.memory_efficient_flat_index.MemEfficientFlatIndex.add_all" title="Permalink to this definition"></a></dt>
 <dd><p>Function that adds vectors to the index from a memmory-mapped array</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -548,18 +434,18 @@ on the disk</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="autofaiss.indices.memory_efficient_flat_index.MemEfficientFlatIndex.add_files">
-<span class="sig-name descname"><span class="pre">add_files</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">embedding_reader</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/memory_efficient_flat_index.html#MemEfficientFlatIndex.add_files"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.memory_efficient_flat_index.MemEfficientFlatIndex.add_files" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">add_files</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">embedding_reader</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/memory_efficient_flat_index.html#MemEfficientFlatIndex.add_files"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.memory_efficient_flat_index.MemEfficientFlatIndex.add_files" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="autofaiss.indices.memory_efficient_flat_index.MemEfficientFlatIndex.delete_vectors">
-<span class="sig-name descname"><span class="pre">delete_vectors</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/memory_efficient_flat_index.html#MemEfficientFlatIndex.delete_vectors"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.memory_efficient_flat_index.MemEfficientFlatIndex.delete_vectors" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">delete_vectors</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/memory_efficient_flat_index.html#MemEfficientFlatIndex.delete_vectors"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.memory_efficient_flat_index.MemEfficientFlatIndex.delete_vectors" title="Permalink to this definition"></a></dt>
 <dd><p>delete the vectors of the index</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="autofaiss.indices.memory_efficient_flat_index.MemEfficientFlatIndex.search">
-<span class="sig-name descname"><span class="pre">search</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4000000</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/memory_efficient_flat_index.html#MemEfficientFlatIndex.search"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.memory_efficient_flat_index.MemEfficientFlatIndex.search" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">search</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4000000</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/memory_efficient_flat_index.html#MemEfficientFlatIndex.search"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.memory_efficient_flat_index.MemEfficientFlatIndex.search" title="Permalink to this definition"></a></dt>
 <dd><p>Function that search the k nearest neighbours of a batch of vectors</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -585,12 +471,12 @@ Contains the vectors’ labels of the k nearest neighbours.</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="autofaiss.indices.memory_efficient_flat_index.MemEfficientFlatIndex.search_files">
-<span class="sig-name descname"><span class="pre">search_files</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/memory_efficient_flat_index.html#MemEfficientFlatIndex.search_files"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.memory_efficient_flat_index.MemEfficientFlatIndex.search_files" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">search_files</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/memory_efficient_flat_index.html#MemEfficientFlatIndex.search_files"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.memory_efficient_flat_index.MemEfficientFlatIndex.search_files" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="autofaiss.indices.memory_efficient_flat_index.MemEfficientFlatIndex.search_numpy">
-<span class="sig-name descname"><span class="pre">search_numpy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xq</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4000000</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/memory_efficient_flat_index.html#MemEfficientFlatIndex.search_numpy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.memory_efficient_flat_index.MemEfficientFlatIndex.search_numpy" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">search_numpy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xq</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4000000</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/memory_efficient_flat_index.html#MemEfficientFlatIndex.search_numpy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.memory_efficient_flat_index.MemEfficientFlatIndex.search_numpy" title="Permalink to this definition"></a></dt>
 <dd><p>Function that search the k nearest neighbours of a batch of vectors.
 This implementation is based on vectorized numpy function, it is slower than
 the search function based on batches of faiss flat indices.
@@ -623,11 +509,11 @@ Contains the vectors’ labels of the k nearest neighbours.</p></li>
 
 </section>
 <section id="module-autofaiss.indices.search">
-<span id="autofaiss-indices-search-module"></span><h2>autofaiss.indices.search module<a class="headerlink" href="#module-autofaiss.indices.search" title="Permalink to this heading">¶</a></h2>
+<span id="autofaiss-indices-search-module"></span><h2>autofaiss.indices.search module<a class="headerlink" href="#module-autofaiss.indices.search" title="Permalink to this heading"></a></h2>
 <p>function related to search on indices</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="autofaiss.indices.search.knn_query">
-<span class="sig-prename descclassname"><span class="pre">autofaiss.indices.search.</span></span><span class="sig-name descname"><span class="pre">knn_query</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">query</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ksearch</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/search.html#knn_query"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.search.knn_query" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autofaiss.indices.search.</span></span><span class="sig-name descname"><span class="pre">knn_query</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">query</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ksearch</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/search.html#knn_query"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.search.knn_query" title="Permalink to this definition"></a></dt>
 <dd><p>Do a knn search and return a list of the closest items and the associated distance</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
@@ -638,27 +524,27 @@ Contains the vectors’ labels of the k nearest neighbours.</p></li>
 
 </section>
 <section id="module-autofaiss.indices.training">
-<span id="autofaiss-indices-training-module"></span><h2>autofaiss.indices.training module<a class="headerlink" href="#module-autofaiss.indices.training" title="Permalink to this heading">¶</a></h2>
+<span id="autofaiss-indices-training-module"></span><h2>autofaiss.indices.training module<a class="headerlink" href="#module-autofaiss.indices.training" title="Permalink to this heading"></a></h2>
 <p>Index training</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="autofaiss.indices.training.TrainedIndex">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autofaiss.indices.training.</span></span><span class="sig-name descname"><span class="pre">TrainedIndex</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index_or_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embedding_reader_or_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/training.html#TrainedIndex"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.training.TrainedIndex" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autofaiss.indices.training.</span></span><span class="sig-name descname"><span class="pre">TrainedIndex</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index_or_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embedding_reader_or_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/training.html#TrainedIndex"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.training.TrainedIndex" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.NamedTuple" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">NamedTuple</span></code></a></p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="autofaiss.indices.training.TrainedIndex.embedding_reader_or_path">
-<span class="sig-name descname"><span class="pre">embedding_reader_or_path</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">EmbeddingReader</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></em><a class="headerlink" href="#autofaiss.indices.training.TrainedIndex.embedding_reader_or_path" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">embedding_reader_or_path</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Union" title="(in Python v3.11)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code></a><span class="pre">[</span><code class="xref py py-class docutils literal notranslate"><span class="pre">EmbeddingReader</span></code><span class="pre">,</span> <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a><span class="pre">,</span> <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a><span class="pre">[</span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a><span class="pre">]]</span></em><a class="headerlink" href="#autofaiss.indices.training.TrainedIndex.embedding_reader_or_path" title="Permalink to this definition"></a></dt>
 <dd><p>Alias for field number 2</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="autofaiss.indices.training.TrainedIndex.index_key">
-<span class="sig-name descname"><span class="pre">index_key</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></em><a class="headerlink" href="#autofaiss.indices.training.TrainedIndex.index_key" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">index_key</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></em><a class="headerlink" href="#autofaiss.indices.training.TrainedIndex.index_key" title="Permalink to this definition"></a></dt>
 <dd><p>Alias for field number 1</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="autofaiss.indices.training.TrainedIndex.index_or_path">
-<span class="sig-name descname"><span class="pre">index_or_path</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Index</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></em><a class="headerlink" href="#autofaiss.indices.training.TrainedIndex.index_or_path" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">index_or_path</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Union" title="(in Python v3.11)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code></a><span class="pre">[</span><code class="xref py py-class docutils literal notranslate"><span class="pre">Index</span></code><span class="pre">,</span> <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a><span class="pre">]</span></em><a class="headerlink" href="#autofaiss.indices.training.TrainedIndex.index_or_path" title="Permalink to this definition"></a></dt>
 <dd><p>Alias for field number 0</p>
 </dd></dl>
 
@@ -666,7 +552,7 @@ Contains the vectors’ labels of the k nearest neighbours.</p></li>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="autofaiss.indices.training.create_and_train_index_from_embedding_dir">
-<span class="sig-prename descclassname"><span class="pre">autofaiss.indices.training.</span></span><span class="sig-name descname"><span class="pre">create_and_train_index_from_embedding_dir</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">embedding_root_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embedding_column_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_index_memory_usage</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">make_direct_map</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">should_be_memory_mappable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current_memory_available</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_gpu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_columns</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ip'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_cores</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/training.html#create_and_train_index_from_embedding_dir"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.training.create_and_train_index_from_embedding_dir" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autofaiss.indices.training.</span></span><span class="sig-name descname"><span class="pre">create_and_train_index_from_embedding_dir</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">embedding_root_dirs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embedding_column_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_index_memory_usage</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">make_direct_map</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">should_be_memory_mappable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current_memory_available</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_gpu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_columns</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ip'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_cores</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/training.html#create_and_train_index_from_embedding_dir"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.training.create_and_train_index_from_embedding_dir" title="Permalink to this definition"></a></dt>
 <dd><p>Create and train index from embedding directory</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
@@ -677,7 +563,7 @@ Contains the vectors’ labels of the k nearest neighbours.</p></li>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="autofaiss.indices.training.create_and_train_new_index">
-<span class="sig-prename descclassname"><span class="pre">autofaiss.indices.training.</span></span><span class="sig-name descname"><span class="pre">create_and_train_new_index</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">embedding_reader</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current_memory_available</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_gpu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/training.html#create_and_train_new_index"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.training.create_and_train_new_index" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autofaiss.indices.training.</span></span><span class="sig-name descname"><span class="pre">create_and_train_new_index</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">embedding_reader</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current_memory_available</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_gpu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/training.html#create_and_train_new_index"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.training.create_and_train_new_index" title="Permalink to this definition"></a></dt>
 <dd><p>Create and train new index</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
@@ -688,7 +574,7 @@ Contains the vectors’ labels of the k nearest neighbours.</p></li>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="autofaiss.indices.training.create_empty_index">
-<span class="sig-prename descclassname"><span class="pre">autofaiss.indices.training.</span></span><span class="sig-name descname"><span class="pre">create_empty_index</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vec_dim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric_type</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/training.html#create_empty_index"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.training.create_empty_index" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autofaiss.indices.training.</span></span><span class="sig-name descname"><span class="pre">create_empty_index</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vec_dim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric_type</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/autofaiss/indices/training.html#create_empty_index"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autofaiss.indices.training.create_empty_index" title="Permalink to this definition"></a></dt>
 <dd><p>Create empty index</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
@@ -699,56 +585,39 @@ Contains the vectors’ labels of the k nearest neighbours.</p></li>
 
 </section>
 <section id="module-autofaiss.indices">
-<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-autofaiss.indices" title="Permalink to this heading">¶</a></h2>
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-autofaiss.indices" title="Permalink to this heading"></a></h2>
 </section>
 </section>
 
 
            </div>
-           
           </div>
-          <footer>
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="autofaiss.metrics.html" class="btn btn-neutral float-right" title="autofaiss.metrics package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="autofaiss.external.html" class="btn btn-neutral float-left" title="autofaiss.external package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="autofaiss.metrics.html" class="btn btn-neutral float-right" title="autofaiss.metrics package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &#169; Copyright 2020, Criteo.
-
-    </p>
+    <p>&#169; Copyright 2020, Criteo.</p>
   </div>
-    
-    
-    
-    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
-    
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>
