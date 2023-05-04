@@ -478,7 +478,10 @@ def create_big_index(
         return TrainedIndex(output_index_path, trained_index.index_key, embedding_root_dirs)
 
     if not index_path:
-        # Train index
+        # Train index. We use the value 13 below as a magic number to create a partition
+        # and train the big index on an executor. We don't want to train the big index
+        # on the driver because we are potentially training multiple big indexes in parallel
+        # and the driver don't necessarily have enough memory
         rdd = ss.sparkContext.parallelize([13], 1)
         trained_index_path, trained_index_key, _, = rdd.map(
             lambda _: _create_and_train_index_from_embedding_dir()
