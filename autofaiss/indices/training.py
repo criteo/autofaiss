@@ -21,7 +21,7 @@ logger = logging.getLogger("autofaiss")
 class TrainedIndex(NamedTuple):
     index_or_path: Union[faiss.Index, str]
     index_key: str
-    embedding_reader_or_path: Union[EmbeddingReader, str]
+    embedding_reader_or_path: Union[EmbeddingReader, str, List[str]]
 
 
 def create_empty_index(vec_dim: int, index_key: str, metric_type: Union[str, int]) -> faiss.Index:
@@ -110,7 +110,7 @@ def create_and_train_new_index(
 
 
 def create_and_train_index_from_embedding_dir(
-    embedding_root_dir: str,
+    embedding_root_dirs: Union[List[str], str],
     embedding_column_name: str,
     max_index_memory_usage: str,
     make_direct_map: bool,
@@ -131,7 +131,7 @@ def create_and_train_index_from_embedding_dir(
     # Read embeddings
     with Timeit("-> Reading embeddings", indent=2):
         embedding_reader = EmbeddingReader(
-            embedding_root_dir, file_format="parquet", embedding_column=embedding_column_name, meta_columns=id_columns
+            embedding_root_dirs, file_format="parquet", embedding_column=embedding_column_name, meta_columns=id_columns
         )
 
     # Define index key
@@ -145,7 +145,7 @@ def create_and_train_index_from_embedding_dir(
             use_gpu=use_gpu,
         )
         if not best_index_keys:
-            raise RuntimeError(f"Unable to find optimal index key from embedding directory {embedding_root_dir}")
+            raise RuntimeError(f"Unable to find optimal index key from embedding directory {embedding_root_dirs}")
         index_key = best_index_keys[0]
 
     # Create metadata

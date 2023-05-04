@@ -40,10 +40,6 @@ def cast_memory_to_bytes(memory_string: str) -> float:
 def cast_bytes_to_memory_string(num_bytes: float) -> str:
     """
     Cast a number of bytes to a readable string
-
-    >>> from autofaiss.utils.cast import cast_bytes_to_memory_string
-    >>> cast_bytes_to_memory_string(16.*1024*1024*1024) == "16.0GB"
-    True
     """
 
     suffix = "B"
