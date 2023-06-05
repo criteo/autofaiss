@@ -159,10 +159,10 @@ def parallel_download_indices_from_remote(
 
 
 def initialize_direct_map(index: faiss.Index) -> None:
-    nested_index = extract_index_ivf(index) if isinstance(index, faiss.swigfaiss.IndexPreTransform) else index
+    nested_index = extract_index_ivf(index) if isinstance(index, faiss.IndexPreTransform) else index
 
     # Make direct map is only implemented for IndexIVF and IndexBinaryIVF, see built file faiss/swigfaiss.py
-    if isinstance(nested_index, (faiss.swigfaiss.IndexIVF, faiss.swigfaiss.IndexBinaryIVF)):
+    if isinstance(nested_index, (faiss.IndexIVF, faiss.IndexBinaryIVF)):
         nested_index.make_direct_map()
 
 
