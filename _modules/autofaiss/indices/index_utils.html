@@ -10,6 +10,8 @@
     <script src="../../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
         <script src="../../../_static/doctools.js"></script>
         <script src="../../../_static/sphinx_highlight.js"></script>
@@ -247,10 +249,10 @@
 
 
 <div class="viewcode-block" id="initialize_direct_map"><a class="viewcode-back" href="../../../_source/autofaiss.indices.html#autofaiss.indices.index_utils.initialize_direct_map">[docs]</a><span class="k">def</span> <span class="nf">initialize_direct_map</span><span class="p">(</span><span class="n">index</span><span class="p">:</span> <span class="n">faiss</span><span class="o">.</span><span class="n">Index</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="n">nested_index</span> <span class="o">=</span> <span class="n">extract_index_ivf</span><span class="p">(</span><span class="n">index</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">faiss</span><span class="o">.</span><span class="n">swigfaiss</span><span class="o">.</span><span class="n">IndexPreTransform</span><span class="p">)</span> <span class="k">else</span> <span class="n">index</span>
+    <span class="n">nested_index</span> <span class="o">=</span> <span class="n">extract_index_ivf</span><span class="p">(</span><span class="n">index</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">faiss</span><span class="o">.</span><span class="n">IndexPreTransform</span><span class="p">)</span> <span class="k">else</span> <span class="n">index</span>
 
     <span class="c1"># Make direct map is only implemented for IndexIVF and IndexBinaryIVF, see built file faiss/swigfaiss.py</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">nested_index</span><span class="p">,</span> <span class="p">(</span><span class="n">faiss</span><span class="o">.</span><span class="n">swigfaiss</span><span class="o">.</span><span class="n">IndexIVF</span><span class="p">,</span> <span class="n">faiss</span><span class="o">.</span><span class="n">swigfaiss</span><span class="o">.</span><span class="n">IndexBinaryIVF</span><span class="p">)):</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">nested_index</span><span class="p">,</span> <span class="p">(</span><span class="n">faiss</span><span class="o">.</span><span class="n">IndexIVF</span><span class="p">,</span> <span class="n">faiss</span><span class="o">.</span><span class="n">IndexBinaryIVF</span><span class="p">)):</span>
         <span class="n">nested_index</span><span class="o">.</span><span class="n">make_direct_map</span><span class="p">()</span></div>
 
 
