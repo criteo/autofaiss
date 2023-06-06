@@ -215,11 +215,7 @@ def _get_file_system(path: str) -> fsspec.AbstractFileSystem:
 
 
 def _merge_to_n_indices(
-    spark_session,
-    n: int,
-    src_folder: str,
-    dst_folder: str,
-    index_optimizer: Optional[Callable] = None
+    spark_session, n: int, src_folder: str, dst_folder: str, index_optimizer: Optional[Callable] = None
 ):
     """Merge all the indices from src_folder into n indices, and return the folder for the next stage, as well as the metrics"""
     fs = _get_file_system(src_folder)
