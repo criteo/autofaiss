@@ -78,7 +78,7 @@ def add_embeddings_to_index_local(
     trained_index_or_path: Union[faiss.Index, str],
     memory_available_for_adding: str,
     embedding_ids_df_handler: Optional[Callable[[pd.DataFrame, int], Any]] = None,
-    index_optimizer: Callable = None,
+    index_optimizer: Optional[Callable] = None,
     add_embeddings_with_ids: bool = False,
 ) -> Tuple[Optional[faiss.Index], Optional[Dict[str, str]]]:
     """Add embeddings to index from driver"""

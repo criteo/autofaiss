@@ -1,5 +1,6 @@
 black==19.10b0
-mypy==0.812
+mypy==0.812; python_version < "3.11"
+mypy<1.4.0; python_version >= "3.11"
 pylint==2.6.0
 pytest-cov==2.10.1
 pytest-xdist==2.1.0
