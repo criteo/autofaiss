@@ -148,7 +148,7 @@ def _merge_index(
     end: Optional[int] = None,
     max_size_on_disk: str = "50GB",
     tmp_output_folder: Optional[str] = None,
-    index_optimizer: Callable = None,
+    index_optimizer: Optional[Callable] = None,
 ) -> Tuple[faiss.Index, Dict[str, str]]:
     """
     Merge all the indices in `small_indices_folder` into single one.
@@ -214,7 +214,9 @@ def _get_file_system(path: str) -> fsspec.AbstractFileSystem:
     return fsspec.core.url_to_fs(path, use_listings_cache=False)[0]
 
 
-def _merge_to_n_indices(spark_session, n: int, src_folder: str, dst_folder: str, index_optimizer: Callable = None):
+def _merge_to_n_indices(
+    spark_session, n: int, src_folder: str, dst_folder: str, index_optimizer: Optional[Callable] = None
+):
     """Merge all the indices from src_folder into n indices, and return the folder for the next stage, as well as the metrics"""
     fs = _get_file_system(src_folder)
     nb_indices_on_src_folder = len(fs.ls(src_folder, detail=False))

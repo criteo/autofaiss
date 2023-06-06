@@ -94,7 +94,7 @@ def add_embeddings_to_index(
     distributed_engine: Optional[str] = None,
     temporary_indices_folder: str = "hdfs://root/tmp/distributed_autofaiss_indices",
     nb_indices_to_keep: int = 1,
-    index_optimizer: Callable = None,
+    index_optimizer: Optional[Callable] = None,
 ) -> Tuple[Optional[faiss.Index], Optional[Dict[str, str]]]:
     """Add embeddings to the index"""
 
@@ -145,7 +145,7 @@ def create_index(
     distributed_engine: Optional[str] = None,
     temporary_indices_folder: str = "hdfs://root/tmp/distributed_autofaiss_indices",
     nb_indices_to_keep: int = 1,
-    index_optimizer: Callable = None,
+    index_optimizer: Optional[Callable] = None,
 ) -> Tuple[Optional[faiss.Index], Optional[Dict[str, str]]]:
     """
     Create an index and add embeddings to the index
