@@ -1,7 +1,7 @@
 black==19.10b0
-mypy==0.790
+mypy==0.812
 pylint==2.6.0
 pytest-cov==2.10.1
 pytest-xdist==2.1.0
-pytest==6.1.2
+pytest==6.2.5
 pyspark==3.2.2
