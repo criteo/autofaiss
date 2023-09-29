@@ -140,8 +140,8 @@ def get_optimal_index_keys_v2(
     nb_vectors: int,
     dim_vector: int,
     max_index_memory_usage: str,
-    flat_threshold: int = 1000,
-    quantization_threshold: int = 10000,
+    flat_threshold: int = 1_000,
+    quantization_threshold: int = 10_000,
     force_pq: Optional[int] = None,
     make_direct_map: bool = False,
     should_be_memory_mappable: bool = False,
@@ -477,6 +477,8 @@ def get_optimal_hyperparameters(
     max_timeout_per_iteration_s: float = 1.0,  # seconds
     min_ef_search: int = 32,
     min_nearest_neighbors_to_retrieve: int = 20,
+    *,
+    min_nprobe: int = 1,
 ) -> str:
     """Find the optimal hyperparameters to maximize the recall given a query speed in milliseconds/query"""
 
@@ -487,7 +489,9 @@ def get_optimal_hyperparameters(
         ht = 2048
         nb_clusters = int(params[2])
         hyperparameter_str_from_param = lambda nprobe: f"nprobe={nprobe},ht={ht}"
-        parameter_range = list(range(1, min(6144, nb_clusters) + 1))
+        nprobe_lower_bound = max(1, min(min_nprobe, nb_clusters))
+        nprobe_upper_bound = max(nprobe_lower_bound, min(6144, nb_clusters))
+        parameter_range = list(range(nprobe_lower_bound, nprobe_upper_bound + 1))
         timeout_boost_for_precision_search = 6.0
 
     elif any(re.findall(r"OPQ\d+_\d+,IVF\d+_HNSW\d+,PQ\d+", index_key)):
@@ -495,7 +499,9 @@ def get_optimal_hyperparameters(
         ht = 2048
         nb_clusters = int(params[2])
         hyperparameter_str_from_param = lambda nprobe: f"nprobe={nprobe},efSearch={2*nprobe},ht={ht}"
-        parameter_range = list(range(max(1, min_ef_search // 2), min(6144, nb_clusters) + 1))
+        nprobe_lower_bound = min(nb_clusters, max(min_nprobe, min_ef_search // 2, 1))
+        nprobe_upper_bound = max(nprobe_lower_bound, min(6144, nb_clusters))
+        parameter_range = list(range(nprobe_lower_bound, nprobe_upper_bound + 1))
         timeout_boost_for_precision_search = 12.0
 
     elif any(re.findall(r"HNSW\d+", index_key)):
@@ -508,7 +514,9 @@ def get_optimal_hyperparameters(
 
         nb_clusters = int(params[0])
         hyperparameter_str_from_param = lambda nprobe: f"nprobe={nprobe}"
-        parameter_range = list(range(1, nb_clusters + 1))
+        nprobe_lower_bound = min(min_nprobe, nb_clusters)
+        nprobe_upper_bound = nb_clusters
+        parameter_range = list(range(nprobe_lower_bound, nprobe_upper_bound + 1))
         timeout_boost_for_precision_search = 6.0
 
     elif index_key == "Flat":
