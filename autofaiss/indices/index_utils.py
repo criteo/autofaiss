@@ -21,6 +21,11 @@ logger = logging.getLogger("autofaiss")
 def get_index_size(index: faiss.Index) -> int:
     """Returns the size in RAM of a given index"""
     with NamedTemporaryFile() as tmp_file:
+        # it's not allowed to re-open the file on windows
+        # https://stackoverflow.com/questions/23212435/permission-denied-to-write-to-my-temporary-file
+        if os.name == "nt":
+            tmp_file.close()
+
         faiss.write_index(index, tmp_file.name)
         size_in_bytes = Path(tmp_file.name).stat().st_size
 
