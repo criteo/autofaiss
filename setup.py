@@ -8,7 +8,6 @@ import os
 import setuptools
 
 if __name__ == "__main__":
-
     # Read metadata from version.py
     with Path("autofaiss/version.py").open(encoding="utf-8") as file:
         metadata = dict(re.findall(r'__([a-z]+)__\s*=\s*"([^"]+)"', file.read()))

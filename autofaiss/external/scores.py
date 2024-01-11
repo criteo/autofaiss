@@ -78,9 +78,7 @@ def compute_medium_metrics(
             ground_truth_path = f"{embedding_reader.embeddings_folder}/small_ground_truth_test.gt"
             fs, path = fsspec.core.url_to_fs(ground_truth_path, use_listings_cache=False)
             if not fs.exists(path):
-
                 with Timeit("-> Compute small ground truth", indent=1):
-
                     ground_truth = get_ground_truth(
                         index.metric_type, embedding_reader, query_embeddings, memory_available
                     )
@@ -128,7 +126,7 @@ def get_ground_truth(
 
     memory_available = cast_memory_to_bytes(memory_available) if isinstance(memory_available, str) else memory_available
 
-    batch_size = int(min(memory_available, 10 ** 9) / (dim * 4))  # at most 1GB of memory
+    batch_size = int(min(memory_available, 10**9) / (dim * 4))  # at most 1GB of memory
 
     if isinstance(embedding_reader, EmbeddingReader):
         _, ground_truth = perfect_index.search_files(query_embeddings, k=40, batch_size=batch_size)

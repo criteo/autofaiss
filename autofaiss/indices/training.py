@@ -28,7 +28,6 @@ def create_empty_index(vec_dim: int, index_key: str, metric_type: Union[str, int
     """Create empty index"""
 
     with Timeit(f"-> Instanciate the index {index_key}", indent=2):
-
         # Convert metric_type to faiss type
         metric_type = to_faiss_metric_type(metric_type)
 
@@ -52,7 +51,6 @@ def _train_index(
 
     # Extract training vectors
     with Timeit("-> Extract training vectors", indent=2):
-
         memory_available_for_training = cast_bytes_to_memory_string(cast_memory_to_bytes(current_memory_available))
 
         # Determine the number of vectors necessary to train the index
