@@ -1,6 +1,6 @@
 # pylint: disable=all
 
-__version__ = "2.15.8"
+__version__ = "2.16.0"
 __author__ = "Criteo"
 
 
