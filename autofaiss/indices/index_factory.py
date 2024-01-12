@@ -14,7 +14,6 @@ def index_factory(d: int, index_key: str, metric_type: int, ef_construction: Opt
     """
 
     if metric_type == faiss.METRIC_INNER_PRODUCT:
-
         # make the index described by the key
         if any(re.findall(r"OPQ\d+_\d+,IVF\d+,PQ\d+", index_key)):
             params = [int(x) for x in re.findall(r"\d+", index_key)]

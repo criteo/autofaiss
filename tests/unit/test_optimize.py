@@ -19,7 +19,6 @@ LOGGER = logging.getLogger(__name__)
 @pytest.mark.parametrize("dim_vector", [10, 100])
 @pytest.mark.parametrize("max_index_memory_usage", ["1K", "1M", "1G"])
 def test_get_optimal_index_keys_v2(nb_vectors: int, dim_vector: int, max_index_memory_usage: str) -> None:
-
     # Check that should_be_memory_mappable returns only ivf indices
     for index_key in get_optimal_index_keys_v2(
         nb_vectors, dim_vector, max_index_memory_usage, should_be_memory_mappable=True
@@ -58,14 +57,12 @@ def test_get_min_param_value_for_best_neighbors_coverage() -> None:
     # We only test on hnsw because this index is fast to build
     embeddings = np.float32(np.random.rand(30001, 512))
     hyperparameter_str_from_param = lambda ef_search: f"efSearch={ef_search}"
-    parameter_range = list(range(16, 2 ** 14))
+    parameter_range = list(range(16, 2**14))
     index, _ = build_index(embeddings, save_on_disk=False, index_key="HNSW15")
 
     embeddings = np.float32(np.random.rand(66, 512))
     for targeted_nb_neighbors_to_query in [10, 3000, 31000]:
-
         for targeted_coverage in [0.99, 0.5]:
-
             # Compute max coverage ratio
             param_str = hyperparameter_str_from_param(parameter_range[-1])
             set_search_hyperparameters(index, param_str)
@@ -116,12 +113,10 @@ def test_get_optimal_hyperparameters(index_key: str, d: int) -> None:
     index.train(embeddings[:10000])
 
     for nb_vec_in, target_nb_vec in zip([0] + nb_vectors_list, nb_vectors_list):
-
         index.add(embeddings[nb_vec_in:target_nb_vec])
         assert index.ntotal == target_nb_vec
 
         for target_speed_ms in target_speed_ms_list:
-
             hyperparameters_str = get_optimal_hyperparameters(
                 index, index_key, target_speed_ms, use_gpu, max_timeout_per_iteration_s=1.0, min_ef_search=min_ef_search
             )

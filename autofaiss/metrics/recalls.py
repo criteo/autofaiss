@@ -61,7 +61,6 @@ def r_recall_at_r(
 
     total = np.zeros((r_max,))
     for i in range(query.shape[0]):
-
         # If the ground truth contains -1 (missing elements), the recall definition must change.
         # We should divide by the number of elements possible to retrieve, not r_lim
         r_lim_fix = min(r_lim, np.min(np.where(ground_truth[i] == -1)[0])) if -1 in ground_truth[i] else r_lim
