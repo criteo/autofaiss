@@ -2,6 +2,7 @@
 
 from typing import Callable
 
+
 # pylint: disable=invalid-name
 def discrete_binary_search(is_ok: Callable[[int], bool], n: int) -> int:
     """

@@ -33,7 +33,6 @@ class IndexMetadata:
     """
 
     def __init__(self, index_key: str, nb_vectors: int, dim_vector: int, make_direct_map: bool = False):
-
         self.index_key = index_key
         self.nb_vectors = nb_vectors
         self.dim_vector = dim_vector
@@ -157,7 +156,6 @@ class IndexMetadata:
             return total_size_in_byte
 
         if self.index_type == IndexType.IVF_FLAT:
-
             direct_map_overhead = 8 * self.nb_vectors if self.make_direct_map else 0
             vectors_size_in_bytes = self.nb_vectors * self.dim_vector * 4
             centroid_size_in_bytes = self.params["ncentroids"] * self.dim_vector * 4
@@ -215,7 +213,7 @@ structure (if there is quantization for instance).
         elif self.index_type == IndexType.PAD_IVF_HNSW_PQ:
             return self.compute_memory_necessary_for_pad_ivf_hnsw_pq(nb_training_vectors)
         else:
-            return 500 * 10 ** 6
+            return 500 * 10**6
 
     def compute_memory_necessary_for_ivf_flat(self, nb_training_vectors: int):
         """Compute the memory estimation for index type IVF_FLAT."""

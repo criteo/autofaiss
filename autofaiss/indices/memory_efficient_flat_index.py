@@ -117,7 +117,6 @@ class MemEfficientFlatIndex(FaissIndexWrapper):
 
         # For each batch
         for i in trange(0, self.prod_emb.shape[0], batch_size):
-
             # compute distances in one tensor product
             dist_arr = np.sum((xq_reshaped * np.expand_dims(self.prod_emb[i : i + batch_size], 0)), axis=-1)
 
@@ -141,8 +140,8 @@ class MemEfficientFlatIndex(FaissIndexWrapper):
             offset += batch_size
 
         # Fill distance and indice matrix
-        D = np.zeros((xq.shape[0], k), dtype=np.float32)
-        I = np.full((xq.shape[0], k), fill_value=-1, dtype=np.int32)
+        D: np.ndarray = np.zeros((xq.shape[0], k), dtype=np.float32)
+        I: np.ndarray = np.full((xq.shape[0], k), fill_value=-1, dtype=np.int32)
 
         for i in range(xq.shape[0]):
             # case where we couldn't find enough vectors
@@ -198,7 +197,6 @@ class MemEfficientFlatIndex(FaissIndexWrapper):
 
         # For each batch
         for i in trange(0, self.prod_emb.shape[0], batch_size):
-
             # instanciate a Flat index
             brute = faiss.IndexFlatIP(self.dim)
             # pylint: disable=no-value-for-parameter
@@ -217,8 +215,8 @@ class MemEfficientFlatIndex(FaissIndexWrapper):
             offset += batch_size
 
         # Fill distance and indice matrix
-        D = np.zeros((xq.shape[0], k), dtype=np.float32)
-        I = np.full((xq.shape[0], k), fill_value=-1, dtype=np.int32)
+        D: np.ndarray = np.zeros((xq.shape[0], k), dtype=np.float32)
+        I: np.ndarray = np.full((xq.shape[0], k), fill_value=-1, dtype=np.int32)
 
         for i in range(xq.shape[0]):
             # case where we couldn't find enough vectors
@@ -231,7 +229,6 @@ class MemEfficientFlatIndex(FaissIndexWrapper):
         return D, I
 
     def search_files(self, x: np.ndarray, k: int, batch_size: int):
-
         if self.embedding_reader is None:
             raise ValueError("The index is empty")
 
@@ -270,8 +267,8 @@ class MemEfficientFlatIndex(FaissIndexWrapper):
             offset += emb_array.shape[0]
 
         # Fill distance and indice matrix
-        D = np.zeros((xq.shape[0], k), dtype=np.float32)
-        I = np.full((xq.shape[0], k), fill_value=-1, dtype=np.int32)
+        D: np.ndarray = np.zeros((xq.shape[0], k), dtype=np.float32)
+        I: np.ndarray = np.full((xq.shape[0], k), fill_value=-1, dtype=np.int32)
 
         for i in range(xq.shape[0]):
             # case where we couldn't find enough vectors

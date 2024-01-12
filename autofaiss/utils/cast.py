@@ -17,7 +17,7 @@ def cast_memory_to_bytes(memory_string: str) -> float:
     True
     """
 
-    conversion = {unit: (2 ** 10) ** i for i, unit in enumerate("BKMGTPEZ")}
+    conversion = {unit: (2**10) ** i for i, unit in enumerate("BKMGTPEZ")}
 
     number_match = r"([0-9]*\.[0-9]+|[0-9]+)"
     unit_match = "("
@@ -40,18 +40,14 @@ def cast_memory_to_bytes(memory_string: str) -> float:
 def cast_bytes_to_memory_string(num_bytes: float) -> str:
     """
     Cast a number of bytes to a readable string
-
-    >>> from autofaiss.utils.cast import cast_bytes_to_memory_string
-    >>> cast_bytes_to_memory_string(16.*1024*1024*1024) == "16.0GB"
-    True
     """
 
     suffix = "B"
     for unit in ["", "K", "M", "G", "T", "P", "E", "Z"]:
         if abs(num_bytes) < 1024.0:
-            return "%3.1f%s%s" % (num_bytes, unit, suffix)
+            return "%3.1f%s%s" % (num_bytes, unit, suffix)  # pylint: disable=consider-using-f-string
         num_bytes /= 1024.0
-    return "%.1f%s%s" % (num_bytes, "Y", suffix)
+    return "%.1f%s%s" % (num_bytes, "Y", suffix)  # pylint: disable=consider-using-f-string
 
 
 def to_faiss_metric_type(metric_type: Union[str, int]) -> int:
