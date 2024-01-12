@@ -1,22 +1,24 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="../">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Autofaiss getting started &mdash; autofaiss 1.0.0 documentation</title>
-      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="../_static/nbsphinx-code-cells.css" type="text/css" />
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css" />
+
+  
   <!--[if lt IE 9]>
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script src="../_static/jquery.js"></script>
-        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-        <script src="../_static/doctools.js"></script>
-        <script src="../_static/sphinx_highlight.js"></script>
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=8d563738"></script>
+        <script src="../_static/doctools.js?v=888ff710"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
         <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
         <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -103,15 +105,15 @@
            <div itemprop="articleBody">
              
   <section id="Autofaiss-getting-started">
-<h1>Autofaiss getting started<a class="headerlink" href="#Autofaiss-getting-started" title="Permalink to this heading"></a></h1>
+<h1>Autofaiss getting started<a class="headerlink" href="#Autofaiss-getting-started" title="Link to this heading"></a></h1>
 <section id="Information">
-<h2>Information<a class="headerlink" href="#Information" title="Permalink to this heading"></a></h2>
+<h2>Information<a class="headerlink" href="#Information" title="Link to this heading"></a></h2>
 <p><strong>This Demo notebook automatically creates a Faiss knn indices with the most optimal similarity search parameters.</strong></p>
 <p>It selects the best indexing parameters to achieve the highest recalls given memory and query speed constraints.</p>
 <p>Github: <a class="reference external" href="https://github.com/criteo/autofaiss">https://github.com/criteo/autofaiss</a></p>
 </section>
 <section id="Parameters">
-<h2>Parameters<a class="headerlink" href="#Parameters" title="Permalink to this heading"></a></h2>
+<h2>Parameters<a class="headerlink" href="#Parameters" title="Link to this heading"></a></h2>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
@@ -126,7 +128,7 @@
 </div>
 </section>
 <section id="Embeddings-creation-(add-your-own-embeddings-here)">
-<h2>Embeddings creation (add your own embeddings here)<a class="headerlink" href="#Embeddings-creation-(add-your-own-embeddings-here)" title="Permalink to this heading"></a></h2>
+<h2>Embeddings creation (add your own embeddings here)<a class="headerlink" href="#Embeddings-creation-(add-your-own-embeddings-here)" title="Link to this heading"></a></h2>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
@@ -140,7 +142,7 @@
 </div>
 </section>
 <section id="Save-your-embeddings-on-the-disk">
-<h2>Save your embeddings on the disk<a class="headerlink" href="#Save-your-embeddings-on-the-disk" title="Permalink to this heading"></a></h2>
+<h2>Save your embeddings on the disk<a class="headerlink" href="#Save-your-embeddings-on-the-disk" title="Link to this heading"></a></h2>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
@@ -163,7 +165,7 @@
 </div>
 </section>
 <section id="Build-the-KNN-index-with-Autofaiss">
-<h2>Build the KNN index with Autofaiss<a class="headerlink" href="#Build-the-KNN-index-with-Autofaiss" title="Permalink to this heading"></a></h2>
+<h2>Build the KNN index with Autofaiss<a class="headerlink" href="#Build-the-KNN-index-with-Autofaiss" title="Link to this heading"></a></h2>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
@@ -172,73 +174,26 @@
 </pre></div>
 </div>
 </div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
 </pre></div>
 </div>
-<div class="input_area highlight-python notranslate"><div class="highlight"><pre><span></span># Install autofaiss
-!pip install autofaiss &amp;&gt; /dev/null
+<div class="input_area highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Install autofaiss</span>
+<span class="err">!</span><span class="n">pip</span> <span class="n">install</span> <span class="n">autofaiss</span> <span class="o">&amp;&gt;</span> <span class="o">/</span><span class="n">dev</span><span class="o">/</span><span class="n">null</span>
 
-# Build a KNN index
-!autofaiss build_index --embeddings={embeddings_dir} \
-                    --index_path=&quot;knn.index&quot; \
-                    --index_infos_path=&quot;infos.json&quot; \
-                    --metric_type={metric_type} \
-                    --max_index_query_time_ms=5 \
-                    --max_index_memory_usage={max_index_memory_usage}
+<span class="c1"># Build a KNN index</span>
+<span class="err">!</span><span class="n">autofaiss</span> <span class="n">build_index</span> <span class="o">--</span><span class="n">embeddings</span><span class="o">=</span><span class="p">{</span><span class="n">embeddings_dir</span><span class="p">}</span> \
+                    <span class="o">--</span><span class="n">index_path</span><span class="o">=</span><span class="s2">&quot;knn.index&quot;</span> \
+                    <span class="o">--</span><span class="n">index_infos_path</span><span class="o">=</span><span class="s2">&quot;infos.json&quot;</span> \
+                    <span class="o">--</span><span class="n">metric_type</span><span class="o">=</span><span class="p">{</span><span class="n">metric_type</span><span class="p">}</span> \
+                    <span class="o">--</span><span class="n">max_index_query_time_ms</span><span class="o">=</span><span class="mi">5</span> \
+                    <span class="o">--</span><span class="n">max_index_memory_usage</span><span class="o">=</span><span class="p">{</span><span class="n">max_index_memory_usage</span><span class="p">}</span>
 </pre></div>
 </div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-Launching the whole pipeline 08/02/2021, 13:25:58
-        Compute estimated construction time of the index 08/02/2021, 13:25:58
-                -&gt; Train: 16.7 minutes
-                -&gt; Add: 0.0 seconds
-                Total: 16.7 minutes
-        &gt;&gt;&gt; Finished &#34;Compute estimated construction time of the index&#34; in 0.0001 secs
-        Checking that your have enough memory available to create the index 08/02/2021, 13:25:58
-        &gt;&gt;&gt; Finished &#34;Checking that your have enough memory available to create the index&#34; in 0.0006 secs
-        Selecting most promising index types given data characteristics 08/02/2021, 13:25:58
-        &gt;&gt;&gt; Finished &#34;Selecting most promising index types given data characteristics&#34; in 0.0012 secs
-        Creating the index 08/02/2021, 13:25:58
-                -&gt; Instanciate the index HNSW32 08/02/2021, 13:25:58
-                &gt;&gt;&gt; Finished &#34;-&gt; Instanciate the index HNSW32&#34; in 0.0013 secs
-                -&gt; Extract training vectors 08/02/2021, 13:25:58
-100% 2/2 [00:00&lt;00:00, 1055.97it/s]
-                &gt;&gt;&gt; Finished &#34;-&gt; Extract training vectors&#34; in 0.0138 secs
-                -&gt; Training the index with 4000 vectors of dim 100 08/02/2021, 13:25:58
-                &gt;&gt;&gt; Finished &#34;-&gt; Training the index with 4000 vectors of dim 100&#34; in 0.0001 secs
-                -&gt; Adding the vectors to the index 08/02/2021, 13:25:58
-100% 2/2 [00:00&lt;00:00,  4.91it/s]
-                &gt;&gt;&gt; Finished &#34;-&gt; Adding the vectors to the index&#34; in 1.7210 secs
-        &gt;&gt;&gt; Finished &#34;Creating the index&#34; in 1.7372 secs
-        Computing best hyperparameters 08/02/2021, 13:26:00
-        &gt;&gt;&gt; Finished &#34;Computing best hyperparameters&#34; in 1.6057 secs
-The best hyperparameters are: efSearch=1319
-        Saving the index on local disk 08/02/2021, 13:26:01
-        &gt;&gt;&gt; Finished &#34;Saving the index on local disk&#34; in 0.0027 secs
-        Compute fast metrics 08/02/2021, 13:26:01
-2000
-        &gt;&gt;&gt; Finished &#34;Compute fast metrics&#34; in 9.8355 secs
-Recap:
-{&#39;99p_search_speed_ms&#39;: 7.556187009999177,
- &#39;avg_search_speed_ms&#39;: 4.902101082999792,
- &#39;compression ratio&#39;: 0.5956986092671344,
- &#39;nb vectors&#39;: 4000,
- &#39;reconstruction error %&#39;: 0.0,
- &#39;size in bytes&#39;: 2685922,
- &#39;vectors dimension&#39;: 100}
-&gt;&gt;&gt; Finished &#34;Launching the whole pipeline&#34; in 13.1962 secs
-Done
-</pre></div></div>
 </div>
 </section>
 <section id="Load-the-index-and-play-with-it">
-<h2>Load the index and play with it<a class="headerlink" href="#Load-the-index-and-play-with-it" title="Permalink to this heading"></a></h2>
+<h2>Load the index and play with it<a class="headerlink" href="#Load-the-index-and-play-with-it" title="Link to this heading"></a></h2>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
@@ -274,9 +229,9 @@ Top 5 elements in the dataset for max inner product search:
 </div>
 </section>
 <section id="(Bonus)-Python-version-of-the-CLI">
-<h2>(Bonus) Python version of the CLI<a class="headerlink" href="#(Bonus)-Python-version-of-the-CLI" title="Permalink to this heading"></a></h2>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+<h2>(Bonus) Python version of the CLI<a class="headerlink" href="#(Bonus)-Python-version-of-the-CLI" title="Link to this heading"></a></h2>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
 </pre></div>
 </div>
 <div class="input_area highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">autofaiss</span> <span class="kn">import</span> <span class="n">build_index</span>
@@ -289,90 +244,6 @@ Top 5 elements in the dataset for max inner product search:
                    <span class="n">metric_type</span><span class="o">=</span><span class="n">metric_type</span><span class="p">)</span>
 </pre></div>
 </div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-Launching the whole pipeline 08/02/2021, 13:26:11
-        Compute estimated construction time of the index 08/02/2021, 13:26:11
-                -&gt; Train: 16.7 minutes
-                -&gt; Add: 0.0 seconds
-                Total: 16.7 minutes
-        &gt;&gt;&gt; Finished &#34;Compute estimated construction time of the index&#34; in 0.0007 secs
-        Checking that your have enough memory available to create the index 08/02/2021, 13:26:11
-        &gt;&gt;&gt; Finished &#34;Checking that your have enough memory available to create the index&#34; in 0.0012 secs
-        Selecting most promising index types given data characteristics 08/02/2021, 13:26:11
-        &gt;&gt;&gt; Finished &#34;Selecting most promising index types given data characteristics&#34; in 0.0043 secs
-        Creating the index 08/02/2021, 13:26:11
-                -&gt; Instanciate the index HNSW32 08/02/2021, 13:26:11
-                &gt;&gt;&gt; Finished &#34;-&gt; Instanciate the index HNSW32&#34; in 0.0021 secs
-                -&gt; Extract training vectors 08/02/2021, 13:26:11
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-100%|██████████| 2/2 [00:00&lt;00:00, 421.77it/s]
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-                &gt;&gt;&gt; Finished &#34;-&gt; Extract training vectors&#34; in 0.0238 secs
-                -&gt; Training the index with 4000 vectors of dim 100 08/02/2021, 13:26:11
-                &gt;&gt;&gt; Finished &#34;-&gt; Training the index with 4000 vectors of dim 100&#34; in 0.0000 secs
-                -&gt; Adding the vectors to the index 08/02/2021, 13:26:11
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-
-100%|██████████| 2/2 [00:00&lt;00:00,  4.55it/s]
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-                &gt;&gt;&gt; Finished &#34;-&gt; Adding the vectors to the index&#34; in 1.7814 secs
-        &gt;&gt;&gt; Finished &#34;Creating the index&#34; in 1.8182 secs
-        Computing best hyperparameters 08/02/2021, 13:26:13
-        &gt;&gt;&gt; Finished &#34;Computing best hyperparameters&#34; in 3.2071 secs
-The best hyperparameters are: efSearch=2077
-        Saving the index on local disk 08/02/2021, 13:26:16
-        &gt;&gt;&gt; Finished &#34;Saving the index on local disk&#34; in 0.0064 secs
-        Compute fast metrics 08/02/2021, 13:26:16
-1025
-        &gt;&gt;&gt; Finished &#34;Compute fast metrics&#34; in 10.0180 secs
-Recap:
-{&#39;99p_search_speed_ms&#39;: 13.157404919996907,
- &#39;avg_search_speed_ms&#39;: 9.750819220487383,
- &#39;compression ratio&#39;: 0.5956986092671344,
- &#39;nb vectors&#39;: 4000,
- &#39;reconstruction error %&#39;: 0.0,
- &#39;size in bytes&#39;: 2685922,
- &#39;vectors dimension&#39;: 100}
-&gt;&gt;&gt; Finished &#34;Launching the whole pipeline&#34; in 15.0867 secs
-</pre></div></div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
-</pre></div>
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-&#39;Done&#39;
-</pre></div></div>
 </div>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:

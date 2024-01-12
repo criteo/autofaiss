@@ -1,20 +1,22 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="../../../">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>autofaiss.indices.distributed &mdash; autofaiss 1.0.0 documentation</title>
-      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=19f00094" />
+
+  
   <!--[if lt IE 9]>
     <script src="../../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script src="../../../_static/jquery.js"></script>
-        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
-        <script src="../../../_static/doctools.js"></script>
-        <script src="../../../_static/sphinx_highlight.js"></script>
+        <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../../_static/documentation_options.js?v=8d563738"></script>
+        <script src="../../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
@@ -189,7 +191,7 @@
         <span class="n">batch_size</span> <span class="o">=</span> <span class="n">get_optimal_batch_size</span><span class="p">(</span><span class="n">embedding_reader</span><span class="o">.</span><span class="n">dimension</span><span class="p">,</span> <span class="n">memory_available_for_adding</span><span class="p">)</span>
 
         <span class="n">ids_total</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="p">(</span><span class="n">vec_batch</span><span class="p">,</span> <span class="n">ids_batch</span><span class="p">)</span> <span class="ow">in</span> <span class="n">embedding_reader</span><span class="p">(</span><span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="n">end</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">vec_batch</span><span class="p">,</span> <span class="n">ids_batch</span> <span class="ow">in</span> <span class="n">embedding_reader</span><span class="p">(</span><span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="n">end</span><span class="p">):</span>
             <span class="n">consecutive_ids</span> <span class="o">=</span> <span class="n">ids_batch</span><span class="p">[</span><span class="s2">&quot;i&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span>
             <span class="c1"># using add_with_ids makes it possible to have consecutive and unique ids over all the N indices</span>
             <span class="n">empty_index</span><span class="o">.</span><span class="n">add_with_ids</span><span class="p">(</span><span class="n">vec_batch</span><span class="p">,</span> <span class="n">consecutive_ids</span><span class="p">)</span>
@@ -343,7 +345,9 @@
     <span class="k">return</span> <span class="n">dst_folder</span><span class="p">,</span> <span class="n">metrics_dict</span>
 
 
-<div class="viewcode-block" id="add_embeddings_to_index_distributed"><a class="viewcode-back" href="../../../_source/autofaiss.indices.html#autofaiss.indices.distributed.add_embeddings_to_index_distributed">[docs]</a><span class="k">def</span> <span class="nf">add_embeddings_to_index_distributed</span><span class="p">(</span>
+<div class="viewcode-block" id="add_embeddings_to_index_distributed">
+<a class="viewcode-back" href="../../../_source/autofaiss.indices.html#autofaiss.indices.distributed.add_embeddings_to_index_distributed">[docs]</a>
+<span class="k">def</span> <span class="nf">add_embeddings_to_index_distributed</span><span class="p">(</span>
     <span class="n">trained_index_or_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">faiss</span><span class="o">.</span><span class="n">Index</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span>
     <span class="n">embedding_reader</span><span class="p">:</span> <span class="n">EmbeddingReader</span><span class="p">,</span>
     <span class="n">memory_available_for_adding</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -394,7 +398,7 @@
 
     <span class="c1"># maximum between the number of spark workers, 10M embeddings per task and the number of indices to keep</span>
     <span class="n">n_batches</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span>
-        <span class="n">embedding_reader</span><span class="o">.</span><span class="n">count</span><span class="p">,</span> <span class="nb">max</span><span class="p">(</span><span class="n">n_workers</span><span class="p">,</span> <span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">embedding_reader</span><span class="o">.</span><span class="n">count</span> <span class="o">/</span> <span class="p">(</span><span class="mi">10</span> <span class="o">**</span> <span class="mi">7</span><span class="p">)),</span> <span class="n">nb_indices_to_keep</span><span class="p">)</span>
+        <span class="n">embedding_reader</span><span class="o">.</span><span class="n">count</span><span class="p">,</span> <span class="nb">max</span><span class="p">(</span><span class="n">n_workers</span><span class="p">,</span> <span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">embedding_reader</span><span class="o">.</span><span class="n">count</span> <span class="o">/</span> <span class="p">(</span><span class="mi">10</span><span class="o">**</span><span class="mi">7</span><span class="p">)),</span> <span class="n">nb_indices_to_keep</span><span class="p">)</span>
     <span class="p">)</span>
     <span class="n">nb_indices_to_keep</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">nb_indices_to_keep</span><span class="p">,</span> <span class="n">n_batches</span><span class="p">)</span>
     <span class="n">batches</span> <span class="o">=</span> <span class="n">_batch_loader</span><span class="p">(</span><span class="n">total_size</span><span class="o">=</span><span class="n">embedding_reader</span><span class="o">.</span><span class="n">count</span><span class="p">,</span> <span class="n">nb_batches</span><span class="o">=</span><span class="n">n_batches</span><span class="p">)</span>
@@ -438,6 +442,7 @@
             <span class="k">if</span> <span class="n">fs</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">temporary_indices_folder</span><span class="p">):</span>
                 <span class="n">fs</span><span class="o">.</span><span class="n">rm</span><span class="p">(</span><span class="n">temporary_indices_folder</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="n">metrics</span></div>
+
 
 
 <span class="k">def</span> <span class="nf">_add_embeddings_to_index</span><span class="p">(</span>
@@ -526,7 +531,9 @@
     <span class="p">)</span>
 
 
-<div class="viewcode-block" id="create_big_index"><a class="viewcode-back" href="../../../_source/autofaiss.indices.html#autofaiss.indices.distributed.create_big_index">[docs]</a><span class="k">def</span> <span class="nf">create_big_index</span><span class="p">(</span>
+<div class="viewcode-block" id="create_big_index">
+<a class="viewcode-back" href="../../../_source/autofaiss.indices.html#autofaiss.indices.distributed.create_big_index">[docs]</a>
+<span class="k">def</span> <span class="nf">create_big_index</span><span class="p">(</span>
     <span class="n">embedding_root_dirs</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">str</span><span class="p">],</span>
     <span class="n">output_root_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">ss</span><span class="p">,</span>
@@ -575,7 +582,11 @@
         <span class="c1"># on the driver because we are potentially training multiple big indexes in parallel</span>
         <span class="c1"># and the driver don&#39;t necessarily have enough memory</span>
         <span class="n">rdd</span> <span class="o">=</span> <span class="n">ss</span><span class="o">.</span><span class="n">sparkContext</span><span class="o">.</span><span class="n">parallelize</span><span class="p">([</span><span class="mi">13</span><span class="p">],</span> <span class="mi">1</span><span class="p">)</span>
-        <span class="n">trained_index_path</span><span class="p">,</span> <span class="n">trained_index_key</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="o">=</span> <span class="n">rdd</span><span class="o">.</span><span class="n">map</span><span class="p">(</span>
+        <span class="p">(</span>
+            <span class="n">trained_index_path</span><span class="p">,</span>
+            <span class="n">trained_index_key</span><span class="p">,</span>
+            <span class="n">_</span><span class="p">,</span>
+        <span class="p">)</span> <span class="o">=</span> <span class="n">rdd</span><span class="o">.</span><span class="n">map</span><span class="p">(</span>
             <span class="k">lambda</span> <span class="n">_</span><span class="p">:</span> <span class="n">_create_and_train_index_from_embedding_dir</span><span class="p">()</span>
         <span class="p">)</span><span class="o">.</span><span class="n">collect</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
@@ -612,7 +623,10 @@
     <span class="k">return</span> <span class="n">metrics</span></div>
 
 
-<div class="viewcode-block" id="create_small_index"><a class="viewcode-back" href="../../../_source/autofaiss.indices.html#autofaiss.indices.distributed.create_small_index">[docs]</a><span class="k">def</span> <span class="nf">create_small_index</span><span class="p">(</span>
+
+<div class="viewcode-block" id="create_small_index">
+<a class="viewcode-back" href="../../../_source/autofaiss.indices.html#autofaiss.indices.distributed.create_small_index">[docs]</a>
+<span class="k">def</span> <span class="nf">create_small_index</span><span class="p">(</span>
     <span class="n">embedding_root_dirs</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">str</span><span class="p">],</span>
     <span class="n">output_root_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">id_columns</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -677,7 +691,10 @@
     <span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="create_partitioned_indexes"><a class="viewcode-back" href="../../../_source/autofaiss.indices.html#autofaiss.indices.distributed.create_partitioned_indexes">[docs]</a><span class="k">def</span> <span class="nf">create_partitioned_indexes</span><span class="p">(</span>
+
+<div class="viewcode-block" id="create_partitioned_indexes">
+<a class="viewcode-back" href="../../../_source/autofaiss.indices.html#autofaiss.indices.distributed.create_partitioned_indexes">[docs]</a>
+<span class="k">def</span> <span class="nf">create_partitioned_indexes</span><span class="p">(</span>
     <span class="n">partitions</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
     <span class="n">big_index_threshold</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="n">output_root_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -783,6 +800,7 @@
             <span class="n">all_metrics</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">small_index_metrics_future</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
 
     <span class="k">return</span> <span class="n">all_metrics</span></div>
+
 </pre></div>
 
            </div>

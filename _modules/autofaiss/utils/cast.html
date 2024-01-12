@@ -1,20 +1,22 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="../../../">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>autofaiss.utils.cast &mdash; autofaiss 1.0.0 documentation</title>
-      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=19f00094" />
+
+  
   <!--[if lt IE 9]>
     <script src="../../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script src="../../../_static/jquery.js"></script>
-        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
-        <script src="../../../_static/doctools.js"></script>
-        <script src="../../../_static/sphinx_highlight.js"></script>
+        <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../../_static/documentation_options.js?v=8d563738"></script>
+        <script src="../../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
@@ -98,7 +100,9 @@
 <span class="kn">import</span> <span class="nn">faiss</span>
 
 
-<div class="viewcode-block" id="cast_memory_to_bytes"><a class="viewcode-back" href="../../../_source/autofaiss.utils.html#autofaiss.utils.cast.cast_memory_to_bytes">[docs]</a><span class="k">def</span> <span class="nf">cast_memory_to_bytes</span><span class="p">(</span><span class="n">memory_string</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<div class="viewcode-block" id="cast_memory_to_bytes">
+<a class="viewcode-back" href="../../../_source/autofaiss.utils.html#autofaiss.utils.cast.cast_memory_to_bytes">[docs]</a>
+<span class="k">def</span> <span class="nf">cast_memory_to_bytes</span><span class="p">(</span><span class="n">memory_string</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Parse a memory string and returns the number of bytes</span>
 <span class="sd">    &gt;&gt;&gt; cast_memory_to_bytes(&quot;16B&quot;)</span>
@@ -107,7 +111,7 @@
 <span class="sd">    True</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">conversion</span> <span class="o">=</span> <span class="p">{</span><span class="n">unit</span><span class="p">:</span> <span class="p">(</span><span class="mi">2</span> <span class="o">**</span> <span class="mi">10</span><span class="p">)</span> <span class="o">**</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">unit</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="s2">&quot;BKMGTPEZ&quot;</span><span class="p">)}</span>
+    <span class="n">conversion</span> <span class="o">=</span> <span class="p">{</span><span class="n">unit</span><span class="p">:</span> <span class="p">(</span><span class="mi">2</span><span class="o">**</span><span class="mi">10</span><span class="p">)</span> <span class="o">**</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">unit</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="s2">&quot;BKMGTPEZ&quot;</span><span class="p">)}</span>
 
     <span class="n">number_match</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;([0-9]*\.[0-9]+|[0-9]+)&quot;</span>
     <span class="n">unit_match</span> <span class="o">=</span> <span class="s2">&quot;(&quot;</span>
@@ -127,7 +131,10 @@
     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown format for memory string: </span><span class="si">{</span><span class="n">memory_string</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="cast_bytes_to_memory_string"><a class="viewcode-back" href="../../../_source/autofaiss.utils.html#autofaiss.utils.cast.cast_bytes_to_memory_string">[docs]</a><span class="k">def</span> <span class="nf">cast_bytes_to_memory_string</span><span class="p">(</span><span class="n">num_bytes</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+
+<div class="viewcode-block" id="cast_bytes_to_memory_string">
+<a class="viewcode-back" href="../../../_source/autofaiss.utils.html#autofaiss.utils.cast.cast_bytes_to_memory_string">[docs]</a>
+<span class="k">def</span> <span class="nf">cast_bytes_to_memory_string</span><span class="p">(</span><span class="n">num_bytes</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Cast a number of bytes to a readable string</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -135,12 +142,15 @@
     <span class="n">suffix</span> <span class="o">=</span> <span class="s2">&quot;B&quot;</span>
     <span class="k">for</span> <span class="n">unit</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;K&quot;</span><span class="p">,</span> <span class="s2">&quot;M&quot;</span><span class="p">,</span> <span class="s2">&quot;G&quot;</span><span class="p">,</span> <span class="s2">&quot;T&quot;</span><span class="p">,</span> <span class="s2">&quot;P&quot;</span><span class="p">,</span> <span class="s2">&quot;E&quot;</span><span class="p">,</span> <span class="s2">&quot;Z&quot;</span><span class="p">]:</span>
         <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">num_bytes</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1024.0</span><span class="p">:</span>
-            <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%3.1f%s%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num_bytes</span><span class="p">,</span> <span class="n">unit</span><span class="p">,</span> <span class="n">suffix</span><span class="p">)</span>
+            <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%3.1f%s%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num_bytes</span><span class="p">,</span> <span class="n">unit</span><span class="p">,</span> <span class="n">suffix</span><span class="p">)</span>  <span class="c1"># pylint: disable=consider-using-f-string</span>
         <span class="n">num_bytes</span> <span class="o">/=</span> <span class="mf">1024.0</span>
-    <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%.1f%s%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num_bytes</span><span class="p">,</span> <span class="s2">&quot;Y&quot;</span><span class="p">,</span> <span class="n">suffix</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%.1f%s%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num_bytes</span><span class="p">,</span> <span class="s2">&quot;Y&quot;</span><span class="p">,</span> <span class="n">suffix</span><span class="p">)</span>  <span class="c1"># pylint: disable=consider-using-f-string</span></div>
 
 
-<div class="viewcode-block" id="to_faiss_metric_type"><a class="viewcode-back" href="../../../_source/autofaiss.utils.html#autofaiss.utils.cast.to_faiss_metric_type">[docs]</a><span class="k">def</span> <span class="nf">to_faiss_metric_type</span><span class="p">(</span><span class="n">metric_type</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+
+<div class="viewcode-block" id="to_faiss_metric_type">
+<a class="viewcode-back" href="../../../_source/autofaiss.utils.html#autofaiss.utils.cast.to_faiss_metric_type">[docs]</a>
+<span class="k">def</span> <span class="nf">to_faiss_metric_type</span><span class="p">(</span><span class="n">metric_type</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;convert metric_type string/enum to faiss enum of the distance metric&quot;&quot;&quot;</span>
 
     <span class="k">if</span> <span class="n">metric_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;ip&quot;</span><span class="p">,</span> <span class="s2">&quot;IP&quot;</span><span class="p">,</span> <span class="n">faiss</span><span class="o">.</span><span class="n">METRIC_INNER_PRODUCT</span><span class="p">]:</span>
@@ -151,7 +161,10 @@
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Metric currently not supported&quot;</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="to_readable_time"><a class="viewcode-back" href="../../../_source/autofaiss.utils.html#autofaiss.utils.cast.to_readable_time">[docs]</a><span class="k">def</span> <span class="nf">to_readable_time</span><span class="p">(</span><span class="n">seconds</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">rounding</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+
+<div class="viewcode-block" id="to_readable_time">
+<a class="viewcode-back" href="../../../_source/autofaiss.utils.html#autofaiss.utils.cast.to_readable_time">[docs]</a>
+<span class="k">def</span> <span class="nf">to_readable_time</span><span class="p">(</span><span class="n">seconds</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">rounding</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;cast time in seconds to readable string&quot;&quot;&quot;</span>
 
     <span class="n">initial_seconds</span> <span class="o">=</span> <span class="n">seconds</span>
@@ -176,6 +189,7 @@
     <span class="n">time_str</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">seconds</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> seconds&quot;</span>
 
     <span class="k">return</span> <span class="n">time_str</span></div>
+
 </pre></div>
 
            </div>

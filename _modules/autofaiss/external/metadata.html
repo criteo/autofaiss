@@ -1,20 +1,22 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="../../../">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>autofaiss.external.metadata &mdash; autofaiss 1.0.0 documentation</title>
-      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=19f00094" />
+
+  
   <!--[if lt IE 9]>
     <script src="../../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script src="../../../_static/jquery.js"></script>
-        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
-        <script src="../../../_static/doctools.js"></script>
-        <script src="../../../_static/sphinx_highlight.js"></script>
+        <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../../_static/documentation_options.js?v=8d563738"></script>
+        <script src="../../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
@@ -105,7 +107,9 @@
 <span class="p">)</span>
 
 
-<div class="viewcode-block" id="IndexType"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.metadata.IndexType">[docs]</a><span class="k">class</span> <span class="nc">IndexType</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+<div class="viewcode-block" id="IndexType">
+<a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.metadata.IndexType">[docs]</a>
+<span class="k">class</span> <span class="nc">IndexType</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
     <span class="n">FLAT</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="n">HNSW</span> <span class="o">=</span> <span class="mi">1</span>
     <span class="n">OPQ_IVF_PQ</span> <span class="o">=</span> <span class="mi">2</span>
@@ -115,7 +119,10 @@
     <span class="n">IVF_FLAT</span> <span class="o">=</span> <span class="mi">6</span></div>
 
 
-<div class="viewcode-block" id="IndexMetadata"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.metadata.IndexMetadata">[docs]</a><span class="k">class</span> <span class="nc">IndexMetadata</span><span class="p">:</span>
+
+<div class="viewcode-block" id="IndexMetadata">
+<a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.metadata.IndexMetadata">[docs]</a>
+<span class="k">class</span> <span class="nc">IndexMetadata</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Class to compute index metadata given the index_key, the number of vectors and their dimension.</span>
 
@@ -123,7 +130,6 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index_key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">nb_vectors</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">dim_vector</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">make_direct_map</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
-
         <span class="bp">self</span><span class="o">.</span><span class="n">index_key</span> <span class="o">=</span> <span class="n">index_key</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">nb_vectors</span> <span class="o">=</span> <span class="n">nb_vectors</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dim_vector</span> <span class="o">=</span> <span class="n">dim_vector</span>
@@ -202,13 +208,18 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">description_blocs</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">tunable_params</span> <span class="o">=</span> <span class="p">[]</span>
 
-<div class="viewcode-block" id="IndexMetadata.get_index_type"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.metadata.IndexMetadata.get_index_type">[docs]</a>    <span class="k">def</span> <span class="nf">get_index_type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">IndexType</span><span class="p">:</span>
+<div class="viewcode-block" id="IndexMetadata.get_index_type">
+<a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.metadata.IndexMetadata.get_index_type">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_index_type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">IndexType</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        return the index type.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">index_type</span></div>
 
-<div class="viewcode-block" id="IndexMetadata.estimated_index_size_in_bytes"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.metadata.IndexMetadata.estimated_index_size_in_bytes">[docs]</a>    <span class="k">def</span> <span class="nf">estimated_index_size_in_bytes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+
+<div class="viewcode-block" id="IndexMetadata.estimated_index_size_in_bytes">
+<a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.metadata.IndexMetadata.estimated_index_size_in_bytes">[docs]</a>
+    <span class="k">def</span> <span class="nf">estimated_index_size_in_bytes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Compute the estimated size of the index in bytes.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -247,7 +258,6 @@
             <span class="k">return</span> <span class="n">total_size_in_byte</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">index_type</span> <span class="o">==</span> <span class="n">IndexType</span><span class="o">.</span><span class="n">IVF_FLAT</span><span class="p">:</span>
-
             <span class="n">direct_map_overhead</span> <span class="o">=</span> <span class="mi">8</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">nb_vectors</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">make_direct_map</span> <span class="k">else</span> <span class="mi">0</span>
             <span class="n">vectors_size_in_bytes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nb_vectors</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim_vector</span> <span class="o">*</span> <span class="mi">4</span>
             <span class="n">centroid_size_in_bytes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;ncentroids&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim_vector</span> <span class="o">*</span> <span class="mi">4</span>
@@ -256,7 +266,10 @@
 
         <span class="k">return</span> <span class="o">-</span><span class="mi">1</span></div>
 
-<div class="viewcode-block" id="IndexMetadata.get_index_description"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.metadata.IndexMetadata.get_index_description">[docs]</a>    <span class="k">def</span> <span class="nf">get_index_description</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tunable_parameters_infos</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+
+<div class="viewcode-block" id="IndexMetadata.get_index_description">
+<a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.metadata.IndexMetadata.get_index_description">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_index_description</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tunable_parameters_infos</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Gives a generic description of the index.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -288,7 +301,10 @@
 <span class="s2">&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">description</span></div>
 
-<div class="viewcode-block" id="IndexMetadata.compute_memory_necessary_for_training"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.metadata.IndexMetadata.compute_memory_necessary_for_training">[docs]</a>    <span class="k">def</span> <span class="nf">compute_memory_necessary_for_training</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nb_training_vectors</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+
+<div class="viewcode-block" id="IndexMetadata.compute_memory_necessary_for_training">
+<a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.metadata.IndexMetadata.compute_memory_necessary_for_training">[docs]</a>
+    <span class="k">def</span> <span class="nf">compute_memory_necessary_for_training</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nb_training_vectors</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Function that computes the memory necessary to train an index with nb_training_vectors vectors</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -305,15 +321,21 @@
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">index_type</span> <span class="o">==</span> <span class="n">IndexType</span><span class="o">.</span><span class="n">PAD_IVF_HNSW_PQ</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_memory_necessary_for_pad_ivf_hnsw_pq</span><span class="p">(</span><span class="n">nb_training_vectors</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="mi">500</span> <span class="o">*</span> <span class="mi">10</span> <span class="o">**</span> <span class="mi">6</span></div>
+            <span class="k">return</span> <span class="mi">500</span> <span class="o">*</span> <span class="mi">10</span><span class="o">**</span><span class="mi">6</span></div>
 
-<div class="viewcode-block" id="IndexMetadata.compute_memory_necessary_for_ivf_flat"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.metadata.IndexMetadata.compute_memory_necessary_for_ivf_flat">[docs]</a>    <span class="k">def</span> <span class="nf">compute_memory_necessary_for_ivf_flat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nb_training_vectors</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+
+<div class="viewcode-block" id="IndexMetadata.compute_memory_necessary_for_ivf_flat">
+<a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.metadata.IndexMetadata.compute_memory_necessary_for_ivf_flat">[docs]</a>
+    <span class="k">def</span> <span class="nf">compute_memory_necessary_for_ivf_flat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nb_training_vectors</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute the memory estimation for index type IVF_FLAT.&quot;&quot;&quot;</span>
         <span class="n">ivf_memory_in_bytes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_ivf_training_memory_usage_in_bytes</span><span class="p">()</span>
         <span class="c1"># TODO: remove x1.5 when estimation is correct</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_vectors_training_memory_usage_in_bytes</span><span class="p">(</span><span class="n">nb_training_vectors</span><span class="p">)</span> <span class="o">*</span> <span class="mf">1.5</span> <span class="o">+</span> <span class="n">ivf_memory_in_bytes</span></div>
 
-<div class="viewcode-block" id="IndexMetadata.compute_memory_necessary_for_opq_ivf_pq"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.metadata.IndexMetadata.compute_memory_necessary_for_opq_ivf_pq">[docs]</a>    <span class="k">def</span> <span class="nf">compute_memory_necessary_for_opq_ivf_pq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nb_training_vectors</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+
+<div class="viewcode-block" id="IndexMetadata.compute_memory_necessary_for_opq_ivf_pq">
+<a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.metadata.IndexMetadata.compute_memory_necessary_for_opq_ivf_pq">[docs]</a>
+    <span class="k">def</span> <span class="nf">compute_memory_necessary_for_opq_ivf_pq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nb_training_vectors</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute the memory estimation for index type OPQ_IVF_PQ.&quot;&quot;&quot;</span>
         <span class="c1"># TODO: remove x1.5 when estimation is correct</span>
         <span class="k">return</span> <span class="p">(</span>
@@ -323,7 +345,10 @@
             <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_pq_training_memory_usage_in_bytes</span><span class="p">()</span>
         <span class="p">)</span></div>
 
-<div class="viewcode-block" id="IndexMetadata.compute_memory_necessary_for_opq_ivf_hnsw_pq"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.metadata.IndexMetadata.compute_memory_necessary_for_opq_ivf_hnsw_pq">[docs]</a>    <span class="k">def</span> <span class="nf">compute_memory_necessary_for_opq_ivf_hnsw_pq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nb_training_vectors</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+
+<div class="viewcode-block" id="IndexMetadata.compute_memory_necessary_for_opq_ivf_hnsw_pq">
+<a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.metadata.IndexMetadata.compute_memory_necessary_for_opq_ivf_hnsw_pq">[docs]</a>
+    <span class="k">def</span> <span class="nf">compute_memory_necessary_for_opq_ivf_hnsw_pq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nb_training_vectors</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute the memory estimation for index type OPQ_IVF_HNSW_PQ.&quot;&quot;&quot;</span>
         <span class="c1"># TODO: remove x1.5 when estimation is correct</span>
         <span class="k">return</span> <span class="p">(</span>
@@ -334,7 +359,10 @@
             <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_pq_training_memory_usage_in_bytes</span><span class="p">()</span>
         <span class="p">)</span></div>
 
-<div class="viewcode-block" id="IndexMetadata.compute_memory_necessary_for_pad_ivf_hnsw_pq"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.metadata.IndexMetadata.compute_memory_necessary_for_pad_ivf_hnsw_pq">[docs]</a>    <span class="k">def</span> <span class="nf">compute_memory_necessary_for_pad_ivf_hnsw_pq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nb_training_vectors</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+
+<div class="viewcode-block" id="IndexMetadata.compute_memory_necessary_for_pad_ivf_hnsw_pq">
+<a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.metadata.IndexMetadata.compute_memory_necessary_for_pad_ivf_hnsw_pq">[docs]</a>
+    <span class="k">def</span> <span class="nf">compute_memory_necessary_for_pad_ivf_hnsw_pq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nb_training_vectors</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute the memory estimation for index type PAD_IVF_HNSW_PQ.&quot;&quot;&quot;</span>
         <span class="c1"># TODO: remove x1.5 when estimation is correct</span>
         <span class="k">return</span> <span class="p">(</span>
@@ -343,6 +371,7 @@
             <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_ivf_hnsw_training_memory_usage_in_bytes</span><span class="p">()</span>
             <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_pq_training_memory_usage_in_bytes</span><span class="p">()</span>
         <span class="p">)</span></div>
+
 
     <span class="k">def</span> <span class="nf">_get_vectors_training_memory_usage_in_bytes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nb_training_vectors</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Get vectors memory estimation in bytes.&quot;&quot;&quot;</span>
@@ -379,11 +408,15 @@
         <span class="k">return</span> <span class="n">ceil</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;pq&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;nbits&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="mi">8</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="compute_memory_necessary_for_training_wrapper"><a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.metadata.compute_memory_necessary_for_training_wrapper">[docs]</a><span class="k">def</span> <span class="nf">compute_memory_necessary_for_training_wrapper</span><span class="p">(</span><span class="n">nb_training_vectors</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">index_key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">dim_vector</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+
+<div class="viewcode-block" id="compute_memory_necessary_for_training_wrapper">
+<a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.metadata.compute_memory_necessary_for_training_wrapper">[docs]</a>
+<span class="k">def</span> <span class="nf">compute_memory_necessary_for_training_wrapper</span><span class="p">(</span><span class="n">nb_training_vectors</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">index_key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">dim_vector</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
     <span class="c1"># nb_vectors is useless for training memory estimation, so just put -1</span>
     <span class="k">return</span> <span class="n">IndexMetadata</span><span class="p">(</span><span class="n">index_key</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">dim_vector</span><span class="p">)</span><span class="o">.</span><span class="n">compute_memory_necessary_for_training</span><span class="p">(</span>
         <span class="n">nb_training_vectors</span><span class="o">=</span><span class="n">nb_training_vectors</span>
     <span class="p">)</span></div>
+
 </pre></div>
 
            </div>
