@@ -41,7 +41,7 @@ def _log_output_dict(infos: Dict):
 
 def setup_logging(logging_level: int):
     """Setup the logging."""
-    logging.config.dictConfig(dict(version=1, disable_existing_loggers=False))
+    logging.config.dictConfig({"version": 1, "disable_existing_loggers": False})
     logging_format = "%(asctime)s [%(levelname)s]: %(message)s"
     logging.basicConfig(level=logging_level, format=logging_format)
 
@@ -194,7 +194,7 @@ def build_index(
     faiss.omp_set_num_threads(nb_cores)
 
     if isinstance(embeddings, np.ndarray):
-        tmp_dir_embeddings = tempfile.TemporaryDirectory()
+        tmp_dir_embeddings = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
         np.save(os.path.join(tmp_dir_embeddings.name, "emb.npy"), embeddings)
         embeddings_path = tmp_dir_embeddings.name
     else:
@@ -306,6 +306,7 @@ def build_partitioned_indexes(
     output_root_dir: str,
     embedding_column_name: str = "embedding",
     index_key: Optional[str] = None,
+    index_path: Optional[str] = None,
     id_columns: Optional[List[str]] = None,
     max_index_query_time_ms: float = 10.0,
     max_index_memory_usage: str = "16G",
@@ -339,6 +340,9 @@ def build_partitioned_indexes(
     index_key: Optional(str)
         Optional string to give to the index factory in order to create the index.
         If None, an index is chosen based on an heuristic.
+    index_path: Optional(str)
+        Optional path to an index that will be used to add embeddings.
+        This index must be pre-trained if it needs a training
     id_columns: Optional(List[str])
         Parquet dataset column name(s) that are used as IDs for embeddings.
         A mapping from these IDs to faiss indices will be written in separate files.
@@ -392,6 +396,11 @@ def build_partitioned_indexes(
         raise ValueError(f"nb_indices_to_keep must be > 0; Got {nb_splits_per_big_index}")
     if big_index_threshold < 1:
         raise ValueError(f"big_index_threshold must be > 0; Got {big_index_threshold}")
+    if index_path is not None and not index_key:
+        raise ValueError(
+            "Please provide the index key of the input index; "
+            f"Got index_key: {index_key} and index_path: {index_path}"
+        )
     if index_key:
         n_dimensions = EmbeddingReader(
             partitions[0], file_format="parquet", embedding_column=embedding_column_name
@@ -405,6 +414,7 @@ def build_partitioned_indexes(
         output_root_dir=output_root_dir,
         embedding_column_name=embedding_column_name,
         index_key=index_key,
+        index_path=index_path,
         id_columns=id_columns,
         should_be_memory_mappable=should_be_memory_mappable,
         max_index_query_time_ms=max_index_query_time_ms,
@@ -552,7 +562,7 @@ def score_index(
             index_memory = fs.size(path_in_fs)
 
     if isinstance(embeddings, np.ndarray):
-        tmp_dir_embeddings = tempfile.TemporaryDirectory()
+        tmp_dir_embeddings = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
         np.save(os.path.join(tmp_dir_embeddings.name, "emb.npy"), embeddings)
         embeddings_path = tmp_dir_embeddings.name
     else:

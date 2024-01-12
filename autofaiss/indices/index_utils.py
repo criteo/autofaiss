@@ -48,7 +48,6 @@ def speed_test_ms_per_query(
     start_time = time.perf_counter()
 
     for one_query in chain.from_iterable(repeat(query, nb_repeat)):
-
         _, _ = index.search(np.expand_dims(one_query, 0), ksearch)
 
         count += 1
@@ -75,7 +74,6 @@ def search_speed_test(
     nb_repeat = 1 + (nb_samples - 1) // query.shape[0]
 
     for one_query in chain.from_iterable(repeat(query, nb_repeat)):
-
         start_time_s = time.perf_counter()  # high precision
         _, _ = index.search(np.expand_dims(one_query, 0), ksearch)
         end_time_s = time.perf_counter()
@@ -151,7 +149,7 @@ def parallel_download_indices_from_remote(
         try:
             fs.get(src_path, dst_path)
         except Exception as e:
-            raise Exception(f"Failed to download {src_path} to {dst_path}") from e
+            raise ValueError(f"Failed to download {src_path} to {dst_path}") from e
 
     if len(indices_file_paths) == 0:
         return
@@ -164,10 +162,10 @@ def parallel_download_indices_from_remote(
 
 
 def initialize_direct_map(index: faiss.Index) -> None:
-    nested_index = extract_index_ivf(index) if isinstance(index, faiss.swigfaiss.IndexPreTransform) else index
+    nested_index = extract_index_ivf(index) if isinstance(index, faiss.IndexPreTransform) else index
 
     # Make direct map is only implemented for IndexIVF and IndexBinaryIVF, see built file faiss/swigfaiss.py
-    if isinstance(nested_index, (faiss.swigfaiss.IndexIVF, faiss.swigfaiss.IndexBinaryIVF)):
+    if isinstance(nested_index, (faiss.IndexIVF, faiss.IndexBinaryIVF)):
         nested_index.make_direct_map()
 
 
@@ -186,5 +184,5 @@ def load_index(index_src_path: str, index_dst_path: str) -> faiss.Index:
     try:
         fs.get(index_src_path, index_dst_path)
     except Exception as e:
-        raise Exception(f"Failed to download index from {index_src_path} to {index_dst_path}") from e
+        raise ValueError(f"Failed to download index from {index_src_path} to {index_dst_path}") from e
     return faiss.read_index(index_dst_path)
