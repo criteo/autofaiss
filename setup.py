@@ -8,7 +8,6 @@ import os
 import setuptools
 
 if __name__ == "__main__":
-
     # Read metadata from version.py
     with Path("autofaiss/version.py").open(encoding="utf-8") as file:
         metadata = dict(re.findall(r'__([a-z]+)__\s*=\s*"([^"]+)"', file.read()))
@@ -35,6 +34,11 @@ if __name__ == "__main__":
             "Operating System :: OS Independent",
             "Programming Language :: Python :: 3",
             "Programming Language :: Python :: 3.6",
+            "Programming Language :: Python :: 3.7",
+            "Programming Language :: Python :: 3.8",
+            "Programming Language :: Python :: 3.9",
+            "Programming Language :: Python :: 3.10",
+            "Programming Language :: Python :: 3.11",
             "Intended Audience :: Developers",
         ],
         long_description=long_description,

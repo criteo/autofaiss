@@ -4,7 +4,25 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and this project adheres to [Semantic Versioning](https://semver.org).
 
-## [2.15.5] - 2023-06-01
+## [2.15.8] - 2023-06-06
+
+### Changed
+* Support python 3.11 (#167) (#159)
+
+## [2.15.7] - 2023-06-06
+
+### Changed
+* Fix issue where creating forced memory-mapped indices with faiss-cpu>1.7.2 was failing (#164)
+* Support python 3.10 in CI (#165)
+* Loosen pyarrow version constraints
+
+## [2.15.6] - 2023-05-04
+
+### Changed
+* methods create_small_index and create_big_index now accepts a list of input embedding directories
+and a final output directory that is used to store indexes and metrics
+
+## [2.15.5] - 2023-01-06
 
 ### Changed
 * build_partitioned_indexes now accepts an optional path to a (pre-trained) index. If provided,
