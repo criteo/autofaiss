@@ -41,7 +41,7 @@ def _log_output_dict(infos: Dict):
 
 def setup_logging(logging_level: int):
     """Setup the logging."""
-    logging.config.dictConfig(dict(version=1, disable_existing_loggers=False))
+    logging.config.dictConfig({"version": 1, "disable_existing_loggers": False})
     logging_format = "%(asctime)s [%(levelname)s]: %(message)s"
     logging.basicConfig(level=logging_level, format=logging_format)
 
@@ -194,7 +194,7 @@ def build_index(
     faiss.omp_set_num_threads(nb_cores)
 
     if isinstance(embeddings, np.ndarray):
-        tmp_dir_embeddings = tempfile.TemporaryDirectory()
+        tmp_dir_embeddings = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
         np.save(os.path.join(tmp_dir_embeddings.name, "emb.npy"), embeddings)
         embeddings_path = tmp_dir_embeddings.name
     else:
@@ -562,7 +562,7 @@ def score_index(
             index_memory = fs.size(path_in_fs)
 
     if isinstance(embeddings, np.ndarray):
-        tmp_dir_embeddings = tempfile.TemporaryDirectory()
+        tmp_dir_embeddings = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
         np.save(os.path.join(tmp_dir_embeddings.name, "emb.npy"), embeddings)
         embeddings_path = tmp_dir_embeddings.name
     else:

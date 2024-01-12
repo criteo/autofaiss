@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        python-version: [3.6, 3.8]
+        python-version: [3.8]
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python ${{ matrix.python-version }}
@@ -48,7 +48,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
-        python-version: '3.6'
+        python-version: '3.8'
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
@@ -58,7 +58,6 @@ jobs:
       uses: softprops/action-gh-release@v1
       with:
         files: |
-          autofaiss-3.6.pex
           autofaiss-3.8.pex
         tag_name: ${{ steps.regex-match.outputs.group1 }}
     - name: Build and publish

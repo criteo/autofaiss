@@ -99,7 +99,7 @@ def _add_index(
         batch_size = get_optimal_batch_size(embedding_reader.dimension, memory_available_for_adding)
 
         ids_total = []
-        for (vec_batch, ids_batch) in embedding_reader(batch_size=batch_size, start=start, end=end):
+        for vec_batch, ids_batch in embedding_reader(batch_size=batch_size, start=start, end=end):
             consecutive_ids = ids_batch["i"].to_numpy()
             # using add_with_ids makes it possible to have consecutive and unique ids over all the N indices
             empty_index.add_with_ids(vec_batch, consecutive_ids)
@@ -304,7 +304,7 @@ def add_embeddings_to_index_distributed(
 
     # maximum between the number of spark workers, 10M embeddings per task and the number of indices to keep
     n_batches = min(
-        embedding_reader.count, max(n_workers, math.ceil(embedding_reader.count / (10 ** 7)), nb_indices_to_keep)
+        embedding_reader.count, max(n_workers, math.ceil(embedding_reader.count / (10**7)), nb_indices_to_keep)
     )
     nb_indices_to_keep = min(nb_indices_to_keep, n_batches)
     batches = _batch_loader(total_size=embedding_reader.count, nb_batches=n_batches)
@@ -485,7 +485,11 @@ def create_big_index(
         # on the driver because we are potentially training multiple big indexes in parallel
         # and the driver don't necessarily have enough memory
         rdd = ss.sparkContext.parallelize([13], 1)
-        trained_index_path, trained_index_key, _, = rdd.map(
+        (
+            trained_index_path,
+            trained_index_key,
+            _,
+        ) = rdd.map(
             lambda _: _create_and_train_index_from_embedding_dir()
         ).collect()[0]
     else:
