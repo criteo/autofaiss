@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and this project adheres to [Semantic Versioning](https://semver.org).
 
+
+## [2.17.0] - 2024-01-22
+
+### Changed
+* Update pyarrow
+* better windows support
+* better temporary small indices path by randomizing
+
 ## [2.16.0] - 2024-01-12
 
 ### Changed
