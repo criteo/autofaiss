@@ -119,6 +119,9 @@ def _get_pyspark_active_session():
     """Reproduce SparkSession.getActiveSession() available since pyspark 3.0."""
     import pyspark  # pylint: disable=import-outside-toplevel
 
+    # Set debug logging for autofaiss
+    logging.getLogger("autofaiss").setLevel(logging.DEBUG)
+
     # Set Java options to allow access to internal JDK classes for newer Java versions
     java_opts = "--add-opens=java.base/sun.nio.ch=ALL-UNNAMED --add-opens=java.base/java.nio=ALL-UNNAMED"
     os.environ["PYSPARK_SUBMIT_ARGS"] = (
@@ -140,10 +143,9 @@ def _get_pyspark_active_session():
             .config("spark.python.worker.faulthandler.enabled", "true")
             .getOrCreate()
         )
+        logger.debug("Created new PySpark session with fault handler enabled")
     else:
-        # For existing session, set the fault handler configs
-        ss.conf.set("spark.sql.execution.pyspark.udf.faulthandler.enabled", "true")
-        ss.conf.set("spark.python.worker.faulthandler.enabled", "true")
+        logger.debug("Using existing PySpark session")
 
     return ss
 
