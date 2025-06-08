@@ -40,7 +40,7 @@ jobs:
     - name: Set up JDK
       uses: actions/setup-java@v3
       with:
-        java-version: ${{ matrix.python-version == 3.11 && '21' || '11' }}
+        java-version: ${{ matrix.python-version == 3.11 && '21' || '21' }}
         distribution: 'temurin'
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v4
