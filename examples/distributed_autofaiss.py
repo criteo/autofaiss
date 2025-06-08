@@ -3,6 +3,7 @@ An example of running autofaiss by pyspark.
 
 You need to install pyspark before using the following example.
 """
+
 from autofaiss import build_index
 
 # You'd better create a spark session before calling build_index,

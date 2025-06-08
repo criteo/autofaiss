@@ -101,7 +101,7 @@ def _add_index(
 
         ids_total = []
         for vec_batch, ids_batch in embedding_reader(batch_size=batch_size, start=start, end=end):
-            consecutive_ids = ids_batch["i"].to_numpy()
+            consecutive_ids = ids_batch["i"].to_numpy().astype("int64")
             # using add_with_ids makes it possible to have consecutive and unique ids over all the N indices
             empty_index.add_with_ids(vec_batch, consecutive_ids)
             if embedding_ids_df_handler:
@@ -117,6 +117,13 @@ def _get_pyspark_active_session():
     """Reproduce SparkSession.getActiveSession() available since pyspark 3.0."""
     import pyspark  # pylint: disable=import-outside-toplevel
 
+    # Set Java options to allow access to internal JDK classes for newer Java versions
+    java_opts = "--add-opens=java.base/sun.nio.ch=ALL-UNNAMED --add-opens=java.base/java.nio=ALL-UNNAMED"
+    os.environ["PYSPARK_SUBMIT_ARGS"] = (
+        f'--conf spark.driver.extraJavaOptions="{java_opts}" '
+        f'--conf spark.executor.extraJavaOptions="{java_opts}" '
+        "pyspark-shell"
+    )
     # pylint: disable=protected-access
     ss: Optional[pyspark.sql.SparkSession] = pyspark.sql.SparkSession._instantiatedSession  # mypy: ignore
     if ss is None:

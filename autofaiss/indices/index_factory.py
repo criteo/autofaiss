@@ -1,4 +1,5 @@
-""" functions that fixe faiss index_factory function """
+"""functions that fixe faiss index_factory function"""
+
 # pylint: disable=invalid-name
 
 import re

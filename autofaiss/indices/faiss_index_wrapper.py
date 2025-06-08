@@ -1,4 +1,4 @@
-""" This file contains a wrapper class to create Faiss-like indices """
+"""This file contains a wrapper class to create Faiss-like indices"""
 
 from abc import ABC, abstractmethod
 

@@ -298,7 +298,7 @@ def test_index_correctness_in_distributed_mode(tmpdir):
         max_index_memory_usage="600MB",
         current_memory_available="700MB",
         embedding_column_name="embedding",
-        index_key="IVF1,Flat",
+        index_key="IVF16,Flat",  # Using more IVF lists to prevent invalid key errors
         should_be_memory_mappable=True,
         metric_type="l2",
         ids_path=ids_path,
@@ -429,7 +429,7 @@ def test_index_correctness_in_distributed_mode_with_multiple_indices(tmpdir):
         max_index_memory_usage="2GB",
         current_memory_available="500MB",
         embedding_column_name="embedding",
-        index_key="IVF1,Flat",
+        index_key="IVF16,Flat",
         should_be_memory_mappable=True,
         nb_indices_to_keep=2,
     )

@@ -1,4 +1,5 @@
-""" Functions to find optimal index parameters """
+"""Functions to find optimal index parameters"""
+
 import json
 import logging
 import re
@@ -285,6 +286,19 @@ def get_optimal_quantization(
 T = TypeVar("T", int, float)
 
 
+class NumpyJSONEncoder(json.JSONEncoder):
+    """JSON encoder that can handle numpy types."""
+
+    def default(self, o):
+        if isinstance(o, np.integer):
+            return int(o)
+        elif isinstance(o, np.floating):
+            return float(o)
+        elif isinstance(o, np.ndarray):
+            return o.tolist()
+        return super().default(obj)
+
+
 def get_min_param_value_for_best_neighbors_coverage(
     index: faiss.Index,
     parameter_range: List[T],
@@ -569,6 +583,6 @@ def optimize_and_measure_index(
             with fsspec.open(index_path, "wb").open() as f:
                 faiss.write_index(index, faiss.PyCallbackIOWriter(f.write))
             with fsspec.open(index_infos_path, "w").open() as f:
-                json.dump(metric_infos, f)
+                json.dump(metric_infos, f, cls=NumpyJSONEncoder)
 
     return metric_infos

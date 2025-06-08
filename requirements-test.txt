@@ -5,4 +5,4 @@ pytest-cov==4.1.0
 pytest-xdist==3.5.0
 pytest==8.0.1
 pyspark==3.2.2; python_version < "3.11"
-pyspark<3.6.0; python_version >= "3.11"
+pyspark>3.2.2; python_version >= "3.11"

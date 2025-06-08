@@ -1,4 +1,4 @@
-""" Common functions to build an index """
+"""Common functions to build an index"""
 
 import logging
 from typing import Dict, Optional, Tuple, Union, Callable, Any
@@ -97,7 +97,7 @@ def add_embeddings_to_index_local(
             trained_index = trained_index_or_path
         for batch_id, (vec_batch, ids_batch) in enumerate(embedding_reader(batch_size=batch_size)):
             if add_embeddings_with_ids:
-                trained_index.add_with_ids(vec_batch, ids_batch["i"].to_numpy())
+                trained_index.add_with_ids(vec_batch, ids_batch["i"].to_numpy().astype("int64"))
             else:
                 trained_index.add(vec_batch)
             if embedding_ids_df_handler:

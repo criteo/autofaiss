@@ -1,4 +1,5 @@
-""" test utils functions """
+"""test utils functions"""
+
 # pylint: disable= invalid-name
 
 import numpy as np

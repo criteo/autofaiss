@@ -1,4 +1,4 @@
-""" useful functions t apply on numpy arrays """
+"""useful functions t apply on numpy arrays"""
 
 import numpy as np
 

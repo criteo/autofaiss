@@ -1,4 +1,4 @@
-""" function to compute the reconstruction error """
+"""function to compute the reconstruction error"""
 
 from typing import Optional
 

@@ -1,5 +1,4 @@
-""" function to cast variables in others """
-
+"""function to cast variables in others"""
 
 import re
 from math import floor

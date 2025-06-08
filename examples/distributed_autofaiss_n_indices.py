@@ -3,6 +3,7 @@ An example of running autofaiss by pyspark to produce N indices.
 
 You need to install pyspark before using the following example.
 """
+
 from typing import Dict
 
 import faiss

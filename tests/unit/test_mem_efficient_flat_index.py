@@ -1,4 +1,4 @@
-""" Test that the memory efficient flat index give same results as the faiss flat index """
+"""Test that the memory efficient flat index give same results as the faiss flat index"""
 
 import time
 

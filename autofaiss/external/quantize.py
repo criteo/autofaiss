@@ -1,4 +1,4 @@
-""" main file to create an index from the the begining """
+"""main file to create an index from the the begining"""
 
 import json
 import logging

@@ -1,4 +1,5 @@
-""" Functions to compute metrics on an index """
+"""Functions to compute metrics on an index"""
+
 import fsspec
 from typing import Dict, Union, Optional
 

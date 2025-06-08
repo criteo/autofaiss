@@ -1,4 +1,4 @@
-""" gather functions necessary to build an index """
+"""gather functions necessary to build an index"""
 
 import logging
 from typing import Dict, Optional, Tuple, Union, Callable, Any, List

@@ -1,4 +1,4 @@
-""" function to compute different kind of recalls """
+"""function to compute different kind of recalls"""
 
 from typing import List, Optional
 

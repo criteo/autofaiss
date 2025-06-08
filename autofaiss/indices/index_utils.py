@@ -1,4 +1,4 @@
-""" useful functions to apply on an index """
+"""useful functions to apply on an index"""
 
 import os
 import time

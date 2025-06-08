@@ -1,4 +1,4 @@
-""" This file contain a class describing a memory efficient flat index """
+"""This file contain a class describing a memory efficient flat index"""
 
 import heapq
 from typing import List, Optional, Tuple

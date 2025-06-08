@@ -1,4 +1,4 @@
-""" Useful decorators for fast debuging """
+"""Useful decorators for fast debuging"""
 
 import functools
 import time

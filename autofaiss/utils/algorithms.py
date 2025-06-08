@@ -1,4 +1,4 @@
-""" Various optimization algorithms """
+"""Various optimization algorithms"""
 
 from typing import Callable
 

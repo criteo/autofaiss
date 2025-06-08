@@ -9,14 +9,14 @@ on:
     - master
 jobs:
   build-pex:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.8]
+        python-version: [3.8, 3.11]
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
@@ -27,28 +27,28 @@ jobs:
       run: |
         make build-pex
         mv autofaiss.pex autofaiss-${{ matrix.python-version }}.pex
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v4
       with:
         name: autofaiss_pex
         path: autofaiss-${{ matrix.python-version }}.pex
   deploy:
     needs: build-pex
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - uses: actions-ecosystem/action-regex-match@v2
       id: regex-match
       with:
         text: ${{ github.event.head_commit.message }}
         regex: '^Release ([^ ]+)'
     - name: Download pex
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4
       with:
         name: autofaiss_pex
     - name: Set up Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
-        python-version: '3.8'
+        python-version: '3.11'
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
@@ -59,6 +59,7 @@ jobs:
       with:
         files: |
           autofaiss-3.8.pex
+          autofaiss-3.11.pex
         tag_name: ${{ steps.regex-match.outputs.group1 }}
     - name: Build and publish
       if: ${{ steps.regex-match.outputs.match != '' && github.event_name != 'pull_request' }}

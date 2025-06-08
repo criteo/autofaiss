@@ -1,4 +1,4 @@
-""" functions to compare different indices """
+"""functions to compare different indices"""
 
 import time
 

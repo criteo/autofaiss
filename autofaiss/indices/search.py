@@ -1,4 +1,4 @@
-""" function related to search on indices """
+"""function related to search on indices"""
 
 from typing import Iterable, Tuple
 
