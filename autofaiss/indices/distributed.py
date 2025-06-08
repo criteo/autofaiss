@@ -135,8 +135,16 @@ def _get_pyspark_active_session():
             .master("local[1]")
             .appName("Distributed autofaiss")
             .config("spark.submit.deployMode", "client")
+            # Enable faulthandler for better Python tracebacks
+            .config("spark.sql.execution.pyspark.udf.faulthandler.enabled", "true")
+            .config("spark.python.worker.faulthandler.enabled", "true")
             .getOrCreate()
         )
+    else:
+        # For existing session, set the fault handler configs
+        ss.conf.set("spark.sql.execution.pyspark.udf.faulthandler.enabled", "true")
+        ss.conf.set("spark.python.worker.faulthandler.enabled", "true")
+
     return ss
 
 
