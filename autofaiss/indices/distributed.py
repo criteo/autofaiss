@@ -101,7 +101,9 @@ def _add_index(
 
         ids_total = []
         for vec_batch, ids_batch in embedding_reader(batch_size=batch_size, start=start, end=end):
+            logger.debug(f"DEBUG - ids_batch: {ids_batch}")
             consecutive_ids = ids_batch["i"].to_numpy().astype("int64")
+            logger.debug(f"DEBUG - consecutive_ids: {consecutive_ids}")
             # using add_with_ids makes it possible to have consecutive and unique ids over all the N indices
             empty_index.add_with_ids(vec_batch, consecutive_ids)
             if embedding_ids_df_handler:
