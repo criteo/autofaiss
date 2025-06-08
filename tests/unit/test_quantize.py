@@ -391,7 +391,7 @@ def test_index_correctness_in_distributed_mode_with_multiple_indices(tmpdir):
         index_key="IVF16,Flat",
         should_be_memory_mappable=True,
         ids_path=ids_path,
-        nb_indices_to_keep=2,
+        nb_indices_to_keep=1,
         save_on_disk=True,
         id_columns=["id"],
     )
@@ -431,7 +431,7 @@ def test_index_correctness_in_distributed_mode_with_multiple_indices(tmpdir):
         embedding_column_name="embedding",
         index_key="IVF16,Flat",
         should_be_memory_mappable=True,
-        nb_indices_to_keep=2,
+        nb_indices_to_keep=1,
     )
 
     ground_truth_index = faiss.index_factory(dim, "IVF1,Flat", faiss.METRIC_INNER_PRODUCT)
