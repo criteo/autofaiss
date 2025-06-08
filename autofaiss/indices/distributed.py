@@ -165,11 +165,13 @@ def _merge_index(
     Also run optimization when `index_optimizer` is given.
     Returns the merged index and the metric
     """
-    logger.debug(f"_merge_index called with small_indices_folder={small_indices_folder}, nb_batches={nb_batches}, batch_id={batch_id}, start={start}, end={end}, max_size_on_disk={max_size_on_disk}")
+    logger.debug(
+        f"_merge_index called with small_indices_folder={small_indices_folder}, nb_batches={nb_batches}, batch_id={batch_id}, start={start}, end={end}, max_size_on_disk={max_size_on_disk}"
+    )
     fs = _get_file_system(small_indices_folder)
     small_indices_files = sorted(fs.ls(small_indices_folder, detail=False))
     small_indices_files = small_indices_files[start:end]
-    
+
     logger.debug(f"Found {len(small_indices_files)} small indices files to merge")
 
     if len(small_indices_files) == 0:
@@ -180,7 +182,7 @@ def _merge_index(
             os.path.join(local_indices_folder, filename) for filename in sorted(os.listdir(local_indices_folder))
         ]
         logger.debug(f"Merging {len(local_file_paths)} local index files")
-        
+
         if merged is None:
             merged = faiss.read_index(local_file_paths[0])
             logger.debug(f"Initialized merged index from {local_file_paths[0]}")
@@ -203,7 +205,9 @@ def _merge_index(
     first_index_size = fs.size(first_index_file)
     max_sizes_in_bytes = cast_memory_to_bytes(max_size_on_disk)
     nb_files_each_time = max(1, int(max_sizes_in_bytes / first_index_size))
-    logger.debug(f"First index file size: {first_index_size} bytes, max size: {max_sizes_in_bytes} bytes, will process {nb_files_each_time} files at a time")
+    logger.debug(
+        f"First index file size: {first_index_size} bytes, max size: {max_sizes_in_bytes} bytes, will process {nb_files_each_time} files at a time"
+    )
     merged_index = None
     n = len(small_indices_files)
     nb_iterations = max(math.ceil(n / nb_files_each_time), 1)
@@ -232,7 +236,7 @@ def _merge_index(
     else:
         logger.debug("Not saving merged index to disk (batch_id or tmp_output_folder is None)")
         metric_infos = None
-    
+
     logger.debug(f"Merge completed, returning index with {merged_index.ntotal if merged_index else 0} vectors")
     return merged_index, metric_infos
 

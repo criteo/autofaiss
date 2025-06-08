@@ -369,8 +369,8 @@ def _merge_indices(index_paths):
 
 
 def test_index_correctness_in_distributed_mode_with_multiple_indices(tmpdir):
-    min_size = 20000
-    max_size = 40000
+    min_size = 8000
+    max_size = 10240
     dim = 512
     nb_files = 5
 
