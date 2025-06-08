@@ -165,9 +165,12 @@ def _merge_index(
     Also run optimization when `index_optimizer` is given.
     Returns the merged index and the metric
     """
+    logger.debug(f"_merge_index called with small_indices_folder={small_indices_folder}, nb_batches={nb_batches}, batch_id={batch_id}, start={start}, end={end}, max_size_on_disk={max_size_on_disk}")
     fs = _get_file_system(small_indices_folder)
     small_indices_files = sorted(fs.ls(small_indices_folder, detail=False))
     small_indices_files = small_indices_files[start:end]
+    
+    logger.debug(f"Found {len(small_indices_files)} small indices files to merge")
 
     if len(small_indices_files) == 0:
         raise ValueError(f"No small index is saved in {small_indices_folder}")
@@ -176,16 +179,21 @@ def _merge_index(
         local_file_paths = [
             os.path.join(local_indices_folder, filename) for filename in sorted(os.listdir(local_indices_folder))
         ]
+        logger.debug(f"Merging {len(local_file_paths)} local index files")
+        
         if merged is None:
             merged = faiss.read_index(local_file_paths[0])
+            logger.debug(f"Initialized merged index from {local_file_paths[0]}")
             start_index = 1
         else:
+            logger.debug("Using existing merged index")
             start_index = 0
 
         for rest_index_file in tqdm(local_file_paths[start_index:]):
             # if master and executor are the same machine, rest_index_file could be the folder for stage2
             # so, we have to check whether it is file or not
             if os.path.isfile(rest_index_file):
+                logger.debug(f"Merging index from {rest_index_file}")
                 index = faiss.read_index(rest_index_file)
                 faiss.merge_into(merged, index, shift_ids=False)
         return merged
@@ -195,13 +203,16 @@ def _merge_index(
     first_index_size = fs.size(first_index_file)
     max_sizes_in_bytes = cast_memory_to_bytes(max_size_on_disk)
     nb_files_each_time = max(1, int(max_sizes_in_bytes / first_index_size))
+    logger.debug(f"First index file size: {first_index_size} bytes, max size: {max_sizes_in_bytes} bytes, will process {nb_files_each_time} files at a time")
     merged_index = None
     n = len(small_indices_files)
     nb_iterations = max(math.ceil(n / nb_files_each_time), 1)
+    logger.debug(f"Will merge {n} files in {nb_iterations} iterations")
     with Timeit("-> Merging small indices", indent=4):
         with tqdm(total=nb_iterations) as pbar:
             for i in range(nb_iterations):
                 to_downloads = small_indices_files[i * nb_files_each_time : min(n, (i + 1) * nb_files_each_time)]
+                logger.debug(f"Iteration {i+1}/{nb_iterations}: downloading {len(to_downloads)} files")
                 with TemporaryDirectory() as local_indices_folder:
                     parallel_download_indices_from_remote(
                         fs=fs, indices_file_paths=to_downloads, dst_folder=local_indices_folder
@@ -211,12 +222,18 @@ def _merge_index(
 
     if batch_id is not None and tmp_output_folder is not None:
         if index_optimizer is not None:
+            logger.debug(f"Optimizing merged index with batch_id={batch_id}")
             metric_infos = index_optimizer(merged_index, index_suffix=_generate_suffix(batch_id, nb_batches))
+            logger.debug(f"Optimization metrics: {metric_infos}")
         else:
+            logger.debug(f"Saving merged index to {tmp_output_folder} without optimization")
             metric_infos = None
             save_index(merged_index, tmp_output_folder, _generate_small_index_file_name(batch_id, nb_batches))
     else:
+        logger.debug("Not saving merged index to disk (batch_id or tmp_output_folder is None)")
         metric_infos = None
+    
+    logger.debug(f"Merge completed, returning index with {merged_index.ntotal if merged_index else 0} vectors")
     return merged_index, metric_infos
 
 
