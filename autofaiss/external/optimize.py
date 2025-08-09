@@ -10,6 +10,7 @@ from typing import Callable, List, Optional, TypeVar
 import faiss
 import fsspec
 import numpy as np
+from autofaiss.utils.json_encoder import NumpyEncoder
 from autofaiss.external.metadata import IndexMetadata, compute_memory_necessary_for_training_wrapper
 from autofaiss.external.scores import compute_fast_metrics
 from autofaiss.indices.index_utils import set_search_hyperparameters, speed_test_ms_per_query
@@ -569,6 +570,6 @@ def optimize_and_measure_index(
             with fsspec.open(index_path, "wb").open() as f:
                 faiss.write_index(index, faiss.PyCallbackIOWriter(f.write))
             with fsspec.open(index_infos_path, "w").open() as f:
-                json.dump(metric_infos, f)
+                json.dump(metric_infos, f, cls=NumpyEncoder)
 
     return metric_infos
