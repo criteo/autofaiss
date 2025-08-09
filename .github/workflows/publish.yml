@@ -9,14 +9,14 @@ on:
     - master
 jobs:
   build-pex:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         python-version: [3.8]
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
@@ -27,26 +27,26 @@ jobs:
       run: |
         make build-pex
         mv autofaiss.pex autofaiss-${{ matrix.python-version }}.pex
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v4
       with:
         name: autofaiss_pex
         path: autofaiss-${{ matrix.python-version }}.pex
   deploy:
     needs: build-pex
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - uses: actions-ecosystem/action-regex-match@v2
       id: regex-match
       with:
         text: ${{ github.event.head_commit.message }}
         regex: '^Release ([^ ]+)'
     - name: Download pex
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4
       with:
         name: autofaiss_pex
     - name: Set up Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: '3.8'
     - name: Install dependencies

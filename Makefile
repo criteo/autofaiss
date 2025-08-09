@@ -30,7 +30,7 @@ build-dist: ## [Continuous integration] Build package for pypi
 build-pex:
 	python3 -m venv .pexing
 	. .pexing/bin/activate && python -m pip install -U pip && python -m pip install pex
-	. .pexing/bin/activate && python -m pex setuptools pyspark==3.2.1 s3fs>=2022.1.0 . -o autofaiss.pex -v
+	. .pexing/bin/activate && python -m pex setuptools pyspark==3.2.2 s3fs>=2022.1.0 . -o autofaiss.pex -v
 	rm -rf .pexing
 
 .PHONY: help
