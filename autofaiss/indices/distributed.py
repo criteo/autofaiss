@@ -178,16 +178,16 @@ def _merge_index(
             # so, we have to check whether it is file or not
             if os.path.isfile(rest_index_file):
                 index = faiss.read_index(rest_index_file)
-                
+
                 # Validate indices before merging to prevent FAISS exceptions in CI environments
-                if hasattr(index, 'nlist') and hasattr(merged, 'nlist'):
+                if hasattr(index, "nlist") and hasattr(merged, "nlist"):
                     if index.nlist != merged.nlist:
                         raise ValueError(f"Index {i} nlist mismatch: {index.nlist} vs {merged.nlist}")
                     if index.d != merged.d:
                         raise ValueError(f"Index {i} dimension mismatch: {index.d} vs {merged.d}")
                     if index.ntotal < 0 or merged.ntotal < 0:
                         raise ValueError(f"Index {i} or base index has invalid ntotal")
-                
+
                 try:
                     faiss.merge_into(merged, index, shift_ids=False)
                 except Exception as e:
