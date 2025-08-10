@@ -362,26 +362,9 @@ def _search_from_multiple_indices(index_paths, query, k):
 
 def _merge_indices(index_paths):
     merged = faiss.read_index(index_paths[0])
-    for i, rest_index_file in enumerate(index_paths[1:], 1):
+    for rest_index_file in index_paths[1:]:
         index = faiss.read_index(rest_index_file)
-        
-        # Validate indices before merging to prevent FAISS exceptions
-        if not hasattr(index, 'nlist') or not hasattr(merged, 'nlist'):
-            raise ValueError(f"Index {i} or base index is not an IVF index")
-        if index.nlist != merged.nlist:
-            raise ValueError(f"Index {i} nlist mismatch: {index.nlist} vs {merged.nlist}")
-        if index.d != merged.d:
-            raise ValueError(f"Index {i} dimension mismatch: {index.d} vs {merged.d}")
-        if index.ntotal < 0 or merged.ntotal < 0:
-            raise ValueError(f"Index {i} or base index has invalid ntotal")
-            
-        try:
-            faiss.merge_into(merged, index, shift_ids=False)
-        except Exception as e:
-            # Log the specific error for debugging
-            import warnings
-            warnings.warn(f"Failed to merge index {i} from {rest_index_file}: {e}")
-            raise
+        faiss.merge_into(merged, index, shift_ids=False)
     return merged
 
 
