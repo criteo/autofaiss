@@ -369,18 +369,6 @@ def _merge_indices(index_paths):
 
 
 def test_index_correctness_in_distributed_mode_with_multiple_indices(tmpdir):
-    import sys
-    import platform
-    import pyspark
-    
-    print(f"\n=== DEBUG INFO ===")
-    print(f"Python version: {sys.version}")
-    print(f"Platform: {platform.platform()}")
-    print(f"NumPy version: {np.__version__}")
-    print(f"FAISS version: {faiss.__version__}")
-    print(f"PySpark version: {pyspark.__version__}")
-    print("==================\n")
-    
     min_size = 20000
     max_size = 40000
     dim = 512
@@ -390,37 +378,23 @@ def test_index_correctness_in_distributed_mode_with_multiple_indices(tmpdir):
     tmp_dir, _, _, expected_df, _ = build_test_collection_parquet(
         tmpdir, min_size=min_size, max_size=max_size, dim=dim, nb_files=nb_files, consecutive_ids=True
     )
-    print(f"DEBUG: Created test collection with {len(expected_df)} samples")
-    
     temporary_indices_folder = os.path.join(tmpdir.strpath, "distributed_autofaiss_indices")
     ids_path = os.path.join(tmpdir.strpath, "ids")
-    print(f"DEBUG: Temporary indices folder: {temporary_indices_folder}")
-    print(f"DEBUG: Starting distributed build...")
-    
-    try:
-        _, index_path2_metric_infos = build_index(
-            embeddings=tmp_dir,
-            distributed="pyspark",
-            file_format="parquet",
-            temporary_indices_folder=temporary_indices_folder,
-            max_index_memory_usage="2GB",
-            current_memory_available="500MB",
-            embedding_column_name="embedding",
-            index_key="IVF1,Flat",
-            should_be_memory_mappable=True,
-            ids_path=ids_path,
-            nb_indices_to_keep=2,
-            save_on_disk=True,
-            id_columns=["id"],
-        )
-        print(f"DEBUG: Distributed build completed successfully")
-        print(f"DEBUG: Created {len(index_path2_metric_infos)} indices: {list(index_path2_metric_infos.keys())}")
-    except Exception as e:
-        print(f"DEBUG: Distributed build FAILED with exception: {e}")
-        print(f"DEBUG: Exception type: {type(e)}")
-        import traceback
-        traceback.print_exc()
-        raise
+    _, index_path2_metric_infos = build_index(
+        embeddings=tmp_dir,
+        distributed="pyspark",
+        file_format="parquet",
+        temporary_indices_folder=temporary_indices_folder,
+        max_index_memory_usage="2GB",
+        current_memory_available="500MB",
+        embedding_column_name="embedding",
+        index_key="IVF1,Flat",
+        should_be_memory_mappable=True,
+        ids_path=ids_path,
+        nb_indices_to_keep=2,
+        save_on_disk=True,
+        id_columns=["id"],
+    )
     index_paths = sorted(index_path2_metric_infos.keys())
     K, NB_QUERIES = 5, 1
     query = faiss.rand((NB_QUERIES, dim))
@@ -435,70 +409,30 @@ def test_index_correctness_in_distributed_mode_with_multiple_indices(tmpdir):
     assert len(ids_mappings) == len(expected_df)
     assert_array_equal(ids_mappings.iloc[ground_truth_ids[0, :]].to_numpy(), ground_truth_ids[0, :])
 
-    print(f"DEBUG: Testing search operations...")
-    print(f"DEBUG: Index paths: {index_paths}")
-    print(f"DEBUG: Query shape: {query.shape}")
-    print(f"DEBUG: Ground truth IDs shape: {ground_truth_ids.shape}")
-    print(f"DEBUG: Ground truth IDs: {ground_truth_ids}")
-    
-    try:
-        _, sorted_k_ids = _search_from_multiple_indices(index_paths=index_paths, query=query, k=K)
-        print(f"DEBUG: Search from multiple indices succeeded")
-        print(f"DEBUG: sorted_k_ids shape: {sorted_k_ids.shape}")
-        print(f"DEBUG: sorted_k_ids: {sorted_k_ids}")
-    except Exception as e:
-        print(f"DEBUG: Search from multiple indices FAILED: {e}")
-        import traceback
-        traceback.print_exc()
-        raise
-    
-    try:
-        merged = _merge_indices(index_paths)
-        print(f"DEBUG: Merge indices succeeded")
-        _, ids = merged.search(query, k=K)
-        print(f"DEBUG: Merged search succeeded")
-        print(f"DEBUG: merged search ids shape: {ids.shape}")
-        print(f"DEBUG: merged search ids: {ids}")
-    except Exception as e:
-        print(f"DEBUG: Merge or search FAILED: {e}")
-        import traceback
-        traceback.print_exc()
-        raise
-    
+    _, sorted_k_ids = _search_from_multiple_indices(index_paths=index_paths, query=query, k=K)
+    merged = _merge_indices(index_paths)
+    _, ids = merged.search(query, k=K)
     assert_array_equal(ids, ground_truth_ids)
     assert_array_equal(sorted_k_ids, ground_truth_ids)
 
     # numpy
-    print(f"DEBUG: Starting second test phase with numpy format...")
     tmp_dir, _, _, expected_array, _ = build_test_collection_numpy(
         tmpdir, min_size=min_size, max_size=max_size, dim=dim, nb_files=nb_files
     )
-    print(f"DEBUG: Created numpy test collection with {len(expected_array)} samples")
 
     temporary_indices_folder = os.path.join(tmpdir.strpath, "distributed_autofaiss_indices")
-    print(f"DEBUG: Starting second distributed build...")
-    
-    try:
-        _, index_path2_metric_infos = build_index(
-            embeddings=tmp_dir,
-            distributed="pyspark",
-            file_format="npy",
-            temporary_indices_folder=temporary_indices_folder,
-            max_index_memory_usage="2GB",
-            current_memory_available="500MB",
-            embedding_column_name="embedding",
-            index_key="IVF1,Flat",
-            should_be_memory_mappable=True,
-            nb_indices_to_keep=2,
-        )
-        print(f"DEBUG: Second distributed build completed successfully")
-        print(f"DEBUG: Created {len(index_path2_metric_infos)} indices: {list(index_path2_metric_infos.keys())}")
-    except Exception as e:
-        print(f"DEBUG: Second distributed build FAILED with exception: {e}")
-        print(f"DEBUG: Exception type: {type(e)}")
-        import traceback
-        traceback.print_exc()
-        raise
+    _, index_path2_metric_infos = build_index(
+        embeddings=tmp_dir,
+        distributed="pyspark",
+        file_format="npy",
+        temporary_indices_folder=temporary_indices_folder,
+        max_index_memory_usage="2GB",
+        current_memory_available="500MB",
+        embedding_column_name="embedding",
+        index_key="IVF1,Flat",
+        should_be_memory_mappable=True,
+        nb_indices_to_keep=2,
+    )
 
     ground_truth_index = faiss.index_factory(dim, "IVF1,Flat", faiss.METRIC_INNER_PRODUCT)
     ground_truth_index.train(expected_array)
@@ -506,39 +440,10 @@ def test_index_correctness_in_distributed_mode_with_multiple_indices(tmpdir):
     _, ground_truth_ids = ground_truth_index.search(query, k=K)
 
     index_paths = sorted(index_path2_metric_infos.keys())
-    print(f"DEBUG: Second phase - testing search operations...")
-    print(f"DEBUG: Index paths: {index_paths}")
-    print(f"DEBUG: Ground truth IDs shape: {ground_truth_ids.shape}")
-    print(f"DEBUG: Ground truth IDs: {ground_truth_ids}")
-    
-    try:
-        _, sorted_k_ids = _search_from_multiple_indices(index_paths=index_paths, query=query, k=K)
-        print(f"DEBUG: Second search from multiple indices succeeded")
-        print(f"DEBUG: sorted_k_ids shape: {sorted_k_ids.shape}")
-        print(f"DEBUG: sorted_k_ids: {sorted_k_ids}")
-        
-        if sorted_k_ids.shape[1] == 0:
-            print("DEBUG: CRITICAL - Search returned empty results! This indicates PySpark worker failure.")
-        
-    except Exception as e:
-        print(f"DEBUG: Second search from multiple indices FAILED: {e}")
-        import traceback
-        traceback.print_exc()
-        raise
+    _, sorted_k_ids = _search_from_multiple_indices(index_paths=index_paths, query=query, k=K)
 
-    try:
-        merged = _merge_indices(index_paths)
-        print(f"DEBUG: Second merge indices succeeded")
-        _, ids = merged.search(query, k=K)
-        print(f"DEBUG: Second merged search succeeded")
-        print(f"DEBUG: merged search ids shape: {ids.shape}")
-        print(f"DEBUG: merged search ids: {ids}")
-    except Exception as e:
-        print(f"DEBUG: Second merge or search FAILED: {e}")
-        import traceback
-        traceback.print_exc()
-        raise
-        
+    merged = _merge_indices(index_paths)
+    _, ids = merged.search(query, k=K)
     assert_array_equal(ids, ground_truth_ids)
     assert_array_equal(sorted_k_ids, ground_truth_ids)
 

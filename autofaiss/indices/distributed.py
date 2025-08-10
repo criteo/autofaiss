@@ -6,12 +6,11 @@ import math
 import multiprocessing
 import os
 import logging
-import tempfile
-import traceback
-import uuid
 from uuid import uuid4
 from tempfile import TemporaryDirectory
+import tempfile
 from typing import Dict, Optional, Iterator, Tuple, Callable, Any, Union, List
+import uuid
 from functools import partial
 from multiprocessing.pool import ThreadPool
 
@@ -157,103 +156,49 @@ def _merge_index(
     Also run optimization when `index_optimizer` is given.
     Returns the merged index and the metric
     """
-    logger.debug("_merge_index: batch_id=%s, start=%s, end=%s", batch_id, start, end)
-    logger.debug("_merge_index: small_indices_folder=%s", small_indices_folder)
+    fs = _get_file_system(small_indices_folder)
+    small_indices_files = sorted(fs.ls(small_indices_folder, detail=False))
+    small_indices_files = small_indices_files[start:end]
 
-    try:
-        fs = _get_file_system(small_indices_folder)
-        small_indices_files = sorted(fs.ls(small_indices_folder, detail=False))
-        logger.debug("_merge_index: Found %d total files", len(small_indices_files))
-
-        small_indices_files = small_indices_files[start:end]
-        logger.debug("_merge_index: Processing %d files for this batch", len(small_indices_files))
-        logger.debug("_merge_index: Files to process: %s", small_indices_files)
-
-        if len(small_indices_files) == 0:
-            logger.error("_merge_index: No files to process!")
-            raise ValueError(f"No small index is saved in {small_indices_folder}")
-    except Exception as e:
-        logger.error("_merge_index: FAILED during file listing: %s", e)
-        logger.error("_merge_index: Error type: %s", type(e))
-        logger.error("_merge_index: Traceback: %s", traceback.format_exc())
-        raise
+    if len(small_indices_files) == 0:
+        raise ValueError(f"No small index is saved in {small_indices_folder}")
 
     def _merge_from_local(merged: Optional[faiss.Index] = None) -> faiss.Index:
         local_file_paths = [
             os.path.join(local_indices_folder, filename) for filename in sorted(os.listdir(local_indices_folder))
         ]
-        logger.debug("_merge_from_local: Found %d local files: %s", len(local_file_paths), local_file_paths)
-
         if merged is None:
-            logger.debug("_merge_from_local: Creating initial index from %s", local_file_paths[0])
-            try:
-                merged = faiss.read_index(local_file_paths[0])
-                logger.debug("_merge_from_local: Initial index loaded successfully, ntotal=%d", merged.ntotal)
-                start_index = 1
-            except Exception as e:
-                logger.error("_merge_from_local: FAILED to load initial index: %s", e)
-                raise
+            merged = faiss.read_index(local_file_paths[0])
+            start_index = 1
         else:
-            logger.debug("_merge_from_local: Using existing merged index, ntotal=%d", merged.ntotal)
             start_index = 0
 
         for rest_index_file in tqdm(local_file_paths[start_index:]):
-            logger.debug("_merge_from_local: Processing file %s", rest_index_file)
             # if master and executor are the same machine, rest_index_file could be the folder for stage2
             # so, we have to check whether it is file or not
             if os.path.isfile(rest_index_file):
-                try:
-                    logger.debug("_merge_from_local: Reading index from %s", rest_index_file)
-                    index = faiss.read_index(rest_index_file)
-                    logger.debug("_merge_from_local: Index loaded, ntotal=%d, about to merge", index.ntotal)
-                    faiss.merge_into(merged, index, shift_ids=False)
-                    logger.debug("_merge_from_local: Merge successful, merged ntotal now=%d", merged.ntotal)
-                except Exception as e:
-                    logger.error("_merge_from_local: FAILED to process %s: %s", rest_index_file, e)
-                    logger.error("_merge_from_local: Error type: %s", type(e))
-                    logger.error("_merge_from_local: Traceback: %s", traceback.format_exc())
-                    raise
-            else:
-                logger.debug("_merge_from_local: Skipping non-file %s", rest_index_file)
-        logger.debug("_merge_from_local: All merges completed, final ntotal=%d", merged.ntotal)
+                index = faiss.read_index(rest_index_file)
+                faiss.merge_into(merged, index, shift_ids=False)
         return merged
 
     # estimate index size by taking the first index
     first_index_file = small_indices_files[0]
     first_index_size = fs.size(first_index_file)
-    logger.debug("_merge_index: first_index_file=%s, size=%d", first_index_file, first_index_size)
-
     max_sizes_in_bytes = cast_memory_to_bytes(max_size_on_disk)
     nb_files_each_time = max(1, int(max_sizes_in_bytes / first_index_size))
-    logger.debug("_merge_index: max_size_on_disk=%s, nb_files_each_time=%d", max_size_on_disk, nb_files_each_time)
-
     merged_index = None
     n = len(small_indices_files)
     nb_iterations = max(math.ceil(n / nb_files_each_time), 1)
-    logger.debug("_merge_index: Starting merge with %d iterations", nb_iterations)
-
     with Timeit("-> Merging small indices", indent=4):
         with tqdm(total=nb_iterations) as pbar:
             for i in range(nb_iterations):
-                logger.debug("_merge_index: Starting iteration %d/%d", i+1, nb_iterations)
                 to_downloads = small_indices_files[i * nb_files_each_time : min(n, (i + 1) * nb_files_each_time)]
-                logger.debug("_merge_index: Downloading %d files: %s", len(to_downloads), to_downloads)
-
-                try:
-                    with TemporaryDirectory() as local_indices_folder:
-                        parallel_download_indices_from_remote(
-                            fs=fs, indices_file_paths=to_downloads, dst_folder=local_indices_folder
-                        )
-                        logger.debug("_merge_index: Download completed, about to merge from local")
-                        merged_index = _merge_from_local(merged_index)
-                        logger.debug("_merge_index: Merge from local completed successfully")
-                    pbar.update(1)
-                    logger.debug("_merge_index: Iteration %d completed successfully", i+1)
-                except Exception as e:
-                    logger.error("_merge_index: Iteration %d FAILED with error: %s", i+1, e)
-                    logger.error("_merge_index: Error type: %s", type(e))
-                    logger.error("_merge_index: Traceback: %s", traceback.format_exc())
-                    raise
+                with TemporaryDirectory() as local_indices_folder:
+                    parallel_download_indices_from_remote(
+                        fs=fs, indices_file_paths=to_downloads, dst_folder=local_indices_folder
+                    )
+                    merged_index = _merge_from_local(merged_index)
+                pbar.update(1)
 
     if batch_id is not None and tmp_output_folder is not None:
         if index_optimizer is not None:
@@ -277,54 +222,28 @@ def _merge_to_n_indices(
     fs = _get_file_system(src_folder)
     nb_indices_on_src_folder = len(fs.ls(src_folder, detail=False))
 
-    logger.debug("_merge_to_n_indices: n=%d, src_folder=%s", n, src_folder)
-    logger.debug("_merge_to_n_indices: nb_indices_on_src_folder=%d", nb_indices_on_src_folder)
-    logger.debug("_merge_to_n_indices: index_optimizer=%s", index_optimizer is not None)
-
     if nb_indices_on_src_folder <= n and index_optimizer is None:
         # no need to merge
-        logger.debug("_merge_to_n_indices: No merge needed, returning early")
         return src_folder, None
 
-    merge_batches = list(_batch_loader(nb_batches=n, total_size=nb_indices_on_src_folder))
-    logger.debug("_merge_to_n_indices: merge_batches=%s", merge_batches)
+    merge_batches = _batch_loader(nb_batches=n, total_size=nb_indices_on_src_folder)
 
     rdd = spark_session.sparkContext.parallelize(merge_batches, n)
-    logger.debug("_merge_to_n_indices: Created RDD with %d partitions", n)
 
     def merge(x):
-        logger.debug("merge function: Processing batch %s", x)
-        try:
-            _, metrics = _merge_index(
-                small_indices_folder=src_folder,
-                nb_batches=n,
-                batch_id=x[0],
-                start=x[1],
-                end=x[2],
-                tmp_output_folder=dst_folder,
-                index_optimizer=index_optimizer,
-            )  # type: ignore
-            logger.debug("merge function: Batch %d completed successfully", x[0])
-            return metrics
-        except Exception as e:
-            logger.error("merge function: Batch %d FAILED with error: %s", x[0], e)
-            logger.error("merge function: Error type: %s", type(e))
-            logger.error("merge function: Traceback: %s", traceback.format_exc())
-            raise
+        _, metrics = _merge_index(
+            small_indices_folder=src_folder,
+            nb_batches=n,
+            batch_id=x[0],
+            start=x[1],
+            end=x[2],
+            tmp_output_folder=dst_folder,
+            index_optimizer=index_optimizer,
+        )  # type: ignore
+        return metrics
 
     metrics_rdd = rdd.map(merge)
-    logger.debug("_merge_to_n_indices: About to call collect() - this is where crashes typically happen")
-
-    try:
-        metrics = list(metrics_rdd.collect())
-        logger.debug("_merge_to_n_indices: collect() succeeded, got %d results", len(metrics))
-        for i, metric in enumerate(metrics):
-            logger.debug("_merge_to_n_indices: metrics[%d] = %s %s", i, type(metric), metric)
-    except Exception as e:
-        logger.error("_merge_to_n_indices: collect() FAILED with error: %s", e)
-        logger.error("_merge_to_n_indices: Error type: %s", type(e))
-        logger.error("_merge_to_n_indices: Traceback: %s", traceback.format_exc())
-        raise
+    metrics = list(metrics_rdd.collect())
     if index_optimizer is not None:
         metrics_dict = {metric_info["index_path"]: metric_info for metric_info in metrics}  # type: ignore
     else:
