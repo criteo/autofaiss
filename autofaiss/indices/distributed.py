@@ -173,12 +173,26 @@ def _merge_index(
         else:
             start_index = 0
 
-        for rest_index_file in tqdm(local_file_paths[start_index:]):
+        for i, rest_index_file in enumerate(tqdm(local_file_paths[start_index:]), start_index):
             # if master and executor are the same machine, rest_index_file could be the folder for stage2
             # so, we have to check whether it is file or not
             if os.path.isfile(rest_index_file):
                 index = faiss.read_index(rest_index_file)
-                faiss.merge_into(merged, index, shift_ids=False)
+                
+                # Validate indices before merging to prevent FAISS exceptions in CI environments
+                if hasattr(index, 'nlist') and hasattr(merged, 'nlist'):
+                    if index.nlist != merged.nlist:
+                        raise ValueError(f"Index {i} nlist mismatch: {index.nlist} vs {merged.nlist}")
+                    if index.d != merged.d:
+                        raise ValueError(f"Index {i} dimension mismatch: {index.d} vs {merged.d}")
+                    if index.ntotal < 0 or merged.ntotal < 0:
+                        raise ValueError(f"Index {i} or base index has invalid ntotal")
+                
+                try:
+                    faiss.merge_into(merged, index, shift_ids=False)
+                except Exception as e:
+                    logger.error(f"Failed to merge index {i} from {rest_index_file}: {e}")
+                    raise
         return merged
 
     # estimate index size by taking the first index
