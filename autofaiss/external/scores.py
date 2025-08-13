@@ -99,10 +99,10 @@ def compute_medium_metrics(
 
     infos: Dict[str, float] = {}
 
-    infos["1-recall@20"] = one_recall[20 - 1]
-    infos["1-recall@40"] = one_recall[40 - 1]
-    infos["20-recall@20"] = intersection_recall[20 - 1]
-    infos["40-recall@40"] = intersection_recall[40 - 1]
+    infos["1-recall@20"] = float(one_recall[20 - 1])
+    infos["1-recall@40"] = float(one_recall[40 - 1])
+    infos["20-recall@20"] = float(intersection_recall[20 - 1])
+    infos["40-recall@40"] = float(intersection_recall[40 - 1])
 
     return infos
 
