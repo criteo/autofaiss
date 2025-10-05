@@ -290,8 +290,12 @@ def test_index_correctness_in_distributed_mode(tmpdir):
     )
     temporary_indices_folder = os.path.join(tmpdir.strpath, "distributed_autofaiss_indices")
     ids_path = os.path.join(tmpdir.strpath, "ids")
+    index_path = os.path.join(tmpdir.strpath, "distributed_knn.index")
+    index_infos_path = os.path.join(tmpdir.strpath, "distributed_knn_infos.json")
     index, _ = build_index(
         embeddings=tmp_dir,
+        index_path=index_path,
+        index_infos_path=index_infos_path,
         distributed="pyspark",
         file_format="parquet",
         temporary_indices_folder=temporary_indices_folder,
@@ -322,8 +326,12 @@ def test_index_correctness_in_distributed_mode(tmpdir):
     tmp_dir, _, _, expected_array, _ = build_test_collection_numpy(
         tmpdir, min_size=min_size, max_size=max_size, dim=dim, nb_files=nb_files
     )
+    index_path = os.path.join(tmpdir.strpath, "distributed_knn.index")
+    index_infos_path = os.path.join(tmpdir.strpath, "distributed_knn_infos.json")
     index, _ = build_index(
         embeddings=tmp_dir,
+        index_path=index_path,
+        index_infos_path=index_infos_path,
         distributed="pyspark",
         file_format="npy",
         temporary_indices_folder=temporary_indices_folder,
@@ -380,8 +388,12 @@ def test_index_correctness_in_distributed_mode_with_multiple_indices(tmpdir):
     )
     temporary_indices_folder = os.path.join(tmpdir.strpath, "distributed_autofaiss_indices")
     ids_path = os.path.join(tmpdir.strpath, "ids")
+    index_path = os.path.join(tmpdir.strpath, "distributed_knn.index")
+    index_infos_path = os.path.join(tmpdir.strpath, "distributed_knn_infos.json")
     _, index_path2_metric_infos = build_index(
         embeddings=tmp_dir,
+        index_path=index_path,
+        index_infos_path=index_infos_path,
         distributed="pyspark",
         file_format="parquet",
         temporary_indices_folder=temporary_indices_folder,
@@ -421,8 +433,12 @@ def test_index_correctness_in_distributed_mode_with_multiple_indices(tmpdir):
     )
 
     temporary_indices_folder = os.path.join(tmpdir.strpath, "distributed_autofaiss_indices")
+    index_path = os.path.join(tmpdir.strpath, "distributed_knn.index")
+    index_infos_path = os.path.join(tmpdir.strpath, "distributed_knn_infos.json")
     _, index_path2_metric_infos = build_index(
         embeddings=tmp_dir,
+        index_path=index_path,
+        index_infos_path=index_infos_path,
         distributed="pyspark",
         file_format="npy",
         temporary_indices_folder=temporary_indices_folder,

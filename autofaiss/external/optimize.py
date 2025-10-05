@@ -21,6 +21,19 @@ from embedding_reader import EmbeddingReader
 logger = logging.getLogger("autofaiss")
 
 
+class NumpyEncoder(json.JSONEncoder):
+    """Special json encoder for numpy types"""
+
+    def default(self, o):  # pylint: disable=E0202
+        if isinstance(o, np.integer):
+            return int(o)
+        if isinstance(o, np.floating):
+            return float(o)
+        if isinstance(o, np.ndarray):
+            return o.tolist()
+        return super().default(o)
+
+
 def check_if_index_needs_training(index_key: str) -> bool:
     """
     Function that checks if the index needs to be trained
@@ -569,6 +582,6 @@ def optimize_and_measure_index(
             with fsspec.open(index_path, "wb").open() as f:
                 faiss.write_index(index, faiss.PyCallbackIOWriter(f.write))
             with fsspec.open(index_infos_path, "w").open() as f:
-                json.dump(metric_infos, f)
+                json.dump(metric_infos, f, cls=NumpyEncoder)
 
     return metric_infos

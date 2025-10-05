@@ -132,4 +132,5 @@ myimglist.txt
 newcat.jpg
 
 .pexing
-*.pex
+*.pex*.index
+*.json
