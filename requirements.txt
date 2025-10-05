@@ -1,10 +1,8 @@
-dataclasses>=0.6; python_version < "3.7"
 fire>=0.4.0
 numpy>=1.19.5
 pandas>=1.1.5
 pyarrow>=6.0.1
 tqdm>=4.62.3
-faiss-cpu<1.7.3; python_version < "3.7"
-faiss-cpu>=1; python_version >= "3.7"
+faiss-cpu>=1
 fsspec>=2022.1.0
 embedding_reader>=1.5.1
