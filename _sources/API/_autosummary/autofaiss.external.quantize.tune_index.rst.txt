@@ -1,6 +1,0 @@
-﻿autofaiss.external.quantize.tune\_index
-=======================================
-
-.. currentmodule:: autofaiss.external.quantize
-
-.. autofunction:: tune_index

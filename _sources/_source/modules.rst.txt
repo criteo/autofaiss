@@ -1,7 +1,0 @@
-autofaiss
-=========
-
-.. toctree::
-   :maxdepth: 4
-
-   autofaiss

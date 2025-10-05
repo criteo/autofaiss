@@ -1,6 +1,0 @@
-﻿autofaiss.external.quantize.build\_index
-========================================
-
-.. currentmodule:: autofaiss.external.quantize
-
-.. autofunction:: build_index
