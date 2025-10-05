@@ -1,8 +1,0 @@
-fire>=0.4.0,<0.7.0
-numpy>=1.19.5,<2
-pandas>=1.1.5,<3
-pyarrow>=6.0.1,<30
-tqdm>=4.62.3,<5
-faiss-cpu>=1,<2
-fsspec>=2022.1.0
-embedding_reader>=1.8.0,<2

@@ -1,0 +1,220 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>autofaiss.indices.index_factory &mdash; autofaiss 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            autofaiss
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Introduction and installation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../introduction/introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../introduction/introduction.html#installing-the-requirements">Installing the requirements</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Getting started with the CLI</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting_started/quantization.html">Creating an index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting_started/quantization.html#tuning-an-existing-index">Tuning an existing index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting_started/quantization.html#getting-scores-on-an-index">Getting scores on an index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting_started/quantization.html#creating-partitioned-indexes">Creating partitioned indexes</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Use autofaiss from python</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../API/api.html">Python documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../_source/modules.html">autofaiss</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Getting started with notebooks</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/autofaiss_getting_started.html">Autofaiss getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/autofaiss_index_selection_demo.html">Autofaiss Index selection demo slider</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">autofaiss</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">autofaiss.indices.index_factory</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for autofaiss.indices.index_factory</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot; functions that fixe faiss index_factory function &quot;&quot;&quot;</span>
+<span class="c1"># pylint: disable=invalid-name</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">faiss</span>
+
+
+<div class="viewcode-block" id="index_factory">
+<a class="viewcode-back" href="../../../_source/autofaiss.indices.html#autofaiss.indices.index_factory.index_factory">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">index_factory</span><span class="p">(</span><span class="n">d</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">index_key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">metric_type</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">ef_construction</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    custom index_factory that fix some issues of</span>
+<span class="sd">    faiss.index_factory with inner product metrics.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">metric_type</span> <span class="o">==</span> <span class="n">faiss</span><span class="o">.</span><span class="n">METRIC_INNER_PRODUCT</span><span class="p">:</span>
+        <span class="c1"># make the index described by the key</span>
+        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;OPQ\d+_\d+,IVF\d+,PQ\d+&quot;</span><span class="p">,</span> <span class="n">index_key</span><span class="p">)):</span>
+            <span class="n">params</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;\d+&quot;</span><span class="p">,</span> <span class="n">index_key</span><span class="p">)]</span>
+
+            <span class="n">cs</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>  <span class="c1"># code size (in Bytes if nbits=8)</span>
+            <span class="n">nbits</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">params</span><span class="p">)</span> <span class="o">==</span> <span class="mi">5</span> <span class="k">else</span> <span class="mi">8</span>  <span class="c1"># default value</span>
+            <span class="n">ncentroids</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+            <span class="n">out_d</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">M_OPQ</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+            <span class="n">quantizer</span> <span class="o">=</span> <span class="n">faiss</span><span class="o">.</span><span class="n">index_factory</span><span class="p">(</span><span class="n">out_d</span><span class="p">,</span> <span class="s2">&quot;Flat&quot;</span><span class="p">,</span> <span class="n">metric_type</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="n">quantizer</span><span class="o">.</span><span class="n">metric_type</span> <span class="o">==</span> <span class="n">metric_type</span>
+            <span class="n">index_ivfpq</span> <span class="o">=</span> <span class="n">faiss</span><span class="o">.</span><span class="n">IndexIVFPQ</span><span class="p">(</span><span class="n">quantizer</span><span class="p">,</span> <span class="n">out_d</span><span class="p">,</span> <span class="n">ncentroids</span><span class="p">,</span> <span class="n">cs</span><span class="p">,</span> <span class="n">nbits</span><span class="p">,</span> <span class="n">metric_type</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="n">index_ivfpq</span><span class="o">.</span><span class="n">metric_type</span> <span class="o">==</span> <span class="n">metric_type</span>
+            <span class="n">index_ivfpq</span><span class="o">.</span><span class="n">own_fields</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">quantizer</span><span class="o">.</span><span class="n">this</span><span class="o">.</span><span class="n">disown</span><span class="p">()</span>  <span class="c1"># pylint: disable = no-member</span>
+            <span class="n">opq_matrix</span> <span class="o">=</span> <span class="n">faiss</span><span class="o">.</span><span class="n">OPQMatrix</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">M</span><span class="o">=</span><span class="n">M_OPQ</span><span class="p">,</span> <span class="n">d2</span><span class="o">=</span><span class="n">out_d</span><span class="p">)</span>
+            <span class="c1"># opq_matrix.niter = 50 # Same as default value</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="n">faiss</span><span class="o">.</span><span class="n">IndexPreTransform</span><span class="p">(</span><span class="n">opq_matrix</span><span class="p">,</span> <span class="n">index_ivfpq</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">any</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;OPQ\d+_\d+,IVF\d+_HNSW\d+,PQ\d+&quot;</span><span class="p">,</span> <span class="n">index_key</span><span class="p">)):</span>
+            <span class="n">params</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;\d+&quot;</span><span class="p">,</span> <span class="n">index_key</span><span class="p">)]</span>
+
+            <span class="n">M_HNSW</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+            <span class="n">cs</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span>  <span class="c1"># code size (in Bytes if nbits=8)</span>
+            <span class="n">nbits</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">params</span><span class="p">)</span> <span class="o">==</span> <span class="mi">6</span> <span class="k">else</span> <span class="mi">8</span>  <span class="c1"># default value</span>
+            <span class="n">ncentroids</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+            <span class="n">out_d</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">M_OPQ</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+            <span class="n">quantizer</span> <span class="o">=</span> <span class="n">faiss</span><span class="o">.</span><span class="n">IndexHNSWFlat</span><span class="p">(</span><span class="n">out_d</span><span class="p">,</span> <span class="n">M_HNSW</span><span class="p">,</span> <span class="n">metric_type</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">ef_construction</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">ef_construction</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">quantizer</span><span class="o">.</span><span class="n">hnsw</span><span class="o">.</span><span class="n">efConstruction</span> <span class="o">=</span> <span class="n">ef_construction</span>
+            <span class="k">assert</span> <span class="n">quantizer</span><span class="o">.</span><span class="n">metric_type</span> <span class="o">==</span> <span class="n">metric_type</span>
+            <span class="n">index_ivfpq</span> <span class="o">=</span> <span class="n">faiss</span><span class="o">.</span><span class="n">IndexIVFPQ</span><span class="p">(</span><span class="n">quantizer</span><span class="p">,</span> <span class="n">out_d</span><span class="p">,</span> <span class="n">ncentroids</span><span class="p">,</span> <span class="n">cs</span><span class="p">,</span> <span class="n">nbits</span><span class="p">,</span> <span class="n">metric_type</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="n">index_ivfpq</span><span class="o">.</span><span class="n">metric_type</span> <span class="o">==</span> <span class="n">metric_type</span>
+            <span class="n">index_ivfpq</span><span class="o">.</span><span class="n">own_fields</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">quantizer</span><span class="o">.</span><span class="n">this</span><span class="o">.</span><span class="n">disown</span><span class="p">()</span>  <span class="c1"># pylint: disable = no-member</span>
+            <span class="n">opq_matrix</span> <span class="o">=</span> <span class="n">faiss</span><span class="o">.</span><span class="n">OPQMatrix</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">M</span><span class="o">=</span><span class="n">M_OPQ</span><span class="p">,</span> <span class="n">d2</span><span class="o">=</span><span class="n">out_d</span><span class="p">)</span>
+            <span class="c1"># opq_matrix.niter = 50 # Same as default value</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="n">faiss</span><span class="o">.</span><span class="n">IndexPreTransform</span><span class="p">(</span><span class="n">opq_matrix</span><span class="p">,</span> <span class="n">index_ivfpq</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="nb">any</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;Pad\d+,IVF\d+_HNSW\d+,PQ\d+&quot;</span><span class="p">,</span> <span class="n">index_key</span><span class="p">)):</span>
+            <span class="n">params</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;\d+&quot;</span><span class="p">,</span> <span class="n">index_key</span><span class="p">)]</span>
+
+            <span class="n">out_d</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">M_HNSW</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+            <span class="n">cs</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>  <span class="c1"># code size (in Bytes if nbits=8)</span>
+            <span class="n">nbits</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">params</span><span class="p">)</span> <span class="o">==</span> <span class="mi">5</span> <span class="k">else</span> <span class="mi">8</span>  <span class="c1"># default value</span>
+            <span class="n">ncentroids</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+            <span class="n">remapper</span> <span class="o">=</span> <span class="n">faiss</span><span class="o">.</span><span class="n">RemapDimensionsTransform</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">out_d</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+
+            <span class="n">quantizer</span> <span class="o">=</span> <span class="n">faiss</span><span class="o">.</span><span class="n">IndexHNSWFlat</span><span class="p">(</span><span class="n">out_d</span><span class="p">,</span> <span class="n">M_HNSW</span><span class="p">,</span> <span class="n">metric_type</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">ef_construction</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">ef_construction</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">quantizer</span><span class="o">.</span><span class="n">hnsw</span><span class="o">.</span><span class="n">efConstruction</span> <span class="o">=</span> <span class="n">ef_construction</span>
+            <span class="n">index_ivfpq</span> <span class="o">=</span> <span class="n">faiss</span><span class="o">.</span><span class="n">IndexIVFPQ</span><span class="p">(</span><span class="n">quantizer</span><span class="p">,</span> <span class="n">out_d</span><span class="p">,</span> <span class="n">ncentroids</span><span class="p">,</span> <span class="n">cs</span><span class="p">,</span> <span class="n">nbits</span><span class="p">,</span> <span class="n">metric_type</span><span class="p">)</span>
+            <span class="n">index_ivfpq</span><span class="o">.</span><span class="n">own_fields</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">quantizer</span><span class="o">.</span><span class="n">this</span><span class="o">.</span><span class="n">disown</span><span class="p">()</span>  <span class="c1"># pylint: disable = no-member</span>
+
+            <span class="n">index</span> <span class="o">=</span> <span class="n">faiss</span><span class="o">.</span><span class="n">IndexPreTransform</span><span class="p">(</span><span class="n">remapper</span><span class="p">,</span> <span class="n">index_ivfpq</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">any</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;HNSW\d+&quot;</span><span class="p">,</span> <span class="n">index_key</span><span class="p">)):</span>
+            <span class="n">params</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;\d+&quot;</span><span class="p">,</span> <span class="n">index_key</span><span class="p">)]</span>
+            <span class="n">M_HNSW</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="n">faiss</span><span class="o">.</span><span class="n">IndexHNSWFlat</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">M_HNSW</span><span class="p">,</span> <span class="n">metric_type</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="n">index</span><span class="o">.</span><span class="n">metric_type</span> <span class="o">==</span> <span class="n">metric_type</span>
+        <span class="k">elif</span> <span class="n">index_key</span> <span class="o">==</span> <span class="s2">&quot;Flat&quot;</span> <span class="ow">or</span> <span class="nb">any</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;IVF\d+,Flat&quot;</span><span class="p">,</span> <span class="n">index_key</span><span class="p">)):</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="n">faiss</span><span class="o">.</span><span class="n">index_factory</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">index_key</span><span class="p">,</span> <span class="n">metric_type</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="n">faiss</span><span class="o">.</span><span class="n">index_factory</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">index_key</span><span class="p">,</span> <span class="n">metric_type</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="p">(</span>
+                    <span class="s2">&quot;Be careful, faiss might not create what you expect when using the &quot;</span>
+                    <span class="s2">&quot;inner product similarity metric, remove this line to try it anyway. &quot;</span>
+                    <span class="s2">&quot;Happened with index_key: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">index_key</span><span class="p">)</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="n">faiss</span><span class="o">.</span><span class="n">index_factory</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">index_key</span><span class="p">,</span> <span class="n">metric_type</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">index</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020, Criteo.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

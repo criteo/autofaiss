@@ -1,0 +1,1160 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Install clip + autofaiss &mdash; autofaiss 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            autofaiss
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Introduction and installation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../introduction/introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../introduction/introduction.html#installing-the-requirements">Installing the requirements</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Getting started with the CLI</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started/quantization.html">Creating an index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started/quantization.html#tuning-an-existing-index">Tuning an existing index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started/quantization.html#getting-scores-on-an-index">Getting scores on an index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started/quantization.html#creating-partitioned-indexes">Creating partitioned indexes</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Use autofaiss from python</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../API/api.html">Python documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../_source/modules.html">autofaiss</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Getting started with notebooks</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="autofaiss_getting_started.html">Autofaiss getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="autofaiss_index_selection_demo.html">Autofaiss Index selection demo slider</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">autofaiss</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Install clip + autofaiss</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/notebooks/autofaiss_multimodal_search.ipynb.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="Install-clip-+-autofaiss">
+<h1>Install clip + autofaiss<a class="headerlink" href="#Install-clip-+-autofaiss" title="Link to this heading"></a></h1>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>!pip install clip-retrieval img2dataset autofaiss
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Collecting clip-retrieval
+  Downloading clip_retrieval-1.0.1-py3-none-any.whl (10 kB)
+Collecting img2dataset
+  Downloading img2dataset-1.0.1-py3-none-any.whl (5.5 kB)
+Collecting autofaiss
+  Downloading autofaiss-1.3.0.tar.gz (33 kB)
+Collecting flask-restful
+  Downloading Flask_RESTful-0.3.9-py2.py3-none-any.whl (25 kB)
+Requirement already satisfied: torchvision in /usr/local/lib/python3.7/dist-packages (from clip-retrieval) (0.10.0+cu102)
+Requirement already satisfied: numpy in /usr/local/lib/python3.7/dist-packages (from clip-retrieval) (1.19.5)
+Requirement already satisfied: torch in /usr/local/lib/python3.7/dist-packages (from clip-retrieval) (1.9.0+cu102)
+Collecting clip-anytorch
+  Downloading clip_anytorch-2.2.0-py3-none-any.whl (1.4 MB)
+     |████████████████████████████████| 1.4 MB 13.4 MB/s
+Requirement already satisfied: flask in /usr/local/lib/python3.7/dist-packages (from clip-retrieval) (1.1.4)
+Requirement already satisfied: tqdm in /usr/local/lib/python3.7/dist-packages (from clip-retrieval) (4.41.1)
+Collecting flask-cors
+  Downloading Flask_Cors-3.0.10-py2.py3-none-any.whl (14 kB)
+Collecting faiss-cpu
+  Downloading faiss_cpu-1.7.1.post2-cp37-cp37m-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (8.4 MB)
+     |████████████████████████████████| 8.4 MB 16.3 MB/s
+Collecting fire
+  Downloading fire-0.4.0.tar.gz (87 kB)
+     |████████████████████████████████| 87 kB 8.7 MB/s
+Requirement already satisfied: opencv-python in /usr/local/lib/python3.7/dist-packages (from img2dataset) (4.1.2.30)
+Collecting dataclasses
+  Downloading dataclasses-0.6-py3-none-any.whl (14 kB)
+Requirement already satisfied: pandas&gt;=1.0.5 in /usr/local/lib/python3.7/dist-packages (from autofaiss) (1.1.5)
+Requirement already satisfied: pyarrow&gt;=0.14 in /usr/local/lib/python3.7/dist-packages (from autofaiss) (3.0.0)
+Collecting tqdm
+  Downloading tqdm-4.62.0-py2.py3-none-any.whl (76 kB)
+     |████████████████████████████████| 76 kB 5.7 MB/s
+Requirement already satisfied: six in /usr/local/lib/python3.7/dist-packages (from fire-&gt;clip-retrieval) (1.15.0)
+Requirement already satisfied: termcolor in /usr/local/lib/python3.7/dist-packages (from fire-&gt;clip-retrieval) (1.1.0)
+Requirement already satisfied: pytz&gt;=2017.2 in /usr/local/lib/python3.7/dist-packages (from pandas&gt;=1.0.5-&gt;autofaiss) (2018.9)
+Requirement already satisfied: python-dateutil&gt;=2.7.3 in /usr/local/lib/python3.7/dist-packages (from pandas&gt;=1.0.5-&gt;autofaiss) (2.8.1)
+Requirement already satisfied: regex in /usr/local/lib/python3.7/dist-packages (from clip-anytorch-&gt;clip-retrieval) (2019.12.20)
+Collecting ftfy
+  Downloading ftfy-6.0.3.tar.gz (64 kB)
+     |████████████████████████████████| 64 kB 3.7 MB/s
+Requirement already satisfied: click&lt;8.0,&gt;=5.1 in /usr/local/lib/python3.7/dist-packages (from flask-&gt;clip-retrieval) (7.1.2)
+Requirement already satisfied: Werkzeug&lt;2.0,&gt;=0.15 in /usr/local/lib/python3.7/dist-packages (from flask-&gt;clip-retrieval) (1.0.1)
+Requirement already satisfied: Jinja2&lt;3.0,&gt;=2.10.1 in /usr/local/lib/python3.7/dist-packages (from flask-&gt;clip-retrieval) (2.11.3)
+Requirement already satisfied: itsdangerous&lt;2.0,&gt;=0.24 in /usr/local/lib/python3.7/dist-packages (from flask-&gt;clip-retrieval) (1.1.0)
+Requirement already satisfied: MarkupSafe&gt;=0.23 in /usr/local/lib/python3.7/dist-packages (from Jinja2&lt;3.0,&gt;=2.10.1-&gt;flask-&gt;clip-retrieval) (2.0.1)
+Collecting aniso8601&gt;=0.82
+  Downloading aniso8601-9.0.1-py2.py3-none-any.whl (52 kB)
+     |████████████████████████████████| 52 kB 1.7 MB/s
+Requirement already satisfied: wcwidth in /usr/local/lib/python3.7/dist-packages (from ftfy-&gt;clip-anytorch-&gt;clip-retrieval) (0.2.5)
+Requirement already satisfied: typing-extensions in /usr/local/lib/python3.7/dist-packages (from torch-&gt;clip-retrieval) (3.7.4.3)
+Requirement already satisfied: pillow&gt;=5.3.0 in /usr/local/lib/python3.7/dist-packages (from torchvision-&gt;clip-retrieval) (7.1.2)
+Building wheels for collected packages: autofaiss, fire, ftfy
+  Building wheel for autofaiss (setup.py) ... done
+  Created wheel for autofaiss: filename=autofaiss-1.3.0-py3-none-any.whl size=48780 sha256=78f88a5d535fc3273231ed722ef8bd4dcfa832d7ecba4c61aa7bf91ef8a7691e
+  Stored in directory: /root/.cache/pip/wheels/a6/2f/e3/d2d4bda1af309cd9e86bd83652372762f5bae5460d4d5108cf
+  Building wheel for fire (setup.py) ... done
+  Created wheel for fire: filename=fire-0.4.0-py2.py3-none-any.whl size=115943 sha256=a9a2ecaa4a312b5c6e9f530d4dbeb41f1387779d5b4032232d018a554f5a9103
+  Stored in directory: /root/.cache/pip/wheels/8a/67/fb/2e8a12fa16661b9d5af1f654bd199366799740a85c64981226
+  Building wheel for ftfy (setup.py) ... done
+  Created wheel for ftfy: filename=ftfy-6.0.3-py3-none-any.whl size=41934 sha256=eb1f8693c149dda4dd1d24de8e1d363c2691206422a5ca97325fec61649a14cd
+  Stored in directory: /root/.cache/pip/wheels/19/f5/38/273eb3b5e76dfd850619312f693716ac4518b498f5ffb6f56d
+Successfully built autofaiss fire ftfy
+Installing collected packages: tqdm, ftfy, aniso8601, flask-restful, flask-cors, fire, faiss-cpu, dataclasses, clip-anytorch, img2dataset, clip-retrieval, autofaiss
+  Attempting uninstall: tqdm
+    Found existing installation: tqdm 4.41.1
+    Uninstalling tqdm-4.41.1:
+      Successfully uninstalled tqdm-4.41.1
+Successfully installed aniso8601-9.0.1 autofaiss-1.3.0 clip-anytorch-2.2.0 clip-retrieval-1.0.1 dataclasses-0.6 faiss-cpu-1.7.1.post2 fire-0.4.0 flask-cors-3.0.10 flask-restful-0.3.9 ftfy-6.0.3 img2dataset-1.0.1 tqdm-4.62.0
+</pre></div></div>
+</div>
+</section>
+<section id="Download-dataset">
+<h1>Download dataset<a class="headerlink" href="#Download-dataset" title="Link to this heading"></a></h1>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>!wget https://raw.githubusercontent.com/knok/pixabay-cat-images/master/classified-cat-jp-images.txt -O myimglist.txt
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+--2021-09-03 17:45:38--  https://raw.githubusercontent.com/knok/pixabay-cat-images/master/classified-cat-jp-images.txt
+Resolving raw.githubusercontent.com (raw.githubusercontent.com)... 185.199.109.133, 185.199.111.133, 185.199.108.133, ...
+Connecting to raw.githubusercontent.com (raw.githubusercontent.com)|185.199.109.133|:443... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 77377 (76K) [text/plain]
+Saving to: ‘myimglist.txt’
+
+myimglist.txt       100%[===================&gt;]  75,56K  --.-KB/s    in 0,006s
+
+2021-09-03 17:45:38 (12,9 MB/s) - ‘myimglist.txt’ saved [77377/77377]
+
+</pre></div></div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># download pictures
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>!rm -rf image_folder
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>!img2dataset --url_list=myimglist.txt --output_folder=image_folder --thread_count=256 --image_size=256
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Downloading file number 1 of 1 called myimglist.txt
+  0%|                                                     | 0/1 [00:00&lt;?, ?it/s]success=1.00 failed download=0.00 failed resize=0.00
+100%|█████████████████████████████████████████████| 1/1 [00:07&lt;00:00,  7.04s/it]
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>!ls image_folder/*
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+image_folder/00000.parquet
+
+image_folder/00000:
+0000.jpg   0161.json  0323.jpg   0484.json  0646.jpg   0807.json  0969.jpg
+0000.json  0162.jpg   0323.json  0485.jpg   0646.json  0808.jpg   0969.json
+0001.jpg   0162.json  0324.jpg   0485.json  0647.jpg   0808.json  0970.jpg
+0001.json  0163.jpg   0324.json  0486.jpg   0647.json  0809.jpg   0970.json
+0002.jpg   0163.json  0325.jpg   0486.json  0648.jpg   0809.json  0971.jpg
+0002.json  0164.jpg   0325.json  0487.jpg   0648.json  0810.jpg   0971.json
+0003.jpg   0164.json  0326.jpg   0487.json  0649.jpg   0810.json  0972.jpg
+0003.json  0165.jpg   0326.json  0488.jpg   0649.json  0811.jpg   0972.json
+0004.jpg   0165.json  0327.jpg   0488.json  0650.jpg   0811.json  0973.jpg
+0004.json  0166.jpg   0327.json  0489.jpg   0650.json  0812.jpg   0973.json
+0005.jpg   0166.json  0328.jpg   0489.json  0651.jpg   0812.json  0974.jpg
+0005.json  0167.jpg   0328.json  0490.jpg   0651.json  0813.jpg   0974.json
+0006.jpg   0167.json  0329.jpg   0490.json  0652.jpg   0813.json  0975.jpg
+0006.json  0168.jpg   0329.json  0491.jpg   0652.json  0814.jpg   0975.json
+0007.jpg   0168.json  0330.jpg   0491.json  0653.jpg   0814.json  0976.jpg
+0007.json  0169.jpg   0330.json  0492.jpg   0653.json  0815.jpg   0976.json
+0008.jpg   0169.json  0331.jpg   0492.json  0654.jpg   0815.json  0977.jpg
+0008.json  0170.jpg   0331.json  0493.jpg   0654.json  0816.jpg   0977.json
+0009.jpg   0170.json  0332.jpg   0493.json  0655.jpg   0816.json  0978.jpg
+0009.json  0171.jpg   0332.json  0494.jpg   0655.json  0817.jpg   0978.json
+0010.jpg   0171.json  0333.jpg   0494.json  0656.jpg   0817.json  0979.jpg
+0010.json  0172.jpg   0333.json  0495.jpg   0656.json  0818.jpg   0979.json
+0011.jpg   0172.json  0334.jpg   0495.json  0657.jpg   0818.json  0980.jpg
+0011.json  0173.jpg   0334.json  0496.jpg   0657.json  0819.jpg   0980.json
+0012.jpg   0173.json  0335.jpg   0496.json  0658.jpg   0819.json  0981.jpg
+0012.json  0174.jpg   0335.json  0497.jpg   0658.json  0820.jpg   0981.json
+0013.jpg   0174.json  0336.jpg   0497.json  0659.jpg   0820.json  0982.jpg
+0013.json  0175.jpg   0336.json  0498.jpg   0659.json  0821.jpg   0982.json
+0014.jpg   0175.json  0337.jpg   0498.json  0660.jpg   0821.json  0983.jpg
+0014.json  0176.jpg   0337.json  0499.jpg   0660.json  0822.jpg   0983.json
+0015.jpg   0176.json  0338.jpg   0499.json  0661.jpg   0822.json  0984.jpg
+0015.json  0177.jpg   0338.json  0500.jpg   0661.json  0823.jpg   0984.json
+0016.jpg   0177.json  0339.jpg   0500.json  0662.jpg   0823.json  0985.jpg
+0016.json  0178.jpg   0339.json  0501.jpg   0662.json  0824.jpg   0985.json
+0017.jpg   0178.json  0340.jpg   0501.json  0663.jpg   0824.json  0986.jpg
+0017.json  0179.jpg   0340.json  0502.jpg   0663.json  0825.jpg   0986.json
+0018.jpg   0179.json  0341.jpg   0502.json  0664.jpg   0825.json  0987.jpg
+0018.json  0180.jpg   0341.json  0503.jpg   0664.json  0826.jpg   0987.json
+0019.jpg   0180.json  0342.jpg   0503.json  0665.jpg   0826.json  0988.jpg
+0019.json  0181.jpg   0342.json  0504.jpg   0665.json  0827.jpg   0988.json
+0020.jpg   0181.json  0343.jpg   0504.json  0666.jpg   0827.json  0989.jpg
+0020.json  0182.jpg   0343.json  0505.jpg   0666.json  0828.jpg   0989.json
+0021.jpg   0182.json  0344.jpg   0505.json  0667.jpg   0828.json  0990.jpg
+0021.json  0183.jpg   0344.json  0506.jpg   0667.json  0829.jpg   0990.json
+0022.jpg   0183.json  0345.jpg   0506.json  0668.jpg   0829.json  0991.jpg
+0022.json  0184.jpg   0345.json  0507.jpg   0668.json  0830.jpg   0991.json
+0023.jpg   0184.json  0346.jpg   0507.json  0669.jpg   0830.json  0992.jpg
+0023.json  0185.jpg   0346.json  0508.jpg   0669.json  0831.jpg   0992.json
+0024.jpg   0185.json  0347.jpg   0508.json  0670.jpg   0831.json  0993.jpg
+0024.json  0186.jpg   0347.json  0509.jpg   0670.json  0832.jpg   0993.json
+0025.jpg   0186.json  0348.jpg   0509.json  0671.jpg   0832.json  0994.jpg
+0025.json  0187.jpg   0348.json  0510.jpg   0671.json  0833.jpg   0994.json
+0026.jpg   0187.json  0349.jpg   0510.json  0672.jpg   0833.json  0995.jpg
+0026.json  0188.jpg   0349.json  0511.jpg   0672.json  0834.jpg   0995.json
+0027.jpg   0188.json  0350.jpg   0511.json  0673.jpg   0834.json  0996.jpg
+0027.json  0189.jpg   0350.json  0512.jpg   0673.json  0835.jpg   0996.json
+0028.jpg   0189.json  0351.jpg   0512.json  0674.jpg   0835.json  0997.jpg
+0028.json  0190.jpg   0351.json  0513.jpg   0674.json  0836.jpg   0997.json
+0029.jpg   0190.json  0352.jpg   0513.json  0675.jpg   0836.json  0998.jpg
+0029.json  0191.jpg   0352.json  0514.jpg   0675.json  0837.jpg   0998.json
+0030.jpg   0191.json  0353.jpg   0514.json  0676.jpg   0837.json  0999.jpg
+0030.json  0192.jpg   0353.json  0515.jpg   0676.json  0838.jpg   0999.json
+0031.jpg   0192.json  0354.jpg   0515.json  0677.jpg   0838.json  1000.jpg
+0031.json  0193.jpg   0354.json  0516.jpg   0677.json  0839.jpg   1000.json
+0032.jpg   0193.json  0355.jpg   0516.json  0678.jpg   0839.json  1001.jpg
+0032.json  0194.jpg   0355.json  0517.jpg   0678.json  0840.jpg   1001.json
+0033.jpg   0194.json  0356.jpg   0517.json  0679.jpg   0840.json  1002.jpg
+0033.json  0195.jpg   0356.json  0518.jpg   0679.json  0841.jpg   1002.json
+0034.jpg   0195.json  0357.jpg   0518.json  0680.jpg   0841.json  1003.jpg
+0034.json  0196.jpg   0357.json  0519.jpg   0680.json  0842.jpg   1003.json
+0035.jpg   0196.json  0358.jpg   0519.json  0681.jpg   0842.json  1004.jpg
+0035.json  0197.jpg   0358.json  0520.jpg   0681.json  0843.jpg   1004.json
+0036.jpg   0197.json  0359.jpg   0520.json  0682.jpg   0843.json  1005.jpg
+0036.json  0198.jpg   0359.json  0521.jpg   0682.json  0844.jpg   1005.json
+0037.jpg   0198.json  0360.jpg   0521.json  0683.jpg   0844.json  1006.jpg
+0037.json  0199.jpg   0360.json  0522.jpg   0683.json  0845.jpg   1006.json
+0038.jpg   0199.json  0361.jpg   0522.json  0684.jpg   0845.json  1007.jpg
+0038.json  0200.jpg   0361.json  0523.jpg   0684.json  0846.jpg   1007.json
+0039.jpg   0200.json  0362.jpg   0523.json  0685.jpg   0846.json  1008.jpg
+0039.json  0201.jpg   0362.json  0524.jpg   0685.json  0847.jpg   1008.json
+0040.jpg   0201.json  0363.jpg   0524.json  0686.jpg   0847.json  1009.jpg
+0040.json  0202.jpg   0363.json  0525.jpg   0686.json  0848.jpg   1009.json
+0041.jpg   0202.json  0364.jpg   0525.json  0687.jpg   0848.json  1010.jpg
+0041.json  0203.jpg   0364.json  0526.jpg   0687.json  0849.jpg   1010.json
+0042.jpg   0203.json  0365.jpg   0526.json  0688.jpg   0849.json  1011.jpg
+0042.json  0204.jpg   0365.json  0527.jpg   0688.json  0850.jpg   1011.json
+0043.jpg   0204.json  0366.jpg   0527.json  0689.jpg   0850.json  1012.jpg
+0043.json  0205.jpg   0366.json  0528.jpg   0689.json  0851.jpg   1012.json
+0044.jpg   0205.json  0367.jpg   0528.json  0690.jpg   0851.json  1013.jpg
+0044.json  0206.jpg   0367.json  0529.jpg   0690.json  0852.jpg   1013.json
+0045.jpg   0206.json  0368.jpg   0529.json  0691.jpg   0852.json  1014.jpg
+0045.json  0207.jpg   0368.json  0530.jpg   0691.json  0853.jpg   1014.json
+0046.jpg   0207.json  0369.jpg   0530.json  0692.jpg   0853.json  1015.jpg
+0046.json  0208.jpg   0369.json  0531.jpg   0692.json  0854.jpg   1015.json
+0047.jpg   0208.json  0370.jpg   0531.json  0693.jpg   0854.json  1016.jpg
+0047.json  0209.jpg   0370.json  0532.jpg   0693.json  0855.jpg   1016.json
+0048.jpg   0209.json  0371.jpg   0532.json  0694.jpg   0855.json  1017.jpg
+0048.json  0210.jpg   0371.json  0533.jpg   0694.json  0856.jpg   1017.json
+0049.jpg   0210.json  0372.jpg   0533.json  0695.jpg   0856.json  1018.jpg
+0049.json  0211.jpg   0372.json  0534.jpg   0695.json  0857.jpg   1018.json
+0050.jpg   0211.json  0373.jpg   0534.json  0696.jpg   0857.json  1019.jpg
+0050.json  0212.jpg   0373.json  0535.jpg   0696.json  0858.jpg   1019.json
+0051.jpg   0212.json  0374.jpg   0535.json  0697.jpg   0858.json  1020.jpg
+0051.json  0213.jpg   0374.json  0536.jpg   0697.json  0859.jpg   1020.json
+0052.jpg   0213.json  0375.jpg   0536.json  0698.jpg   0859.json  1021.jpg
+0052.json  0214.jpg   0375.json  0537.jpg   0698.json  0860.jpg   1021.json
+0053.jpg   0214.json  0376.jpg   0537.json  0699.jpg   0860.json  1022.jpg
+0053.json  0215.jpg   0376.json  0538.jpg   0699.json  0861.jpg   1022.json
+0054.jpg   0215.json  0377.jpg   0538.json  0700.jpg   0861.json  1023.jpg
+0054.json  0216.jpg   0377.json  0539.jpg   0700.json  0862.jpg   1023.json
+0055.jpg   0216.json  0378.jpg   0539.json  0701.jpg   0862.json  1024.jpg
+0055.json  0217.jpg   0378.json  0540.jpg   0701.json  0863.jpg   1024.json
+0056.jpg   0217.json  0379.jpg   0540.json  0702.jpg   0863.json  1025.jpg
+0056.json  0218.jpg   0379.json  0541.jpg   0702.json  0864.jpg   1025.json
+0057.jpg   0218.json  0380.jpg   0541.json  0703.jpg   0864.json  1026.jpg
+0057.json  0219.jpg   0380.json  0542.jpg   0703.json  0865.jpg   1026.json
+0058.jpg   0219.json  0381.jpg   0542.json  0704.jpg   0865.json  1027.jpg
+0058.json  0220.jpg   0381.json  0543.jpg   0704.json  0866.jpg   1027.json
+0059.jpg   0220.json  0382.jpg   0543.json  0705.jpg   0866.json  1028.jpg
+0059.json  0221.jpg   0382.json  0544.jpg   0705.json  0867.jpg   1028.json
+0060.jpg   0221.json  0383.jpg   0544.json  0706.jpg   0867.json  1029.jpg
+0060.json  0222.jpg   0383.json  0545.jpg   0706.json  0868.jpg   1029.json
+0061.jpg   0222.json  0384.jpg   0545.json  0707.jpg   0868.json  1030.jpg
+0061.json  0223.jpg   0384.json  0546.jpg   0707.json  0869.jpg   1030.json
+0062.jpg   0223.json  0385.jpg   0546.json  0708.jpg   0869.json  1031.jpg
+0062.json  0224.jpg   0385.json  0547.jpg   0708.json  0870.jpg   1031.json
+0063.jpg   0224.json  0386.jpg   0547.json  0709.jpg   0870.json  1032.jpg
+0063.json  0225.jpg   0386.json  0548.jpg   0709.json  0871.jpg   1032.json
+0064.jpg   0225.json  0387.jpg   0548.json  0710.jpg   0871.json  1033.jpg
+0064.json  0226.jpg   0387.json  0549.jpg   0710.json  0872.jpg   1033.json
+0065.jpg   0226.json  0388.jpg   0549.json  0711.jpg   0872.json  1034.jpg
+0065.json  0227.jpg   0388.json  0550.jpg   0711.json  0873.jpg   1034.json
+0066.jpg   0227.json  0389.jpg   0550.json  0712.jpg   0873.json  1035.jpg
+0066.json  0228.jpg   0389.json  0551.jpg   0712.json  0874.jpg   1035.json
+0067.jpg   0228.json  0390.jpg   0551.json  0713.jpg   0874.json  1036.jpg
+0067.json  0229.jpg   0390.json  0552.jpg   0713.json  0875.jpg   1036.json
+0068.jpg   0229.json  0391.jpg   0552.json  0714.jpg   0875.json  1037.jpg
+0068.json  0230.jpg   0391.json  0553.jpg   0714.json  0876.jpg   1037.json
+0069.jpg   0230.json  0392.jpg   0553.json  0715.jpg   0876.json  1038.jpg
+0069.json  0231.jpg   0392.json  0554.jpg   0715.json  0877.jpg   1038.json
+0070.jpg   0231.json  0393.jpg   0554.json  0716.jpg   0877.json  1039.jpg
+0070.json  0232.jpg   0393.json  0555.jpg   0716.json  0878.jpg   1039.json
+0071.jpg   0232.json  0394.jpg   0555.json  0717.jpg   0878.json  1040.jpg
+0071.json  0233.jpg   0394.json  0556.jpg   0717.json  0879.jpg   1040.json
+0072.jpg   0233.json  0395.jpg   0556.json  0718.jpg   0879.json  1041.jpg
+0072.json  0234.jpg   0395.json  0557.jpg   0718.json  0880.jpg   1041.json
+0073.jpg   0234.json  0396.jpg   0557.json  0719.jpg   0880.json  1042.jpg
+0073.json  0235.jpg   0396.json  0558.jpg   0719.json  0881.jpg   1042.json
+0074.jpg   0235.json  0397.jpg   0558.json  0720.jpg   0881.json  1043.jpg
+0074.json  0236.jpg   0397.json  0559.jpg   0720.json  0882.jpg   1043.json
+0075.jpg   0236.json  0398.jpg   0559.json  0721.jpg   0882.json  1044.jpg
+0075.json  0237.jpg   0398.json  0560.jpg   0721.json  0883.jpg   1044.json
+0076.jpg   0237.json  0399.jpg   0560.json  0722.jpg   0883.json  1045.jpg
+0076.json  0238.jpg   0399.json  0561.jpg   0722.json  0884.jpg   1045.json
+0077.jpg   0238.json  0400.jpg   0561.json  0723.jpg   0884.json  1046.jpg
+0077.json  0239.jpg   0400.json  0562.jpg   0723.json  0885.jpg   1046.json
+0078.jpg   0239.json  0401.jpg   0562.json  0724.jpg   0885.json  1047.jpg
+0078.json  0240.jpg   0401.json  0563.jpg   0724.json  0886.jpg   1047.json
+0079.jpg   0240.json  0402.jpg   0563.json  0725.jpg   0886.json  1048.jpg
+0079.json  0241.jpg   0402.json  0564.jpg   0725.json  0887.jpg   1048.json
+0080.jpg   0241.json  0403.jpg   0564.json  0726.jpg   0887.json  1049.jpg
+0080.json  0242.jpg   0403.json  0565.jpg   0726.json  0888.jpg   1049.json
+0081.jpg   0242.json  0404.jpg   0565.json  0727.jpg   0888.json  1050.jpg
+0081.json  0243.jpg   0404.json  0566.jpg   0727.json  0889.jpg   1050.json
+0082.jpg   0243.json  0405.jpg   0566.json  0728.jpg   0889.json  1051.jpg
+0082.json  0244.jpg   0405.json  0567.jpg   0728.json  0890.jpg   1051.json
+0083.jpg   0244.json  0406.jpg   0567.json  0729.jpg   0890.json  1052.jpg
+0083.json  0245.jpg   0406.json  0568.jpg   0729.json  0891.jpg   1052.json
+0084.jpg   0245.json  0407.jpg   0568.json  0730.jpg   0891.json  1053.jpg
+0084.json  0246.jpg   0407.json  0569.jpg   0730.json  0892.jpg   1053.json
+0085.jpg   0246.json  0408.jpg   0569.json  0731.jpg   0892.json  1054.jpg
+0085.json  0247.jpg   0408.json  0570.jpg   0731.json  0893.jpg   1054.json
+0086.jpg   0247.json  0409.jpg   0570.json  0732.jpg   0893.json  1055.jpg
+0086.json  0248.jpg   0409.json  0571.jpg   0732.json  0894.jpg   1055.json
+0087.jpg   0248.json  0410.jpg   0571.json  0733.jpg   0894.json  1056.jpg
+0087.json  0249.jpg   0410.json  0572.jpg   0733.json  0895.jpg   1056.json
+0088.jpg   0249.json  0411.jpg   0572.json  0734.jpg   0895.json  1057.jpg
+0088.json  0250.jpg   0411.json  0573.jpg   0734.json  0896.jpg   1057.json
+0089.jpg   0250.json  0412.jpg   0573.json  0735.jpg   0896.json  1058.jpg
+0089.json  0251.jpg   0412.json  0574.jpg   0735.json  0897.jpg   1058.json
+0090.jpg   0251.json  0413.jpg   0574.json  0736.jpg   0897.json  1059.jpg
+0090.json  0252.jpg   0413.json  0575.jpg   0736.json  0898.jpg   1059.json
+0091.jpg   0252.json  0414.jpg   0575.json  0737.jpg   0898.json  1060.jpg
+0091.json  0253.jpg   0414.json  0576.jpg   0737.json  0899.jpg   1060.json
+0092.jpg   0253.json  0415.jpg   0576.json  0738.jpg   0899.json  1061.jpg
+0092.json  0254.jpg   0415.json  0577.jpg   0738.json  0900.jpg   1061.json
+0093.jpg   0254.json  0416.jpg   0577.json  0739.jpg   0900.json  1062.jpg
+0093.json  0255.jpg   0416.json  0578.jpg   0739.json  0901.jpg   1062.json
+0094.jpg   0255.json  0417.jpg   0578.json  0740.jpg   0901.json  1063.jpg
+0094.json  0256.jpg   0417.json  0579.jpg   0740.json  0902.jpg   1063.json
+0095.jpg   0256.json  0418.jpg   0579.json  0741.jpg   0902.json  1064.jpg
+0095.json  0257.jpg   0418.json  0580.jpg   0741.json  0903.jpg   1064.json
+0096.jpg   0257.json  0419.jpg   0580.json  0742.jpg   0903.json  1065.jpg
+0096.json  0258.jpg   0419.json  0581.jpg   0742.json  0904.jpg   1065.json
+0097.jpg   0258.json  0420.jpg   0581.json  0743.jpg   0904.json  1066.jpg
+0097.json  0259.jpg   0420.json  0582.jpg   0743.json  0905.jpg   1066.json
+0098.jpg   0259.json  0421.jpg   0582.json  0744.jpg   0905.json  1067.jpg
+0098.json  0260.jpg   0421.json  0583.jpg   0744.json  0906.jpg   1067.json
+0099.jpg   0260.json  0422.jpg   0583.json  0745.jpg   0906.json  1068.jpg
+0099.json  0261.jpg   0422.json  0584.jpg   0745.json  0907.jpg   1068.json
+0100.jpg   0261.json  0423.jpg   0584.json  0746.jpg   0907.json  1069.jpg
+0100.json  0262.jpg   0423.json  0585.jpg   0746.json  0908.jpg   1069.json
+0101.jpg   0262.json  0424.jpg   0585.json  0747.jpg   0908.json  1070.jpg
+0101.json  0263.jpg   0424.json  0586.jpg   0747.json  0909.jpg   1070.json
+0102.jpg   0263.json  0425.jpg   0586.json  0748.jpg   0909.json  1071.jpg
+0102.json  0264.jpg   0425.json  0587.jpg   0748.json  0910.jpg   1071.json
+0103.jpg   0264.json  0426.jpg   0587.json  0749.jpg   0910.json  1072.jpg
+0103.json  0265.jpg   0426.json  0588.jpg   0749.json  0911.jpg   1072.json
+0104.jpg   0265.json  0427.jpg   0588.json  0750.jpg   0911.json  1073.jpg
+0104.json  0266.jpg   0427.json  0589.jpg   0750.json  0912.jpg   1073.json
+0105.jpg   0266.json  0428.jpg   0589.json  0751.jpg   0912.json  1074.jpg
+0105.json  0267.jpg   0428.json  0590.jpg   0751.json  0913.jpg   1074.json
+0106.jpg   0267.json  0429.jpg   0590.json  0752.jpg   0913.json  1075.jpg
+0106.json  0268.jpg   0429.json  0591.jpg   0752.json  0914.jpg   1075.json
+0107.jpg   0268.json  0430.jpg   0591.json  0753.jpg   0914.json  1076.jpg
+0107.json  0269.jpg   0430.json  0592.jpg   0753.json  0915.jpg   1076.json
+0108.jpg   0269.json  0431.jpg   0592.json  0754.jpg   0915.json  1077.jpg
+0108.json  0270.jpg   0431.json  0593.jpg   0754.json  0916.jpg   1077.json
+0109.jpg   0270.json  0432.jpg   0593.json  0755.jpg   0916.json  1078.jpg
+0109.json  0271.jpg   0432.json  0594.jpg   0755.json  0917.jpg   1078.json
+0110.jpg   0271.json  0433.jpg   0594.json  0756.jpg   0917.json  1079.jpg
+0110.json  0272.jpg   0433.json  0595.jpg   0756.json  0918.jpg   1079.json
+0111.jpg   0272.json  0434.jpg   0595.json  0757.jpg   0918.json  1080.jpg
+0111.json  0273.jpg   0434.json  0596.jpg   0757.json  0919.jpg   1080.json
+0112.jpg   0273.json  0435.jpg   0596.json  0758.jpg   0919.json  1081.jpg
+0112.json  0274.jpg   0435.json  0597.jpg   0758.json  0920.jpg   1081.json
+0113.jpg   0274.json  0436.jpg   0597.json  0759.jpg   0920.json  1082.jpg
+0113.json  0275.jpg   0436.json  0598.jpg   0759.json  0921.jpg   1082.json
+0114.jpg   0275.json  0437.jpg   0598.json  0760.jpg   0921.json  1083.jpg
+0114.json  0276.jpg   0437.json  0599.jpg   0760.json  0922.jpg   1083.json
+0115.jpg   0276.json  0438.jpg   0599.json  0761.jpg   0922.json  1084.jpg
+0115.json  0277.jpg   0438.json  0600.jpg   0761.json  0923.jpg   1084.json
+0116.jpg   0277.json  0439.jpg   0600.json  0762.jpg   0923.json  1085.jpg
+0116.json  0278.jpg   0439.json  0601.jpg   0762.json  0924.jpg   1085.json
+0117.jpg   0278.json  0440.jpg   0601.json  0763.jpg   0924.json  1086.jpg
+0117.json  0279.jpg   0440.json  0602.jpg   0763.json  0925.jpg   1086.json
+0118.jpg   0279.json  0441.jpg   0602.json  0764.jpg   0925.json  1087.jpg
+0118.json  0280.jpg   0441.json  0603.jpg   0764.json  0926.jpg   1087.json
+0119.jpg   0280.json  0442.jpg   0603.json  0765.jpg   0926.json  1088.jpg
+0119.json  0281.jpg   0442.json  0604.jpg   0765.json  0927.jpg   1088.json
+0120.jpg   0281.json  0443.jpg   0604.json  0766.jpg   0927.json  1089.jpg
+0120.json  0282.jpg   0443.json  0605.jpg   0766.json  0928.jpg   1089.json
+0121.jpg   0282.json  0444.jpg   0605.json  0767.jpg   0928.json  1090.jpg
+0121.json  0283.jpg   0444.json  0606.jpg   0767.json  0929.jpg   1090.json
+0122.jpg   0283.json  0445.jpg   0606.json  0768.jpg   0929.json  1091.jpg
+0122.json  0284.jpg   0445.json  0607.jpg   0768.json  0930.jpg   1091.json
+0123.jpg   0284.json  0446.jpg   0607.json  0769.jpg   0930.json  1092.jpg
+0123.json  0285.jpg   0446.json  0608.jpg   0769.json  0931.jpg   1092.json
+0124.jpg   0285.json  0447.jpg   0608.json  0770.jpg   0931.json  1093.jpg
+0124.json  0286.jpg   0447.json  0609.jpg   0770.json  0932.jpg   1093.json
+0125.jpg   0286.json  0448.jpg   0609.json  0771.jpg   0932.json  1094.jpg
+0125.json  0287.jpg   0448.json  0610.jpg   0771.json  0933.jpg   1094.json
+0126.jpg   0287.json  0449.jpg   0610.json  0772.jpg   0933.json  1095.jpg
+0126.json  0288.jpg   0449.json  0611.jpg   0772.json  0934.jpg   1095.json
+0127.jpg   0288.json  0450.jpg   0611.json  0773.jpg   0934.json  1096.jpg
+0127.json  0289.jpg   0450.json  0612.jpg   0773.json  0935.jpg   1096.json
+0128.jpg   0289.json  0451.jpg   0612.json  0774.jpg   0935.json  1097.jpg
+0128.json  0290.jpg   0451.json  0613.jpg   0774.json  0936.jpg   1097.json
+0129.jpg   0290.json  0452.jpg   0613.json  0775.jpg   0936.json  1098.jpg
+0129.json  0291.jpg   0452.json  0614.jpg   0775.json  0937.jpg   1098.json
+0130.jpg   0291.json  0453.jpg   0614.json  0776.jpg   0937.json  1099.jpg
+0130.json  0292.jpg   0453.json  0615.jpg   0776.json  0938.jpg   1099.json
+0131.jpg   0292.json  0454.jpg   0615.json  0777.jpg   0938.json  1100.jpg
+0131.json  0293.jpg   0454.json  0616.jpg   0777.json  0939.jpg   1100.json
+0132.jpg   0293.json  0455.jpg   0616.json  0778.jpg   0939.json  1101.jpg
+0132.json  0294.jpg   0455.json  0617.jpg   0778.json  0940.jpg   1101.json
+0133.jpg   0294.json  0456.jpg   0617.json  0779.jpg   0940.json  1102.jpg
+0133.json  0295.jpg   0456.json  0618.jpg   0779.json  0941.jpg   1102.json
+0134.jpg   0295.json  0457.jpg   0618.json  0780.jpg   0941.json  1103.jpg
+0134.json  0296.jpg   0457.json  0619.jpg   0780.json  0942.jpg   1103.json
+0135.jpg   0296.json  0458.jpg   0619.json  0781.jpg   0942.json  1104.jpg
+0135.json  0297.jpg   0458.json  0620.jpg   0781.json  0943.jpg   1104.json
+0136.jpg   0297.json  0459.jpg   0620.json  0782.jpg   0943.json  1105.jpg
+0136.json  0298.jpg   0459.json  0621.jpg   0782.json  0944.jpg   1105.json
+0137.jpg   0298.json  0460.jpg   0621.json  0783.jpg   0944.json  1106.jpg
+0137.json  0299.jpg   0460.json  0622.jpg   0783.json  0945.jpg   1106.json
+0138.jpg   0299.json  0461.jpg   0622.json  0784.jpg   0945.json  1107.jpg
+0138.json  0300.jpg   0461.json  0623.jpg   0784.json  0946.jpg   1107.json
+0139.jpg   0300.json  0462.jpg   0623.json  0785.jpg   0946.json  1108.jpg
+0139.json  0301.jpg   0462.json  0624.jpg   0785.json  0947.jpg   1108.json
+0140.jpg   0301.json  0463.jpg   0624.json  0786.jpg   0947.json  1109.jpg
+0140.json  0302.jpg   0463.json  0625.jpg   0786.json  0948.jpg   1109.json
+0141.jpg   0302.json  0464.jpg   0625.json  0787.jpg   0948.json  1110.jpg
+0141.json  0303.jpg   0464.json  0626.jpg   0787.json  0949.jpg   1110.json
+0142.jpg   0303.json  0465.jpg   0626.json  0788.jpg   0949.json  1111.jpg
+0142.json  0304.jpg   0465.json  0627.jpg   0788.json  0950.jpg   1111.json
+0143.jpg   0304.json  0466.jpg   0627.json  0789.jpg   0950.json  1112.jpg
+0143.json  0305.jpg   0466.json  0628.jpg   0789.json  0951.jpg   1112.json
+0144.jpg   0305.json  0467.jpg   0628.json  0790.jpg   0951.json  1113.jpg
+0144.json  0306.jpg   0467.json  0629.jpg   0790.json  0952.jpg   1113.json
+0145.jpg   0306.json  0468.jpg   0629.json  0791.jpg   0952.json  1114.jpg
+0145.json  0307.jpg   0468.json  0630.jpg   0791.json  0953.jpg   1114.json
+0146.jpg   0307.json  0469.jpg   0630.json  0792.jpg   0953.json  1115.jpg
+0146.json  0308.jpg   0469.json  0631.jpg   0792.json  0954.jpg   1115.json
+0147.jpg   0308.json  0470.jpg   0631.json  0793.jpg   0954.json  1116.jpg
+0147.json  0309.jpg   0470.json  0632.jpg   0793.json  0955.jpg   1116.json
+0148.jpg   0309.json  0471.jpg   0632.json  0794.jpg   0955.json  1117.jpg
+0148.json  0310.jpg   0471.json  0633.jpg   0794.json  0956.jpg   1117.json
+0149.jpg   0310.json  0472.jpg   0633.json  0795.jpg   0956.json  1118.jpg
+0149.json  0311.jpg   0472.json  0634.jpg   0795.json  0957.jpg   1118.json
+0150.jpg   0311.json  0473.jpg   0634.json  0796.jpg   0957.json  1119.jpg
+0150.json  0312.jpg   0473.json  0635.jpg   0796.json  0958.jpg   1119.json
+0151.jpg   0312.json  0474.jpg   0635.json  0797.jpg   0958.json  1120.jpg
+0151.json  0313.jpg   0474.json  0636.jpg   0797.json  0959.jpg   1120.json
+0152.jpg   0313.json  0475.jpg   0636.json  0798.jpg   0959.json  1121.jpg
+0152.json  0314.jpg   0475.json  0637.jpg   0798.json  0960.jpg   1121.json
+0153.jpg   0314.json  0476.jpg   0637.json  0799.jpg   0960.json  1122.jpg
+0153.json  0315.jpg   0476.json  0638.jpg   0799.json  0961.jpg   1122.json
+0154.jpg   0315.json  0477.jpg   0638.json  0800.jpg   0961.json  1123.jpg
+0154.json  0316.jpg   0477.json  0639.jpg   0800.json  0962.jpg   1123.json
+0155.jpg   0316.json  0478.jpg   0639.json  0801.jpg   0962.json  1124.jpg
+0155.json  0317.jpg   0478.json  0640.jpg   0801.json  0963.jpg   1124.json
+0156.jpg   0317.json  0479.jpg   0640.json  0802.jpg   0963.json  1125.jpg
+0156.json  0318.jpg   0479.json  0641.jpg   0802.json  0964.jpg   1125.json
+0157.jpg   0318.json  0480.jpg   0641.json  0803.jpg   0964.json  1126.jpg
+0157.json  0319.jpg   0480.json  0642.jpg   0803.json  0965.jpg   1126.json
+0158.jpg   0319.json  0481.jpg   0642.json  0804.jpg   0965.json  1127.jpg
+0158.json  0320.jpg   0481.json  0643.jpg   0804.json  0966.jpg   1127.json
+0159.jpg   0320.json  0482.jpg   0643.json  0805.jpg   0966.json  1128.jpg
+0159.json  0321.jpg   0482.json  0644.jpg   0805.json  0967.jpg   1128.json
+0160.jpg   0321.json  0483.jpg   0644.json  0806.jpg   0967.json
+0160.json  0322.jpg   0483.json  0645.jpg   0806.json  0968.jpg
+0161.jpg   0322.json  0484.jpg   0645.json  0807.jpg   0968.json
+</pre></div></div>
+</div>
+</section>
+<section id="Build-clip-image-embeddings">
+<h1>Build clip image embeddings<a class="headerlink" href="#Build-clip-image-embeddings" title="Link to this heading"></a></h1>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>!rm -rf embedding_folder
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>!clip-retrieval inference  --input_dataset image_folder --output_folder embedding_folder
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+1280it [00:01, 786.60it/s]
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>!ls embedding_folder
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+img_emb  metadata
+</pre></div></div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from pathlib import Path
+import pandas as pd
+data_dir = Path(&quot;embedding_folder/metadata&quot;)
+df = pd.concat(
+    pd.read_parquet(parquet_file)
+    for parquet_file in data_dir.glob(&#39;*.parquet&#39;)
+)
+image_list = df[&quot;image_path&quot;].tolist()
+</pre></div>
+</div>
+</div>
+</section>
+<section id="Build-the-index">
+<h1>Build the index<a class="headerlink" href="#Build-the-index" title="Link to this heading"></a></h1>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>!rm -rf my_index_folder
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># Build a KNN index
+!autofaiss build_index --embeddings=&quot;embedding_folder/img_emb&quot; \
+                    --index_path=&quot;knn.index&quot; \
+                    --index_infos_path=&quot;infos.json&quot; \
+                    --metric_type=&quot;ip&quot; \
+                    --max_index_query_time_ms=5 \
+                    --max_index_memory_usage=&quot;1GB&quot;
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Launching the whole pipeline 09/03/2021, 17:48:08
+        Compute estimated construction time of the index 09/03/2021, 17:48:08
+                -&gt; Train: 16.7 minutes
+                -&gt; Add: 0.0 seconds
+                Total: 16.7 minutes
+        &gt;&gt;&gt; Finished &#34;Compute estimated construction time of the index&#34; in 0.0000 secs
+        Checking that your have enough memory available to create the index 09/03/2021, 17:48:08
+        &gt;&gt;&gt; Finished &#34;Checking that your have enough memory available to create the index&#34; in 0.0002 secs
+        Selecting most promising index types given data characteristics 09/03/2021, 17:48:08
+        &gt;&gt;&gt; Finished &#34;Selecting most promising index types given data characteristics&#34; in 0.0021 secs
+        Creating the index 09/03/2021, 17:48:08
+                -&gt; Instanciate the index HNSW15 09/03/2021, 17:48:08
+                &gt;&gt;&gt; Finished &#34;-&gt; Instanciate the index HNSW15&#34; in 0.0022 secs
+                -&gt; Extract training vectors 09/03/2021, 17:48:08
+100%|███████████████████████████████████████████| 1/1 [00:00&lt;00:00, 2360.33it/s]
+                &gt;&gt;&gt; Finished &#34;-&gt; Extract training vectors&#34; in 0.0038 secs
+                -&gt; Training the index with 1129 vectors of dim 512 09/03/2021, 17:48:08
+                &gt;&gt;&gt; Finished &#34;-&gt; Training the index with 1129 vectors of dim 512&#34; in 0.0000 secs
+                -&gt; Adding the vectors to the index 09/03/2021, 17:48:08
+100%|███████████████████████████████████████████| 1/1 [00:00&lt;00:00, 4165.15it/s]
+                &gt;&gt;&gt; Finished &#34;-&gt; Adding the vectors to the index&#34; in 0.0205 secs
+        &gt;&gt;&gt; Finished &#34;Creating the index&#34; in 0.0266 secs
+        Computing best hyperparameters 09/03/2021, 17:48:08
+        &gt;&gt;&gt; Finished &#34;Computing best hyperparameters&#34; in 1.4912 secs
+The best hyperparameters are: efSearch=16383
+        Saving the index on local disk 09/03/2021, 17:48:09
+        &gt;&gt;&gt; Finished &#34;Saving the index on local disk&#34; in 0.0012 secs
+        Compute fast metrics 09/03/2021, 17:48:09
+2000
+        &gt;&gt;&gt; Finished &#34;Compute fast metrics&#34; in 5.7250 secs
+Recap:
+{&#39;99p_search_speed_ms&#39;: 24.054281142307445,
+ &#39;avg_search_speed_ms&#39;: 2.8590588502702303,
+ &#39;compression ratio&#39;: 0.9376627695252463,
+ &#39;nb vectors&#39;: 1129,
+ &#39;reconstruction error %&#39;: 0.0,
+ &#39;size in bytes&#39;: 2465910,
+ &#39;vectors dimension&#39;: 512}
+&gt;&gt;&gt; Finished &#34;Launching the whole pipeline&#34; in 7.2509 secs
+Done
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>!ls my_index_folder
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&#39;HNSW15-efSearch=16383.index&#39;
+</pre></div></div>
+</div>
+</section>
+<section id="Load-the-index">
+<h1>Load the index<a class="headerlink" href="#Load-the-index" title="Link to this heading"></a></h1>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>import faiss
+import numpy as np
+ind = faiss.read_index(&quot;knn.index&quot;)
+</pre></div>
+</div>
+</div>
+</section>
+<section id="Simple-image-query-from-dataset">
+<h1>Simple image query from dataset<a class="headerlink" href="#Simple-image-query-from-dataset" title="Link to this heading"></a></h1>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>image_number = 600
+from IPython.display import Image
+print(&quot;query :&quot;)
+display(Image(filename=image_list[image_number]))
+
+D, I = ind.search(np.expand_dims(ind.reconstruct(image_number), 0), 5)
+print(&quot;results :&quot;)
+for d, i in zip(D[0], I[0]):
+  print(&quot;similarity=&quot;, d)
+  print(i)
+  display(Image(filename=image_list[i]))
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+query :
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/notebooks_autofaiss_multimodal_search_20_1.jpg" src="../_images/notebooks_autofaiss_multimodal_search_20_1.jpg" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+results :
+similarity= 1.0002233
+600
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/notebooks_autofaiss_multimodal_search_20_3.jpg" src="../_images/notebooks_autofaiss_multimodal_search_20_3.jpg" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+similarity= 0.938573
+536
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/notebooks_autofaiss_multimodal_search_20_5.jpg" src="../_images/notebooks_autofaiss_multimodal_search_20_5.jpg" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+similarity= 0.9294769
+569
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/notebooks_autofaiss_multimodal_search_20_7.jpg" src="../_images/notebooks_autofaiss_multimodal_search_20_7.jpg" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+similarity= 0.9241176
+289
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/notebooks_autofaiss_multimodal_search_20_9.jpg" src="../_images/notebooks_autofaiss_multimodal_search_20_9.jpg" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+similarity= 0.9147578
+220
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/notebooks_autofaiss_multimodal_search_20_11.jpg" src="../_images/notebooks_autofaiss_multimodal_search_20_11.jpg" />
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="Text-to-image-query">
+<h1>Text to image query<a class="headerlink" href="#Text-to-image-query" title="Link to this heading"></a></h1>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>import clip
+import torch
+
+device = &quot;cuda&quot; if torch.cuda.is_available() else &quot;cpu&quot;
+model, preprocess = clip.load(&quot;ViT-B/32&quot;, device=device, jit=False)
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from IPython.display import Image
+
+text = &quot;a white cat with blue eyes&quot;
+text_tokens = clip.tokenize([text], truncate=True)
+
+text_features = model.encode_text(text_tokens.to(device))
+text_features /= text_features.norm(dim=-1, keepdim=True)
+text_embeddings = text_features.cpu().detach().numpy().astype(&#39;float32&#39;)
+
+print(&quot;query :&quot;)
+print(text)
+
+D, I = ind.search(text_embeddings, 5)
+print(&quot;results :&quot;)
+for d, i in zip(D[0], I[0]):
+  print(&quot;similarity=&quot;, d)
+  print(i)
+  display(Image(filename=image_list[i]))
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+query :
+a white cat with blue eyes
+results :
+similarity= 0.34918442
+605
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/notebooks_autofaiss_multimodal_search_24_1.jpg" src="../_images/notebooks_autofaiss_multimodal_search_24_1.jpg" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+similarity= 0.33592817
+192
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/notebooks_autofaiss_multimodal_search_24_3.jpg" src="../_images/notebooks_autofaiss_multimodal_search_24_3.jpg" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+similarity= 0.33229536
+58
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/notebooks_autofaiss_multimodal_search_24_5.jpg" src="../_images/notebooks_autofaiss_multimodal_search_24_5.jpg" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+similarity= 0.3288885
+911
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/notebooks_autofaiss_multimodal_search_24_7.jpg" src="../_images/notebooks_autofaiss_multimodal_search_24_7.jpg" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+similarity= 0.32780161
+795
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/notebooks_autofaiss_multimodal_search_24_9.jpg" src="../_images/notebooks_autofaiss_multimodal_search_24_9.jpg" />
+</div>
+</div>
+</section>
+<section id="Image-to-image-query">
+<h1>Image to image query<a class="headerlink" href="#Image-to-image-query" title="Link to this heading"></a></h1>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>!rm newcat.jpg
+!wget https://thiscatdoesnotexist.com/ -O newcat.jpg
+
+from PIL import Image
+
+image = Image.open(&quot;newcat.jpg&quot;)
+image_tensor = preprocess(image)
+
+image_features = model.encode_image(torch.unsqueeze(image_tensor.to(device), dim=0))
+image_features /= image_features.norm(dim=-1, keepdim=True)
+
+image_embeddings = image_features.cpu().detach().numpy().astype(&#39;float32&#39;)
+
+print(&quot;query :&quot;)
+display(image)
+
+D, I = ind.search(image_embeddings, 5)
+print(&quot;results :&quot;)
+for d, i in zip(D[0], I[0]):
+  print(&quot;similarity=&quot;, d)
+  print(i)
+  display(Image.open(image_list[i]))
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+rm: cannot remove &#39;newcat.jpg&#39;: No such file or directory
+--2021-09-03 17:48:40--  https://thiscatdoesnotexist.com/
+Resolving thiscatdoesnotexist.com (thiscatdoesnotexist.com)... 95.216.76.20
+Connecting to thiscatdoesnotexist.com (thiscatdoesnotexist.com)|95.216.76.20|:443... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 178655 (174K) [image/jpeg]
+Saving to: ‘newcat.jpg’
+
+newcat.jpg          100%[===================&gt;] 174,47K  --.-KB/s    in 0,09s
+
+2021-09-03 17:48:40 (1,82 MB/s) - ‘newcat.jpg’ saved [178655/178655]
+
+query :
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/notebooks_autofaiss_multimodal_search_26_1.png" src="../_images/notebooks_autofaiss_multimodal_search_26_1.png" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+results :
+similarity= 0.9238506
+607
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/notebooks_autofaiss_multimodal_search_26_3.png" src="../_images/notebooks_autofaiss_multimodal_search_26_3.png" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+similarity= 0.9226495
+474
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/notebooks_autofaiss_multimodal_search_26_5.png" src="../_images/notebooks_autofaiss_multimodal_search_26_5.png" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+similarity= 0.9225365
+98
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/notebooks_autofaiss_multimodal_search_26_7.png" src="../_images/notebooks_autofaiss_multimodal_search_26_7.png" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+similarity= 0.91967094
+775
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/notebooks_autofaiss_multimodal_search_26_9.png" src="../_images/notebooks_autofaiss_multimodal_search_26_9.png" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+similarity= 0.9180758
+794
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/notebooks_autofaiss_multimodal_search_26_11.png" src="../_images/notebooks_autofaiss_multimodal_search_26_11.png" />
+</div>
+</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020, Criteo.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

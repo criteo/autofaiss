@@ -1,0 +1,32 @@
+autofaiss package
+=================
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   autofaiss.external
+   autofaiss.indices
+   autofaiss.metrics
+   autofaiss.utils
+
+Submodules
+----------
+
+autofaiss.version module
+------------------------
+
+.. automodule:: autofaiss.version
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: autofaiss
+   :members:
+   :undoc-members:
+   :show-inheritance:

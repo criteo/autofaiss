@@ -1,0 +1,37 @@
+autofaiss.metrics package
+=========================
+
+Submodules
+----------
+
+autofaiss.metrics.benchmark module
+----------------------------------
+
+.. automodule:: autofaiss.metrics.benchmark
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+autofaiss.metrics.recalls module
+--------------------------------
+
+.. automodule:: autofaiss.metrics.recalls
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+autofaiss.metrics.reconstruction module
+---------------------------------------
+
+.. automodule:: autofaiss.metrics.reconstruction
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: autofaiss.metrics
+   :members:
+   :undoc-members:
+   :show-inheritance:
