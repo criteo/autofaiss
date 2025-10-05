@@ -89,8 +89,8 @@ def search_speed_test(
     # avg2 = 1000 * (time.perf_counter() - test_start_time_s) / len(speed_list_ms)
 
     speed_infos = {
-        "avg_search_speed_ms": float(np.average(speed_list_ms2)),
-        "99p_search_speed_ms": float(np.quantile(speed_list_ms2, 0.99)),
+        "avg_search_speed_ms": np.average(speed_list_ms2),
+        "99p_search_speed_ms": np.quantile(speed_list_ms2, 0.99),
     }
 
     return speed_infos

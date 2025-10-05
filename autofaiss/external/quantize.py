@@ -14,7 +14,6 @@ import faiss
 import fire
 import fsspec
 import numpy as np
-from autofaiss.utils.json_encoder import NumpyEncoder
 from autofaiss.indices.build import get_write_ids_df_to_parquet_fn, get_optimize_index_fn
 from autofaiss.external.build import (
     create_index,
@@ -597,7 +596,7 @@ def score_index(
 
     if save_on_disk:
         with fsspec.open(output_index_info_path, "w").open() as f:
-            json.dump(infos, f, cls=NumpyEncoder)
+            json.dump(infos, f)
 
     return infos
 

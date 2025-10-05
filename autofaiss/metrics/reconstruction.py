@@ -8,9 +8,9 @@ import faiss
 
 def reconstruction_error(before, after, avg_norm_before: Optional[float] = None) -> float:
     """Computes the average reconstruction error"""
-    diff = float(np.mean(np.linalg.norm(after - before, axis=1)))
+    diff = np.mean(np.linalg.norm(after - before, axis=1))
     if avg_norm_before is None:
-        avg_norm_before = float(np.mean(np.linalg.norm(before, axis=1)))
+        avg_norm_before = np.mean(np.linalg.norm(before, axis=1))
     return diff / avg_norm_before
 
 
