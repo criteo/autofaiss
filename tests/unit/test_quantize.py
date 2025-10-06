@@ -386,7 +386,7 @@ def test_index_correctness_in_distributed_mode_with_multiple_indices(tmpdir):
         file_format="parquet",
         temporary_indices_folder=temporary_indices_folder,
         max_index_memory_usage="2GB",
-        current_memory_available="500MB",
+        current_memory_available="4GB",
         embedding_column_name="embedding",
         index_key="IVF1,Flat",
         should_be_memory_mappable=True,
