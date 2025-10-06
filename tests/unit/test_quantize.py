@@ -399,7 +399,7 @@ def test_index_correctness_in_distributed_mode_with_multiple_indices(tmpdir):
     K, NB_QUERIES = 5, 1
     query = faiss.rand((NB_QUERIES, dim))
 
-    ground_truth_index = faiss.index_factory(dim, "IVF4,Flat", faiss.METRIC_INNER_PRODUCT)
+    ground_truth_index = faiss.index_factory(dim, "IVF1,Flat", faiss.METRIC_INNER_PRODUCT)
     expected_array = np.stack(expected_df["embedding"])
     ground_truth_index.train(expected_array)
     ground_truth_index.add(expected_array)
@@ -434,7 +434,7 @@ def test_index_correctness_in_distributed_mode_with_multiple_indices(tmpdir):
         nb_indices_to_keep=2,
     )
 
-    ground_truth_index = faiss.index_factory(dim, "IVF4,Flat", faiss.METRIC_INNER_PRODUCT)
+    ground_truth_index = faiss.index_factory(dim, "IVF1,Flat", faiss.METRIC_INNER_PRODUCT)
     ground_truth_index.train(expected_array)
     ground_truth_index.add(expected_array)
     _, ground_truth_ids = ground_truth_index.search(query, k=K)
