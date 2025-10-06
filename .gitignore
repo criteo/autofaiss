@@ -4,7 +4,8 @@
 .pytest_cache
 .coverage*
 *.npy
-*.index
+*.index*
+*.json*
 
 
 # Byte-compiled / optimized / DLL files
