@@ -388,7 +388,7 @@ def test_index_correctness_in_distributed_mode_with_multiple_indices(tmpdir):
         max_index_memory_usage="2GB",
         current_memory_available="4GB",
         embedding_column_name="embedding",
-        index_key="IVF1,Flat",
+        index_key="IVF4,Flat",
         should_be_memory_mappable=True,
         ids_path=ids_path,
         nb_indices_to_keep=2,
