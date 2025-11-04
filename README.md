@@ -210,3 +210,18 @@ make install
 
 
 `python -m pytest -x -s -v tests -k "test_get_optimal_hyperparameters"` to run a specific test
+
+## Citation
+
+```
+@misc{beaumont-2022-autofaiss,
+  author     = {Beaumont, Romain and others},
+  title      = {Autofaiss},
+  year       = {2022},
+  publisher  = {GitHub},
+  journal    = {GitHub repository},
+  url        = {https://github.com/criteo/autofaiss}
+}
+```
+
+
