@@ -1,23 +1,21 @@
+
+
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" data-content_root="../../../">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>autofaiss.external.scores &mdash; autofaiss 1.0.0 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script src="../../../_static/jquery.js?v=5d32c60e"></script>
-        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="../../../_static/documentation_options.js?v=8d563738"></script>
-        <script src="../../../_static/doctools.js?v=888ff710"></script>
-        <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
-        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" /> 
@@ -91,25 +89,25 @@
              
   <h1>Source code for autofaiss.external.scores</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot; Functions to compute metrics on an index &quot;&quot;&quot;</span>
-<span class="kn">import</span> <span class="nn">fsspec</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Optional</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">fsspec</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Optional</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">faiss</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">faiss</span>
 
-<span class="kn">from</span> <span class="nn">embedding_reader</span> <span class="kn">import</span> <span class="n">EmbeddingReader</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">embedding_reader</span><span class="w"> </span><span class="kn">import</span> <span class="n">EmbeddingReader</span>
 
-<span class="kn">from</span> <span class="nn">autofaiss.indices.index_utils</span> <span class="kn">import</span> <span class="n">get_index_size</span><span class="p">,</span> <span class="n">search_speed_test</span>
-<span class="kn">from</span> <span class="nn">autofaiss.indices.memory_efficient_flat_index</span> <span class="kn">import</span> <span class="n">MemEfficientFlatIndex</span>
-<span class="kn">from</span> <span class="nn">autofaiss.metrics.recalls</span> <span class="kn">import</span> <span class="n">one_recall_at_r</span><span class="p">,</span> <span class="n">r_recall_at_r</span>
-<span class="kn">from</span> <span class="nn">autofaiss.metrics.reconstruction</span> <span class="kn">import</span> <span class="n">quantize_vec_without_modifying_index</span><span class="p">,</span> <span class="n">reconstruction_error</span>
-<span class="kn">from</span> <span class="nn">autofaiss.utils.cast</span> <span class="kn">import</span> <span class="n">cast_memory_to_bytes</span>
-<span class="kn">from</span> <span class="nn">autofaiss.utils.decorators</span> <span class="kn">import</span> <span class="n">Timeit</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">autofaiss.indices.index_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_index_size</span><span class="p">,</span> <span class="n">search_speed_test</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">autofaiss.indices.memory_efficient_flat_index</span><span class="w"> </span><span class="kn">import</span> <span class="n">MemEfficientFlatIndex</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">autofaiss.metrics.recalls</span><span class="w"> </span><span class="kn">import</span> <span class="n">one_recall_at_r</span><span class="p">,</span> <span class="n">r_recall_at_r</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">autofaiss.metrics.reconstruction</span><span class="w"> </span><span class="kn">import</span> <span class="n">quantize_vec_without_modifying_index</span><span class="p">,</span> <span class="n">reconstruction_error</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">autofaiss.utils.cast</span><span class="w"> </span><span class="kn">import</span> <span class="n">cast_memory_to_bytes</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">autofaiss.utils.decorators</span><span class="w"> </span><span class="kn">import</span> <span class="n">Timeit</span>
 
 
 <div class="viewcode-block" id="compute_fast_metrics">
 <a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.scores.compute_fast_metrics">[docs]</a>
-<span class="k">def</span> <span class="nf">compute_fast_metrics</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">compute_fast_metrics</span><span class="p">(</span>
     <span class="n">embedding_reader</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">EmbeddingReader</span><span class="p">],</span>
     <span class="n">index</span><span class="p">:</span> <span class="n">faiss</span><span class="o">.</span><span class="n">Index</span><span class="p">,</span>
     <span class="n">omp_threads</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -152,7 +150,7 @@
 
 <div class="viewcode-block" id="compute_medium_metrics">
 <a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.scores.compute_medium_metrics">[docs]</a>
-<span class="k">def</span> <span class="nf">compute_medium_metrics</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">compute_medium_metrics</span><span class="p">(</span>
     <span class="n">embedding_reader</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">EmbeddingReader</span><span class="p">],</span>
     <span class="n">index</span><span class="p">:</span> <span class="n">faiss</span><span class="o">.</span><span class="n">Index</span><span class="p">,</span>
     <span class="n">memory_available</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span>
@@ -207,7 +205,7 @@
 
 <div class="viewcode-block" id="get_ground_truth">
 <a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.scores.get_ground_truth">[docs]</a>
-<span class="k">def</span> <span class="nf">get_ground_truth</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_ground_truth</span><span class="p">(</span>
     <span class="n">faiss_metric_type</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="n">embedding_reader</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">EmbeddingReader</span><span class="p">],</span>
     <span class="n">query_embeddings</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>

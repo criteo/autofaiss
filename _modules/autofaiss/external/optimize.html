@@ -1,23 +1,21 @@
+
+
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" data-content_root="../../../">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>autofaiss.external.optimize &mdash; autofaiss 1.0.0 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script src="../../../_static/jquery.js?v=5d32c60e"></script>
-        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="../../../_static/documentation_options.js?v=8d563738"></script>
-        <script src="../../../_static/doctools.js?v=888ff710"></script>
-        <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
-        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" /> 
@@ -91,31 +89,31 @@
              
   <h1>Source code for autofaiss.external.optimize</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot; Functions to find optimal index parameters &quot;&quot;&quot;</span>
-<span class="kn">import</span> <span class="nn">json</span>
-<span class="kn">import</span> <span class="nn">logging</span>
-<span class="kn">import</span> <span class="nn">re</span>
-<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span><span class="p">,</span> <span class="n">reduce</span>
-<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">floor</span><span class="p">,</span> <span class="n">log2</span><span class="p">,</span> <span class="n">sqrt</span>
-<span class="kn">from</span> <span class="nn">operator</span> <span class="kn">import</span> <span class="n">mul</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">TypeVar</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">partial</span><span class="p">,</span> <span class="n">reduce</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">math</span><span class="w"> </span><span class="kn">import</span> <span class="n">floor</span><span class="p">,</span> <span class="n">log2</span><span class="p">,</span> <span class="n">sqrt</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">operator</span><span class="w"> </span><span class="kn">import</span> <span class="n">mul</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">TypeVar</span>
 
-<span class="kn">import</span> <span class="nn">faiss</span>
-<span class="kn">import</span> <span class="nn">fsspec</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">autofaiss.external.metadata</span> <span class="kn">import</span> <span class="n">IndexMetadata</span><span class="p">,</span> <span class="n">compute_memory_necessary_for_training_wrapper</span>
-<span class="kn">from</span> <span class="nn">autofaiss.external.scores</span> <span class="kn">import</span> <span class="n">compute_fast_metrics</span>
-<span class="kn">from</span> <span class="nn">autofaiss.indices.index_utils</span> <span class="kn">import</span> <span class="n">set_search_hyperparameters</span><span class="p">,</span> <span class="n">speed_test_ms_per_query</span>
-<span class="kn">from</span> <span class="nn">autofaiss.utils.algorithms</span> <span class="kn">import</span> <span class="n">discrete_binary_search</span>
-<span class="kn">from</span> <span class="nn">autofaiss.utils.cast</span> <span class="kn">import</span> <span class="n">cast_memory_to_bytes</span>
-<span class="kn">from</span> <span class="nn">autofaiss.utils.decorators</span> <span class="kn">import</span> <span class="n">Timeit</span>
-<span class="kn">from</span> <span class="nn">embedding_reader</span> <span class="kn">import</span> <span class="n">EmbeddingReader</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">faiss</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">fsspec</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">autofaiss.external.metadata</span><span class="w"> </span><span class="kn">import</span> <span class="n">IndexMetadata</span><span class="p">,</span> <span class="n">compute_memory_necessary_for_training_wrapper</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">autofaiss.external.scores</span><span class="w"> </span><span class="kn">import</span> <span class="n">compute_fast_metrics</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">autofaiss.indices.index_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">set_search_hyperparameters</span><span class="p">,</span> <span class="n">speed_test_ms_per_query</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">autofaiss.utils.algorithms</span><span class="w"> </span><span class="kn">import</span> <span class="n">discrete_binary_search</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">autofaiss.utils.cast</span><span class="w"> </span><span class="kn">import</span> <span class="n">cast_memory_to_bytes</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">autofaiss.utils.decorators</span><span class="w"> </span><span class="kn">import</span> <span class="n">Timeit</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">embedding_reader</span><span class="w"> </span><span class="kn">import</span> <span class="n">EmbeddingReader</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;autofaiss&quot;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="check_if_index_needs_training">
 <a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.optimize.check_if_index_needs_training">[docs]</a>
-<span class="k">def</span> <span class="nf">check_if_index_needs_training</span><span class="p">(</span><span class="n">index_key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">check_if_index_needs_training</span><span class="p">(</span><span class="n">index_key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Function that checks if the index needs to be trained</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -131,7 +129,7 @@
 
 <div class="viewcode-block" id="index_key_to_nb_cluster">
 <a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.optimize.index_key_to_nb_cluster">[docs]</a>
-<span class="k">def</span> <span class="nf">index_key_to_nb_cluster</span><span class="p">(</span><span class="n">index_key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">index_key_to_nb_cluster</span><span class="p">(</span><span class="n">index_key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Function that takes an index key and returns the number of clusters</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -156,7 +154,7 @@
 
 <div class="viewcode-block" id="get_optimal_train_size">
 <a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.optimize.get_optimal_train_size">[docs]</a>
-<span class="k">def</span> <span class="nf">get_optimal_train_size</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_optimal_train_size</span><span class="p">(</span>
     <span class="n">nb_vectors</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">index_key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">current_memory_available</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">vec_dim</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -191,7 +189,7 @@
 
 <div class="viewcode-block" id="get_optimal_batch_size">
 <a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.optimize.get_optimal_batch_size">[docs]</a>
-<span class="k">def</span> <span class="nf">get_optimal_batch_size</span><span class="p">(</span><span class="n">vec_dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">current_memory_available</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_optimal_batch_size</span><span class="p">(</span><span class="n">vec_dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">current_memory_available</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;compute optimal batch size to use the RAM at its full potential for adding vectors&quot;&quot;&quot;</span>
 
     <span class="n">memory</span> <span class="o">=</span> <span class="n">cast_memory_to_bytes</span><span class="p">(</span><span class="n">current_memory_available</span><span class="p">)</span>
@@ -204,7 +202,7 @@
 
 <div class="viewcode-block" id="get_optimal_nb_clusters">
 <a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.optimize.get_optimal_nb_clusters">[docs]</a>
-<span class="k">def</span> <span class="nf">get_optimal_nb_clusters</span><span class="p">(</span><span class="n">nb_vectors</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_optimal_nb_clusters</span><span class="p">(</span><span class="n">nb_vectors</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns a list with the recommended number of clusters for an index containing nb_vectors vectors.</span>
 <span class="sd">    The first value is the most recommended one.</span>
@@ -245,7 +243,7 @@
 
 <div class="viewcode-block" id="get_optimal_index_keys_v2">
 <a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.optimize.get_optimal_index_keys_v2">[docs]</a>
-<span class="k">def</span> <span class="nf">get_optimal_index_keys_v2</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_optimal_index_keys_v2</span><span class="p">(</span>
     <span class="n">nb_vectors</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="n">dim_vector</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="n">max_index_memory_usage</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -299,7 +297,7 @@
 
 <div class="viewcode-block" id="get_optimal_ivf">
 <a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.optimize.get_optimal_ivf">[docs]</a>
-<span class="k">def</span> <span class="nf">get_optimal_ivf</span><span class="p">(</span><span class="n">nb_vectors</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_optimal_ivf</span><span class="p">(</span><span class="n">nb_vectors</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Function that returns a list of relevant index_keys to create not quantized IVF indices.</span>
 
@@ -319,7 +317,7 @@
 
 <div class="viewcode-block" id="get_optimal_quantization">
 <a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.optimize.get_optimal_quantization">[docs]</a>
-<span class="k">def</span> <span class="nf">get_optimal_quantization</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_optimal_quantization</span><span class="p">(</span>
     <span class="n">nb_vectors</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="n">dim_vector</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="n">force_quantization_value</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -403,7 +401,7 @@
 
 <div class="viewcode-block" id="get_min_param_value_for_best_neighbors_coverage">
 <a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.optimize.get_min_param_value_for_best_neighbors_coverage">[docs]</a>
-<span class="k">def</span> <span class="nf">get_min_param_value_for_best_neighbors_coverage</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_min_param_value_for_best_neighbors_coverage</span><span class="p">(</span>
     <span class="n">index</span><span class="p">:</span> <span class="n">faiss</span><span class="o">.</span><span class="n">Index</span><span class="p">,</span>
     <span class="n">parameter_range</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">T</span><span class="p">],</span>
     <span class="n">hyperparameter_str_from_param</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">T</span><span class="p">],</span> <span class="nb">str</span><span class="p">],</span>
@@ -451,7 +449,7 @@
     <span class="n">query_vectors</span> <span class="o">=</span> <span class="n">index</span><span class="o">.</span><span class="n">reconstruct_n</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">index</span><span class="o">.</span><span class="n">ntotal</span><span class="p">,</span> <span class="mi">100</span><span class="p">))</span>
 
     <span class="c1"># Function to compute the coverage of the nearest neighbors</span>
-    <span class="k">def</span> <span class="nf">get_nearest_neighbors_coverage</span><span class="p">(</span><span class="n">k</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_nearest_neighbors_coverage</span><span class="p">(</span><span class="n">k</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
         <span class="n">ind</span> <span class="o">=</span> <span class="n">index</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">query_vectors</span><span class="p">,</span> <span class="n">k</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
         <span class="k">return</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">ind</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="n">ind</span><span class="o">.</span><span class="n">size</span>
 
@@ -499,7 +497,7 @@
         <span class="n">targeted_coverage</span> <span class="o">=</span> <span class="mf">0.95</span> <span class="o">*</span> <span class="n">max_nearest_neighbors_coverage</span>
 
     <span class="c1"># Intialize the binary search</span>
-    <span class="k">def</span> <span class="nf">is_meeting_constraint</span><span class="p">(</span><span class="n">rank</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_meeting_constraint</span><span class="p">(</span><span class="n">rank</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="n">parameter_value</span> <span class="o">=</span> <span class="n">parameter_range</span><span class="p">[</span><span class="n">rank</span><span class="p">]</span>
         <span class="n">param_str</span> <span class="o">=</span> <span class="n">hyperparameter_str_from_param</span><span class="p">(</span><span class="n">parameter_value</span><span class="p">)</span>
         <span class="n">set_search_hyperparameters</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">param_str</span><span class="p">,</span> <span class="n">use_gpu</span><span class="p">)</span>
@@ -516,7 +514,7 @@
 
 <div class="viewcode-block" id="binary_search_on_param">
 <a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.optimize.binary_search_on_param">[docs]</a>
-<span class="k">def</span> <span class="nf">binary_search_on_param</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">binary_search_on_param</span><span class="p">(</span>
     <span class="n">index</span><span class="p">:</span> <span class="n">faiss</span><span class="o">.</span><span class="n">Index</span><span class="p">,</span>
     <span class="n">parameter_range</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">T</span><span class="p">],</span>
     <span class="n">max_speed_ms</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>  <span class="c1"># milliseconds</span>
@@ -555,7 +553,7 @@
         <span class="n">speed_test_ms_per_query</span><span class="p">,</span> <span class="n">query</span><span class="o">=</span><span class="n">query_vectors</span><span class="p">,</span> <span class="n">ksearch</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span> <span class="n">timout_s</span><span class="o">=</span><span class="nb">min</span><span class="p">(</span><span class="n">max_timeout_per_iteration_s</span><span class="p">,</span> <span class="n">timout_s</span><span class="p">)</span>
     <span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">is_not_acceptable_speed</span><span class="p">(</span><span class="n">rank</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_not_acceptable_speed</span><span class="p">(</span><span class="n">rank</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="n">parameter_value</span> <span class="o">=</span> <span class="n">parameter_range</span><span class="p">[</span><span class="n">rank</span><span class="p">]</span>
         <span class="n">param_str</span> <span class="o">=</span> <span class="n">hyperparameter_str_from_param</span><span class="p">(</span><span class="n">parameter_value</span><span class="p">)</span>
         <span class="n">set_search_hyperparameters</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">param_str</span><span class="p">,</span> <span class="n">use_gpu</span><span class="p">)</span>
@@ -587,7 +585,7 @@
 
 <div class="viewcode-block" id="get_optimal_hyperparameters">
 <a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.optimize.get_optimal_hyperparameters">[docs]</a>
-<span class="k">def</span> <span class="nf">get_optimal_hyperparameters</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_optimal_hyperparameters</span><span class="p">(</span>
     <span class="n">index</span><span class="p">,</span>
     <span class="n">index_key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">max_speed_ms</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>  <span class="c1"># milliseconds</span>
@@ -662,7 +660,7 @@
 
 <div class="viewcode-block" id="optimize_and_measure_index">
 <a class="viewcode-back" href="../../../_source/autofaiss.external.html#autofaiss.external.optimize.optimize_and_measure_index">[docs]</a>
-<span class="k">def</span> <span class="nf">optimize_and_measure_index</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">optimize_and_measure_index</span><span class="p">(</span>
     <span class="n">embedding_reader</span><span class="p">:</span> <span class="n">EmbeddingReader</span><span class="p">,</span>
     <span class="n">index</span><span class="p">:</span> <span class="n">faiss</span><span class="o">.</span><span class="n">Index</span><span class="p">,</span>
     <span class="n">index_infos_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>

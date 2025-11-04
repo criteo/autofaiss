@@ -1,23 +1,21 @@
+
+
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" data-content_root="../../../">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>autofaiss.indices.index_utils &mdash; autofaiss 1.0.0 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script src="../../../_static/jquery.js?v=5d32c60e"></script>
-        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="../../../_static/documentation_options.js?v=8d563738"></script>
-        <script src="../../../_static/doctools.js?v=888ff710"></script>
-        <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
-        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" /> 
@@ -92,27 +90,27 @@
   <h1>Source code for autofaiss.indices.index_utils</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot; useful functions to apply on an index &quot;&quot;&quot;</span>
 
-<span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">time</span>
-<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
-<span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">chain</span><span class="p">,</span> <span class="n">repeat</span>
-<span class="kn">from</span> <span class="nn">multiprocessing.pool</span> <span class="kn">import</span> <span class="n">ThreadPool</span>
-<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
-<span class="kn">from</span> <span class="nn">tempfile</span> <span class="kn">import</span> <span class="n">NamedTemporaryFile</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span>
-<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">partial</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">itertools</span><span class="w"> </span><span class="kn">import</span> <span class="n">chain</span><span class="p">,</span> <span class="n">repeat</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">multiprocessing.pool</span><span class="w"> </span><span class="kn">import</span> <span class="n">ThreadPool</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tempfile</span><span class="w"> </span><span class="kn">import</span> <span class="n">NamedTemporaryFile</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 
-<span class="kn">from</span> <span class="nn">faiss</span> <span class="kn">import</span> <span class="n">extract_index_ivf</span>
-<span class="kn">import</span> <span class="nn">faiss</span>
-<span class="kn">import</span> <span class="nn">fsspec</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">faiss</span><span class="w"> </span><span class="kn">import</span> <span class="n">extract_index_ivf</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">faiss</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">fsspec</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;autofaiss&quot;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="get_index_size">
 <a class="viewcode-back" href="../../../_source/autofaiss.indices.html#autofaiss.indices.index_utils.get_index_size">[docs]</a>
-<span class="k">def</span> <span class="nf">get_index_size</span><span class="p">(</span><span class="n">index</span><span class="p">:</span> <span class="n">faiss</span><span class="o">.</span><span class="n">Index</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_index_size</span><span class="p">(</span><span class="n">index</span><span class="p">:</span> <span class="n">faiss</span><span class="o">.</span><span class="n">Index</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Returns the size in RAM of a given index&quot;&quot;&quot;</span>
     <span class="k">with</span> <span class="n">NamedTemporaryFile</span><span class="p">()</span> <span class="k">as</span> <span class="n">tmp_file</span><span class="p">:</span>
         <span class="c1"># it&#39;s not allowed to re-open the file on windows</span>
@@ -129,7 +127,7 @@
 
 <div class="viewcode-block" id="speed_test_ms_per_query">
 <a class="viewcode-back" href="../../../_source/autofaiss.indices.html#autofaiss.indices.index_utils.speed_test_ms_per_query">[docs]</a>
-<span class="k">def</span> <span class="nf">speed_test_ms_per_query</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">speed_test_ms_per_query</span><span class="p">(</span>
     <span class="n">index</span><span class="p">:</span> <span class="n">faiss</span><span class="o">.</span><span class="n">Index</span><span class="p">,</span> <span class="n">query</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">ksearch</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">40</span><span class="p">,</span> <span class="n">timout_s</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mf">5.0</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Evaluate the average speed in milliseconds of the index without using batch&quot;&quot;&quot;</span>
@@ -158,7 +156,7 @@
 
 <div class="viewcode-block" id="search_speed_test">
 <a class="viewcode-back" href="../../../_source/autofaiss.indices.html#autofaiss.indices.index_utils.search_speed_test">[docs]</a>
-<span class="k">def</span> <span class="nf">search_speed_test</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">search_speed_test</span><span class="p">(</span>
     <span class="n">index</span><span class="p">:</span> <span class="n">faiss</span><span class="o">.</span><span class="n">Index</span><span class="p">,</span> <span class="n">query</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">ksearch</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">40</span><span class="p">,</span> <span class="n">timout_s</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mf">10.0</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;return the average and 99p search speed&quot;&quot;&quot;</span>
@@ -199,7 +197,7 @@
 
 <div class="viewcode-block" id="format_speed_ms_per_query">
 <a class="viewcode-back" href="../../../_source/autofaiss.indices.html#autofaiss.indices.index_utils.format_speed_ms_per_query">[docs]</a>
-<span class="k">def</span> <span class="nf">format_speed_ms_per_query</span><span class="p">(</span><span class="n">speed</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">format_speed_ms_per_query</span><span class="p">(</span><span class="n">speed</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;format the speed (ms/query) into a nice string&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">speed</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> ms/query&quot;</span></div>
 
@@ -207,7 +205,7 @@
 
 <div class="viewcode-block" id="quantize_vec_without_modifying_index">
 <a class="viewcode-back" href="../../../_source/autofaiss.indices.html#autofaiss.indices.index_utils.quantize_vec_without_modifying_index">[docs]</a>
-<span class="k">def</span> <span class="nf">quantize_vec_without_modifying_index</span><span class="p">(</span><span class="n">index</span><span class="p">:</span> <span class="n">faiss</span><span class="o">.</span><span class="n">Index</span><span class="p">,</span> <span class="n">vecs</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">quantize_vec_without_modifying_index</span><span class="p">(</span><span class="n">index</span><span class="p">:</span> <span class="n">faiss</span><span class="o">.</span><span class="n">Index</span><span class="p">,</span> <span class="n">vecs</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;qantize a batch of vectors&quot;&quot;&quot;</span>
     <span class="n">quantized_vecs</span> <span class="o">=</span> <span class="n">index</span><span class="o">.</span><span class="n">sa_decode</span><span class="p">(</span><span class="n">index</span><span class="o">.</span><span class="n">sa_encode</span><span class="p">(</span><span class="n">vecs</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">quantized_vecs</span></div>
@@ -216,7 +214,7 @@
 
 <div class="viewcode-block" id="set_search_hyperparameters">
 <a class="viewcode-back" href="../../../_source/autofaiss.indices.html#autofaiss.indices.index_utils.set_search_hyperparameters">[docs]</a>
-<span class="k">def</span> <span class="nf">set_search_hyperparameters</span><span class="p">(</span><span class="n">index</span><span class="p">:</span> <span class="n">faiss</span><span class="o">.</span><span class="n">Index</span><span class="p">,</span> <span class="n">param_str</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">use_gpu</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">set_search_hyperparameters</span><span class="p">(</span><span class="n">index</span><span class="p">:</span> <span class="n">faiss</span><span class="o">.</span><span class="n">Index</span><span class="p">,</span> <span class="n">param_str</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">use_gpu</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;set hyperparameters to an index&quot;&quot;&quot;</span>
     <span class="c1"># depends on installed faiss version # pylint: disable=no-member</span>
     <span class="n">params</span> <span class="o">=</span> <span class="n">faiss</span><span class="o">.</span><span class="n">ParameterSpace</span><span class="p">()</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">use_gpu</span> <span class="k">else</span> <span class="n">faiss</span><span class="o">.</span><span class="n">GpuParameterSpace</span><span class="p">()</span>
@@ -226,7 +224,7 @@
 
 <div class="viewcode-block" id="get_index_from_bytes">
 <a class="viewcode-back" href="../../../_source/autofaiss.indices.html#autofaiss.indices.index_utils.get_index_from_bytes">[docs]</a>
-<span class="k">def</span> <span class="nf">get_index_from_bytes</span><span class="p">(</span><span class="n">index_bytes</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">bytearray</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">faiss</span><span class="o">.</span><span class="n">Index</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_index_from_bytes</span><span class="p">(</span><span class="n">index_bytes</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">bytearray</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">faiss</span><span class="o">.</span><span class="n">Index</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Transforms a bytearray containing a faiss index into the corresponding object.&quot;&quot;&quot;</span>
 
     <span class="k">with</span> <span class="n">NamedTemporaryFile</span><span class="p">(</span><span class="n">delete</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="k">as</span> <span class="n">output_file</span><span class="p">:</span>
@@ -241,7 +239,7 @@
 
 <div class="viewcode-block" id="get_bytes_from_index">
 <a class="viewcode-back" href="../../../_source/autofaiss.indices.html#autofaiss.indices.index_utils.get_bytes_from_index">[docs]</a>
-<span class="k">def</span> <span class="nf">get_bytes_from_index</span><span class="p">(</span><span class="n">index</span><span class="p">:</span> <span class="n">faiss</span><span class="o">.</span><span class="n">Index</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytearray</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_bytes_from_index</span><span class="p">(</span><span class="n">index</span><span class="p">:</span> <span class="n">faiss</span><span class="o">.</span><span class="n">Index</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytearray</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Transforms a faiss index into a bytearray.&quot;&quot;&quot;</span>
 
     <span class="k">with</span> <span class="n">NamedTemporaryFile</span><span class="p">(</span><span class="n">delete</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="k">as</span> <span class="n">output_file</span><span class="p">:</span>
@@ -257,17 +255,17 @@
 
 <div class="viewcode-block" id="parallel_download_indices_from_remote">
 <a class="viewcode-back" href="../../../_source/autofaiss.indices.html#autofaiss.indices.index_utils.parallel_download_indices_from_remote">[docs]</a>
-<span class="k">def</span> <span class="nf">parallel_download_indices_from_remote</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">parallel_download_indices_from_remote</span><span class="p">(</span>
     <span class="n">fs</span><span class="p">:</span> <span class="n">fsspec</span><span class="o">.</span><span class="n">AbstractFileSystem</span><span class="p">,</span> <span class="n">indices_file_paths</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">dst_folder</span><span class="p">:</span> <span class="nb">str</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Download small indices in parallel.&quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">_download_one</span><span class="p">(</span><span class="n">src_dst_path</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="n">fs</span><span class="p">:</span> <span class="n">fsspec</span><span class="o">.</span><span class="n">AbstractFileSystem</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_download_one</span><span class="p">(</span><span class="n">src_dst_path</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="n">fs</span><span class="p">:</span> <span class="n">fsspec</span><span class="o">.</span><span class="n">AbstractFileSystem</span><span class="p">):</span>
         <span class="n">src_path</span><span class="p">,</span> <span class="n">dst_path</span> <span class="o">=</span> <span class="n">src_dst_path</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">fs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">src_path</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to download </span><span class="si">{</span><span class="n">src_path</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="n">dst_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span> <span class="kn">from</span> <span class="nn">e</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to download </span><span class="si">{</span><span class="n">src_path</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="n">dst_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
 
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">indices_file_paths</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">return</span>
@@ -282,7 +280,7 @@
 
 <div class="viewcode-block" id="initialize_direct_map">
 <a class="viewcode-back" href="../../../_source/autofaiss.indices.html#autofaiss.indices.index_utils.initialize_direct_map">[docs]</a>
-<span class="k">def</span> <span class="nf">initialize_direct_map</span><span class="p">(</span><span class="n">index</span><span class="p">:</span> <span class="n">faiss</span><span class="o">.</span><span class="n">Index</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">initialize_direct_map</span><span class="p">(</span><span class="n">index</span><span class="p">:</span> <span class="n">faiss</span><span class="o">.</span><span class="n">Index</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="n">nested_index</span> <span class="o">=</span> <span class="n">extract_index_ivf</span><span class="p">(</span><span class="n">index</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">faiss</span><span class="o">.</span><span class="n">IndexPreTransform</span><span class="p">)</span> <span class="k">else</span> <span class="n">index</span>
 
     <span class="c1"># Make direct map is only implemented for IndexIVF and IndexBinaryIVF, see built file faiss/swigfaiss.py</span>
@@ -293,7 +291,7 @@
 
 <div class="viewcode-block" id="save_index">
 <a class="viewcode-back" href="../../../_source/autofaiss.indices.html#autofaiss.indices.index_utils.save_index">[docs]</a>
-<span class="k">def</span> <span class="nf">save_index</span><span class="p">(</span><span class="n">index</span><span class="p">:</span> <span class="n">faiss</span><span class="o">.</span><span class="n">Index</span><span class="p">,</span> <span class="n">root_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">index_filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">save_index</span><span class="p">(</span><span class="n">index</span><span class="p">:</span> <span class="n">faiss</span><span class="o">.</span><span class="n">Index</span><span class="p">,</span> <span class="n">root_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">index_filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Save index&quot;&quot;&quot;</span>
     <span class="n">fs</span> <span class="o">=</span> <span class="n">fsspec</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">url_to_fs</span><span class="p">(</span><span class="n">root_dir</span><span class="p">,</span> <span class="n">use_listings_cache</span><span class="o">=</span><span class="kc">False</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
     <span class="n">fs</span><span class="o">.</span><span class="n">mkdirs</span><span class="p">(</span><span class="n">root_dir</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -306,12 +304,12 @@
 
 <div class="viewcode-block" id="load_index">
 <a class="viewcode-back" href="../../../_source/autofaiss.indices.html#autofaiss.indices.index_utils.load_index">[docs]</a>
-<span class="k">def</span> <span class="nf">load_index</span><span class="p">(</span><span class="n">index_src_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">index_dst_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">faiss</span><span class="o">.</span><span class="n">Index</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">load_index</span><span class="p">(</span><span class="n">index_src_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">index_dst_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">faiss</span><span class="o">.</span><span class="n">Index</span><span class="p">:</span>
     <span class="n">fs</span> <span class="o">=</span> <span class="n">fsspec</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">url_to_fs</span><span class="p">(</span><span class="n">index_src_path</span><span class="p">,</span> <span class="n">use_listings_cache</span><span class="o">=</span><span class="kc">False</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">fs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">index_src_path</span><span class="p">,</span> <span class="n">index_dst_path</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to download index from </span><span class="si">{</span><span class="n">index_src_path</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="n">index_dst_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span> <span class="kn">from</span> <span class="nn">e</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to download index from </span><span class="si">{</span><span class="n">index_src_path</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="n">index_dst_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
     <span class="k">return</span> <span class="n">faiss</span><span class="o">.</span><span class="n">read_index</span><span class="p">(</span><span class="n">index_dst_path</span><span class="p">)</span></div>
 
 </pre></div>

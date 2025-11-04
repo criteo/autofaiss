@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" data-content_root="../../">
 <head>
@@ -5,20 +7,16 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>autofaiss.external.quantize.build_index &mdash; autofaiss 1.0.0 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
-      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script src="../../_static/jquery.js?v=5d32c60e"></script>
-        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="../../_static/documentation_options.js?v=8d563738"></script>
-        <script src="../../_static/doctools.js?v=888ff710"></script>
-        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
-        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -114,36 +112,36 @@ The index is stored on the current machine at the given output path.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>embeddings</strong> (<em>Union</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><em>str</em></a><em>, </em><em>np.ndarray</em><em>, </em><em>List</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><em>str</em></a><em>]</em><em>]</em>) – Local path containing all preprocessed vectors and cached files.
+<li><p><strong>embeddings</strong> (<em>Union</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><em>np.ndarray</em><em>, </em><em>List</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>]</em><em>]</em>) – Local path containing all preprocessed vectors and cached files.
 This could be a single directory or multiple directories.
 Files will be added if empty.
 Or directly the Numpy array of embeddings</p></li>
-<li><p><strong>index_path</strong> (<em>Optional</em><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><em>str</em></a><em>)</em>) – Destination path of the quantized model.</p></li>
-<li><p><strong>index_infos_path</strong> (<em>Optional</em><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><em>str</em></a><em>)</em>) – Destination path of the metadata file.</p></li>
-<li><p><strong>ids_path</strong> (<em>Optional</em><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><em>str</em></a><em>)</em>) – Only useful when id_columns is not None and file_format=`parquet`. T
+<li><p><strong>index_path</strong> (<em>Optional</em><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>)</em>) – Destination path of the quantized model.</p></li>
+<li><p><strong>index_infos_path</strong> (<em>Optional</em><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>)</em>) – Destination path of the metadata file.</p></li>
+<li><p><strong>ids_path</strong> (<em>Optional</em><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>)</em>) – Only useful when id_columns is not None and file_format=`parquet`. T
 his will be the path (in any filesystem)
 where the mapping files Ids-&gt;vector index will be store in parquet format</p></li>
-<li><p><strong>save_on_disk</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><em>bool</em></a>) – Whether to save the index on disk, default to True.</p></li>
-<li><p><strong>file_format</strong> (<em>Optional</em><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><em>str</em></a><em>)</em>) – npy or parquet ; default npy</p></li>
-<li><p><strong>embedding_column_name</strong> (<em>Optional</em><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><em>str</em></a><em>)</em>) – embeddings column name for parquet ; default embedding</p></li>
-<li><p><strong>id_columns</strong> (<em>Optional</em><em>(</em><em>List</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><em>str</em></a><em>]</em><em>)</em>) – Can only be used when file_format=`parquet`.
+<li><p><strong>save_on_disk</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Whether to save the index on disk, default to True.</p></li>
+<li><p><strong>file_format</strong> (<em>Optional</em><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>)</em>) – npy or parquet ; default npy</p></li>
+<li><p><strong>embedding_column_name</strong> (<em>Optional</em><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>)</em>) – embeddings column name for parquet ; default embedding</p></li>
+<li><p><strong>id_columns</strong> (<em>Optional</em><em>(</em><em>List</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>]</em><em>)</em>) – Can only be used when file_format=`parquet`.
 In this case these are the names of the columns containing the Ids of the vectors,
 and separate files will be generated to map these ids to indices in the KNN index ;
 default None</p></li>
-<li><p><strong>index_key</strong> (<em>Optional</em><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><em>str</em></a><em>)</em>) – Optional string to give to the index factory in order to create the index.
+<li><p><strong>index_key</strong> (<em>Optional</em><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>)</em>) – Optional string to give to the index factory in order to create the index.
 If None, an index is chosen based on an heuristic.</p></li>
-<li><p><strong>index_param</strong> (<em>Optional</em><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><em>str</em></a><em>)</em>) – Optional string with hyperparameters to set to the index.
+<li><p><strong>index_param</strong> (<em>Optional</em><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>)</em>) – Optional string with hyperparameters to set to the index.
 If None, the hyper-parameters are chosen based on an heuristic.</p></li>
-<li><p><strong>max_index_query_time_ms</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><em>float</em></a>) – Bound on the query time for KNN search, this bound is approximative</p></li>
-<li><p><strong>max_index_memory_usage</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><em>str</em></a>) – Maximum size allowed for the index, this bound is strict</p></li>
-<li><p><strong>min_nearest_neighbors_to_retrieve</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><em>int</em></a>) – Minimum number of nearest neighbors to retrieve when querying the index.
+<li><p><strong>max_index_query_time_ms</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – Bound on the query time for KNN search, this bound is approximative</p></li>
+<li><p><strong>max_index_memory_usage</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Maximum size allowed for the index, this bound is strict</p></li>
+<li><p><strong>min_nearest_neighbors_to_retrieve</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Minimum number of nearest neighbors to retrieve when querying the index.
 Parameter used only during index hyperparameter finetuning step, it is
 not taken into account to select the indexing algorithm.
 This parameter has the priority over the max_index_query_time_ms constraint.</p></li>
-<li><p><strong>current_memory_available</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><em>str</em></a>) – Memory available on the machine creating the index, having more memory is a boost
+<li><p><strong>current_memory_available</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Memory available on the machine creating the index, having more memory is a boost
 because it reduces the swipe between RAM and disk.</p></li>
-<li><p><strong>use_gpu</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><em>bool</em></a>) – Experimental, gpu training is faster, not tested so far</p></li>
-<li><p><strong>metric_type</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><em>str</em></a>) – <dl class="simple">
+<li><p><strong>use_gpu</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Experimental, gpu training is faster, not tested so far</p></li>
+<li><p><strong>metric_type</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – <dl class="simple">
 <dt>Similarity function used for query:</dt><dd><ul>
 <li><p>”ip” for inner product</p></li>
 <li><p>”l2” for euclidian distance</p></li>
@@ -151,17 +149,17 @@ because it reduces the swipe between RAM and disk.</p></li>
 </dd>
 </dl>
 </p></li>
-<li><p><strong>nb_cores</strong> (<em>Optional</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><em>int</em></a><em>]</em>) – Number of cores to use. Will try to guess the right number if not provided</p></li>
-<li><p><strong>make_direct_map</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><em>bool</em></a>) – Create a direct map allowing reconstruction of embeddings. This is only needed for IVF indices.
+<li><p><strong>nb_cores</strong> (<em>Optional</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>]</em>) – Number of cores to use. Will try to guess the right number if not provided</p></li>
+<li><p><strong>make_direct_map</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Create a direct map allowing reconstruction of embeddings. This is only needed for IVF indices.
 Note that might increase the RAM usage (approximately 8GB for 1 billion embeddings)</p></li>
-<li><p><strong>should_be_memory_mappable</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><em>bool</em></a>) – If set to true, the created index will be selected only among the indices that can be memory-mapped on disk.
+<li><p><strong>should_be_memory_mappable</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – If set to true, the created index will be selected only among the indices that can be memory-mapped on disk.
 This makes it possible to use 50GB indices on a machine with only 1GB of RAM. Default to False</p></li>
-<li><p><strong>distributed</strong> (<em>Optional</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><em>str</em></a><em>]</em>) – If “pyspark”, create the indices using pyspark.
+<li><p><strong>distributed</strong> (<em>Optional</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>]</em>) – If “pyspark”, create the indices using pyspark.
 Only “parquet” file format is supported.</p></li>
-<li><p><strong>temporary_indices_folder</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><em>str</em></a>) – Folder to save the temporary small indices that are generated by each spark executor.
+<li><p><strong>temporary_indices_folder</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Folder to save the temporary small indices that are generated by each spark executor.
 Only used when distributed = “pyspark”.</p></li>
-<li><p><strong>verbose</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><em>int</em></a>) – set verbosity of outputs via logging level, default is <cite>logging.INFO</cite></p></li>
-<li><p><strong>nb_indices_to_keep</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><em>int</em></a>) – <p>Number of indices to keep at most when distributed is “pyspark”.
+<li><p><strong>verbose</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – set verbosity of outputs via logging level, default is <cite>logging.INFO</cite></p></li>
+<li><p><strong>nb_indices_to_keep</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – <p>Number of indices to keep at most when distributed is “pyspark”.
 It allows you to build an index larger than <cite>current_memory_available</cite>
 If it is not equal to 1,</p>
 <blockquote>
@@ -179,7 +177,7 @@ If it is not equal to 1,</p>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.12)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.12)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Index</span></code>], <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.12)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]]]</span></p>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Index</span></code>], <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]]]</span></p>
 </dd>
 </dl>
 </dd></dl>
