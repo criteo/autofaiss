@@ -57,6 +57,12 @@ def to_faiss_metric_type(metric_type: Union[str, int]) -> int:
         return faiss.METRIC_INNER_PRODUCT
     elif metric_type in ["l2", "L2", faiss.METRIC_L2]:
         return faiss.METRIC_L2
+    elif metric_type in ["l1", "L1", faiss.METRIC_L1]:
+        return faiss.METRIC_L1
+    elif metric_type in ["jaccard", "JACCARD", faiss.METRIC_Jaccard]:
+        return faiss.METRIC_Jaccard
+    elif metric_type in ["canberra", "CANBERRA", faiss.METRIC_Canberra]:
+        return faiss.METRIC_Canberra
     else:
         raise ValueError("Metric currently not supported")
 
