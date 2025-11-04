@@ -386,7 +386,7 @@ def test_index_correctness_in_distributed_mode_with_multiple_indices(tmpdir):
         file_format="parquet",
         temporary_indices_folder=temporary_indices_folder,
         max_index_memory_usage="2GB",
-        current_memory_available="500MB",
+        current_memory_available="4GB",
         embedding_column_name="embedding",
         index_key="IVF1,Flat",
         should_be_memory_mappable=True,
@@ -394,6 +394,7 @@ def test_index_correctness_in_distributed_mode_with_multiple_indices(tmpdir):
         nb_indices_to_keep=2,
         save_on_disk=True,
         id_columns=["id"],
+        index_param="nprobe=1",
     )
     index_paths = sorted(index_path2_metric_infos.keys())
     K, NB_QUERIES = 5, 1
@@ -427,11 +428,12 @@ def test_index_correctness_in_distributed_mode_with_multiple_indices(tmpdir):
         file_format="npy",
         temporary_indices_folder=temporary_indices_folder,
         max_index_memory_usage="2GB",
-        current_memory_available="500MB",
+        current_memory_available="4GB",
         embedding_column_name="embedding",
         index_key="IVF1,Flat",
         should_be_memory_mappable=True,
         nb_indices_to_keep=2,
+        index_param="nprobe=1",
     )
 
     ground_truth_index = faiss.index_factory(dim, "IVF1,Flat", faiss.METRIC_INNER_PRODUCT)
